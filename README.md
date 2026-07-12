@@ -1,4 +1,4 @@
-# Myntra Bharat Layer (HackerRamp)
+# Myntra HackerRamp
 
 An AI-powered, hyper-local discovery and trust layer that re-imagines Myntra for Tier-2 and Tier-3 (T2/T3) India.
 
