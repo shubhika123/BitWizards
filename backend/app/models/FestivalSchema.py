@@ -9,13 +9,16 @@ from sqlmodel import SQLModel, Field
 from typing import Optional
 from decimal import Decimal
 from sqlalchemy import UniqueConstraint
+from decimal import Decimal
+from datetime import datetime
+from sqlalchemy import JSON
 
 #Festive Calender
 class Festival(SQLModel, table=True):
     __tablename__="festivals"
     festival_id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=100, nullable=False)
-    region_tags: list[str] = Field(sa_column=Column(ARRAY(String)))
+    region_tags: Optional[list] = Field(default=None, sa_column=Column(JSON))
     start_date: date
     end_date: date
     is_active: bool = Field(default=True)
@@ -25,10 +28,24 @@ class FestivalBoostRule(SQLModel, table=True):
     __tablename__ = "festival_boost_rules" 
     id: Optional[int] = Field(default=None, primary_key=True)
     festival_id: int = Field(foreign_key="festivals.festival_id")
-    category_id: int = Field(foreign_key="categories.category_id")
+    category_id: int =Field(nullable=False)
     tag: Optional[str] = Field(default=None, max_length=50)
     max_boost: Decimal = Field(max_digits=4, decimal_places=2, nullable=False)
     __table_args__ = (
         UniqueConstraint("festival_id", "category_id", "tag", name="uq_festival_category_tag"),
     )
 
+class User(SQLModel, table=True):
+    __tablename__ = "users"
+
+    user_id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(max_length=100, nullable=False)
+    username: str = Field(max_length=50, unique=True, nullable=False)
+    password_hash: str = Field(max_length=255, nullable=False)
+    email: Optional[str] = Field(default=None, max_length=150, unique=True)
+    region: Optional[str] = Field(default=None, max_length=50)
+    latitude: Decimal = Field(max_digits=10, decimal_places=8, nullable=False)
+    longitude: Decimal = Field(max_digits=11, decimal_places=8, nullable=False)
+    address: Optional[str] = Field(default=None)
+    pincode: Optional[str] = Field(default=None, max_length=10)
+    muted_festivals: Optional[list] = Field(default=None, sa_column=Column(JSON))
