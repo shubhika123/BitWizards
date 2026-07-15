@@ -92,12 +92,6 @@ export default function RootLayout({
                 <span className="text-[8.5px] font-extrabold tracking-wider uppercase">Home</span>
               </Link>
 
-              {/* Genie Stylist Tab */}
-              <Link href="/genie" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/genie" ? "text-[#ff3f6c]" : "text-gray-450 hover:text-[#ff3f6c]"}`}>
-                <Sparkles className="w-4.5 h-4.5" />
-                <span className="text-[8.5px] font-bold tracking-wider uppercase mt-0.5">Genie AI</span>
-              </Link>
-
               {/* Bharat Feed Tab */}
               <Link href="/bharat-feed" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/bharat-feed" ? "text-[#ff3f6c]" : "text-gray-450 hover:text-[#ff3f6c]"}`}>
                 <span className="text-[10px] font-black italic tracking-tighter">fwd</span>
