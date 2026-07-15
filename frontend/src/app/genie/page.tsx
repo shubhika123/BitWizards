@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import { DigitalTwin } from "../../components/DigitalTwin";
 import { useGenieStore, GenieItem } from "../../store/genieStore";
@@ -76,6 +76,30 @@ export default function GeniePage() {
   const [tempWeight, setTempWeight] = useState(dummySettings.weight);
   const [tempSize, setTempSize] = useState(dummySettings.size);
 
+  // Sync localStorage settings on mount & check query params
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const query = params.get("q");
+      if (query) {
+        setPrompt(query);
+      }
+    }
+
+    const saved = localStorage.getItem("dummySettings");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        updateDummy(parsed);
+        if (parsed.height) setTempHeight(parsed.height);
+        if (parsed.weight) setTempWeight(parsed.weight);
+        if (parsed.size) setTempSize(parsed.size);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
   const usedBudget = getUsedBudget();
   const budgetPercentage = Math.min(100, (usedBudget / maxBudget) * 100);
   const isOverBudget = usedBudget > maxBudget;
@@ -117,6 +141,8 @@ export default function GeniePage() {
       weight: tempWeight,
       size: tempSize,
     });
+    const settings = { height: tempHeight, weight: tempWeight, size: tempSize };
+    localStorage.setItem("dummySettings", JSON.stringify(settings));
     setShowDummyModal(false);
   };
 
@@ -144,8 +170,8 @@ export default function GeniePage() {
         
         {/* 2. Budget Tracker (Top Bar) */}
         <div className="bg-white border border-myntra-border rounded-xl p-4 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center justify-between md:justify-start gap-2">
+          <div className="flex flex-col gap-3.5">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-myntra-pink animate-pulse" />
                 <span className="text-sm font-semibold text-myntra-dark">
@@ -158,7 +184,7 @@ export default function GeniePage() {
             </div>
             
             {/* Progress Bar */}
-            <div className="w-full md:flex-1 md:max-w-xl flex items-center gap-3">
+            <div className="w-full flex items-center gap-3">
               <div className="flex-1 h-3 bg-myntra-gray rounded-full overflow-hidden border border-myntra-border">
                 <div 
                   className={`h-full transition-all duration-500 ease-out rounded-full ${
@@ -172,7 +198,7 @@ export default function GeniePage() {
               </span>
             </div>
 
-            <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4">
+            <div className="flex items-center justify-between w-full gap-4">
               <span className={`text-sm font-bold ${isOverBudget ? "text-red-500" : "text-emerald-600"}`}>
                 {isOverBudget 
                   ? `₹${(usedBudget - maxBudget).toLocaleString()} Over` 
@@ -199,11 +225,11 @@ export default function GeniePage() {
           </div>
         </div>
 
-        {/* 3. Interactive 3-Column Canvas Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* 3. Interactive Stacked Canvas Layout */}
+        <div className="flex flex-col gap-5 items-stretch">
           
           {/* Left Column: FOOTWEAR & ACCESSORY */}
-          <div className="order-2 lg:order-1 lg:col-span-3 grid grid-cols-2 lg:flex lg:flex-col gap-4">
+          <div className="order-2 grid grid-cols-2 gap-3.5">
             {/* FOOTWEAR SLOT */}
             <div 
               onClick={() => setSwapCategory("FOOTWEAR")}
@@ -316,7 +342,7 @@ export default function GeniePage() {
           </div>
 
           {/* Center Column: Your Look / Dummy */}
-          <div className="order-1 lg:order-2 lg:col-span-6 flex flex-col items-center bg-white border border-myntra-border rounded-xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
+          <div className="order-1 flex flex-col items-center bg-white border border-myntra-border rounded-xl p-4 shadow-sm relative overflow-hidden">
             <div className="w-full flex justify-between items-center mb-4 z-10">
               <h3 className="text-sm sm:text-base font-bold text-myntra-dark">
                 Your Look
@@ -345,7 +371,7 @@ export default function GeniePage() {
           </div>
 
           {/* Right Column: TOP & BOTTOM */}
-          <div className="order-3 lg:order-3 lg:col-span-3 grid grid-cols-2 lg:flex lg:flex-col gap-4">
+          <div className="order-3 grid grid-cols-2 gap-3.5">
             {/* TOP SLOT */}
             <div 
               onClick={() => setSwapCategory("TOP")}
@@ -474,8 +500,8 @@ export default function GeniePage() {
               </span>
             </div>
 
-            {/* Horizontal Scroll on Mobile, Grid on Desktop */}
-            <div className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory scrollbar-none pb-2 md:pb-0">
+            {/* Horizontal Scroll Reel */}
+            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-2">
               {ALTERNATIVES_MOCK[activeSwapCategory]?.map((alt) => {
                 const isActive = canvasItems[activeSwapCategory]?.id === alt.id;
                 return (
@@ -488,7 +514,7 @@ export default function GeniePage() {
                       price: alt.price,
                       image: alt.image,
                     })}
-                    className={`border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all min-w-[260px] md:min-w-0 snap-start shrink-0 md:shrink ${
+                    className={`border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all min-w-[260px] snap-start shrink-0 ${
                       isActive 
                         ? "border-myntra-pink bg-pink-50/30 ring-1 ring-myntra-pink shadow-sm" 
                         : "border-myntra-border hover:border-myntra-light hover:bg-myntra-gray/20"

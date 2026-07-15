@@ -3,11 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
-import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap } from "lucide-react";
+import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck } from "lucide-react";
 
 export default function Home() {
-  const [activePromoIndex, setActivePromoIndex] = useState(0);
-
   const categories = [
     {
       name: "Ethnic Wear",
@@ -49,254 +47,305 @@ export default function Home() {
       discount: "UP TO 70% OFF",
       image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&w=400&q=80",
     },
-    {
-      name: "Lingerie",
-      discount: "UP TO 70% OFF",
-      image: "https://images.unsplash.com/photo-1569591159212-b02ea8a9f239?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Watches",
-      discount: "UP TO 80% OFF",
-      image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Grooming",
-      discount: "UP TO 60% OFF",
-      image: "https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Beauty & Makeup",
-      discount: "UP TO 60% OFF",
-      image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=400&q=80",
-    },
-  ];
-
-  const pocketFriendlyDeals = [
-    { label: "Under ₹99", href: "/" },
-    { label: "Flat 80% Off", href: "/" },
-    { label: "Under ₹299", href: "/" },
-    { label: "Under ₹399", href: "/" },
-    { label: "Under ₹499", href: "/" },
   ];
 
   return (
-    <div className="bg-white min-h-screen flex flex-col font-sans">
+    <div className="bg-white min-h-screen flex flex-col font-sans relative">
       {/* Header */}
       <Header />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-        
-        {/* Top Promotional Coupon Banner */}
-        <div className="bg-gradient-to-r from-[#fff0f3] to-[#ffe5ec] py-3 sm:py-4 px-4 text-center border-b border-[#ffd1dc]">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 text-[#282c3f]">
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <span className="bg-[#ff3f6c] text-white text-[10px] sm:text-xs font-extrabold px-2 py-1 rounded">COUPON</span>
-              <span className="font-extrabold text-sm sm:text-base md:text-lg tracking-wide">Get 25% Off Up To ₹200 Off*</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white px-3 sm:px-4 py-1 sm:py-1.5 rounded-md border-2 border-dashed border-[#ff3f6c]">
-              <span className="text-[10px] sm:text-xs text-[#535766] uppercase font-bold">Code:</span>
-              <span className="font-extrabold text-sm sm:text-base text-[#ff3f6c] tracking-wider">MYNTRASAVE</span>
-            </div>
-            <span className="text-[10px] sm:text-xs text-[#535766] font-medium">On Your First Order | T&C Apply</span>
+      <main className="flex-1 flex flex-col pb-6">
+        {/* 1. Location Indicator Row */}
+        <div className="bg-[#fff5f2] px-3.5 py-2 flex items-center justify-between text-[10px] text-gray-700 font-bold border-b border-orange-100 select-none animate-fade-in">
+          <div className="flex items-center gap-1.5 truncate">
+            <MapPin className="w-3.5 h-3.5 text-[#ff3f6c] shrink-0" />
+            <span className="truncate">Deliver to INDIRA GANDHI DELHI TECHNICAL UNIVERSIT...</span>
           </div>
+          <span className="text-gray-400 font-black shrink-0">∨</span>
         </div>
 
-        {/* Hero Banner Carousel (fwd Gen-Z Fashion) */}
-        <div className="w-full bg-[#fff9f3] py-6 sm:py-12 px-4 md:px-12 border-b border-[#f5f5f6]">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-center">
-            {/* Left Content */}
-            <div className="md:col-span-5 space-y-4 sm:space-y-6 text-center md:text-left">
-              <div className="inline-flex items-center gap-1.5 bg-[#ff3f6c]/10 text-[#ff3f6c] text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                <Percent className="w-3.5 h-3.5" /> First Order Special
-              </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#282c3f] leading-tight">
-                Gen-Z Fashion <br />
-                For All <span className="text-[#ff3f6c] font-black italic">fwd</span>
-              </h1>
-              <p className="text-sm sm:text-base md:text-lg text-[#535766] font-medium">
-                Trending styles, bold aesthetics, and everyday essentials.
-              </p>
-              <div className="text-2xl sm:text-3xl font-black text-[#282c3f]">
-                UNDER <span className="text-[#ff3f6c]">₹999</span>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-                <Link 
-                  href="/" 
-                  className="bg-[#282c3f] hover:bg-[#151722] text-white font-bold px-8 py-3.5 rounded-md text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-md"
-                >
-                  Shop Now <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
+        {/* 2. Category Tab Bar */}
+        <div className="flex items-center justify-between px-3.5 bg-white border-b border-[#ff3f6c]/20 relative h-10 select-none text-[11.5px] font-extrabold text-gray-500">
+          <div className="flex items-center gap-5 h-full">
+            {/* ALL Tab with matching curved layout wave border */}
+            <div className="bg-white border-t-2 border-x border-[#ff3f6c] rounded-t-xl px-5 h-full flex items-center justify-center text-[#ff3f6c] font-black relative top-[1px] z-10 border-b-2 border-b-white">
+              ALL
             </div>
-
-            {/* Right Image/Visuals */}
-            <div className="md:col-span-7 relative h-[220px] sm:h-[350px] md:h-[450px] rounded-2xl overflow-hidden shadow-lg">
-              <img 
-                src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1000&q=80" 
-                alt="Gen-Z Fashion Banner" 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent flex items-end p-4 sm:p-6">
-                <div className="text-white">
-                  <span className="bg-[#ff3f6c] text-[10px] sm:text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">New Drop</span>
-                  <h3 className="text-base sm:text-xl font-bold mt-1 sm:text-2xl">Summer Streetwear Essentials</h3>
-                  <p className="text-xs sm:text-sm text-white/80">Available now with free shipping</p>
-                </div>
+            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">MEN</div>
+            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">WOMEN</div>
+            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">KIDS</div>
+          </div>
+          
+          {/* Layout Grid Dot Icon */}
+          <div className="p-1 cursor-pointer scale-90">
+            <div className="w-5.5 h-5.5 rounded-lg bg-[#282c3f] flex items-center justify-center p-1">
+              <div className="grid grid-cols-2 gap-0.5">
+                <span className="w-1.2 h-1.2 rounded-full bg-white"></span>
+                <span className="w-1.2 h-1.2 rounded-full bg-white"></span>
+                <span className="w-1.2 h-1.2 rounded-full bg-white"></span>
+                <span className="w-1.2 h-1.2 rounded-full bg-white"></span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Myntra Genie Premium Entry Card */}
-        <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-12 py-6 sm:py-12">
-          <div className="bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 text-white relative overflow-hidden shadow-2xl border border-[#334155] group">
-            {/* Background glowing elements */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#ff3f6c]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
+        {/* 3. Category Story Reels */}
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none px-3.5 py-4 bg-white border-b border-gray-50 select-none">
+          {[
+            { label: "Fashion", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=150&q=80", bg: "bg-[#1c2536]", href: "/", active: true },
+            { label: "Beauty", img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=150&q=80", bg: "bg-[#f5f5f7]", href: "/" },
+            { label: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=150&q=80", bg: "bg-[#fcf3f3]", href: "/" },
+            { label: "Homeliving", img: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=150&q=80", bg: "bg-[#ffffff]", href: "/" },
+            { label: "Accessories", img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80", bg: "bg-[#3a4439]", href: "/" },
+          ].map((story, i) => (
+            <Link key={i} href={story.href} className="flex flex-col items-center shrink-0 cursor-pointer snap-start">
+              <div className={`w-14 h-14 rounded-[22px] overflow-hidden ${story.bg} border border-gray-150 relative shadow-2xs hover:scale-95 transition-all duration-200 p-0.5`}>
+                <img src={story.img} alt={story.label} className="w-full h-full object-cover rounded-[20px]" />
+              </div>
+              <span className={`text-[9px] mt-1.5 tracking-tight font-black ${story.active ? "text-[#ff3f6c]" : "text-gray-500"}`}>
+                {story.label}
+              </span>
+            </Link>
+          ))}
+        </div>
 
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-7 space-y-4 sm:space-y-6">
-                <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] text-white text-[10px] sm:text-xs px-3.5 py-1.5 rounded-full font-bold uppercase tracking-widest shadow-md">
-                  <Sparkles className="w-3.5 h-3.5 animate-spin-slow" /> MYNTRA GENIE STYLIST
+        {/* DEDICATED HIGH-FIDELITY APNA BAZAAR CAMPAIGN CARD */}
+        <Link href="/local-bazaar" className="block mx-3.5 mt-3 mb-4 group cursor-pointer select-none relative">
+          <div className="bg-[#fff6ee] border border-[#fde8d4] rounded-2xl p-4 shadow-3xs text-left relative overflow-hidden flex flex-col justify-between hover:shadow-xs transition-shadow duration-300 min-h-[200px]">
+            
+            {/* Faint hand-sketched leaf branches background decoration */}
+            <div className="absolute right-[120px] top-[15px] opacity-25 pointer-events-none select-none z-5">
+              <svg className="w-10 h-24 text-amber-600/35" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 60">
+                <path d="M12 60 C12 40 18 30 18 20 C18 10 12 5 12 0 M12 45 C15 42 19 40 19 35 C19 30 14 30 12 35 M12 35 C8 32 4 30 4 25 C4 20 9 20 12 25 M12 25 C15 22 19 20 19 15 C19 10 14 10 12 15 M12 15 C8 12 4 10 4 5 C4 0 9 0 12 5" />
+              </svg>
+            </div>
+
+            {/* Top Content Row: Stamp on left, description in middle, weaver on right */}
+            <div className="flex gap-4 items-start z-10 pr-28">
+              {/* Left Column: Double Dotted/Scalloped Stamp */}
+              <div className="w-[92px] h-[92px] shrink-0 relative flex items-center justify-center select-none scale-105">
+                {/* Custom SVG Stamp Borders */}
+                <svg className="absolute inset-0 w-full h-full rotate-[15deg]" viewBox="0 0 100 100">
+                  {/* Outer bold dotted scalloped frame */}
+                  <circle 
+                    cx="50" 
+                    cy="50" 
+                    r="46" 
+                    fill="none" 
+                    stroke="#ff3f6c" 
+                    strokeWidth="3.5" 
+                    strokeDasharray="6 7" 
+                    strokeLinecap="round"
+                  />
+                  {/* Inner thin dashed gold line */}
+                  <circle 
+                    cx="50" 
+                    cy="50" 
+                    r="40" 
+                    fill="none" 
+                    stroke="#b45309" 
+                    strokeWidth="1" 
+                    strokeDasharray="2 4" 
+                  />
+                </svg>
+
+                {/* Stamp text content absolutely centered */}
+                <div className="z-10 flex flex-col items-center justify-center text-center mt-[-2px]">
+                  <span className="text-[10px] font-black text-slate-800 leading-none tracking-tight">APNA</span>
+                  <span className="text-[10.5px] font-black text-slate-800 leading-none mt-0.5 tracking-tight">BAZAAR</span>
+                  
+                  {/* Small gold line with dot */}
+                  <div className="flex items-center gap-1 my-1">
+                    <span className="w-1.5 h-[1px] bg-amber-600/50"></span>
+                    <span className="w-1 h-1 rounded-full bg-amber-600"></span>
+                    <span className="w-1.5 h-[1px] bg-amber-600/50"></span>
+                  </div>
+
+                  <span className="text-[6.5px] font-black text-gray-500 uppercase tracking-widest leading-none">MADE IN</span>
+                  <span className="text-[7.5px] font-black text-emerald-800 tracking-tighter leading-none mt-0.5">BHARAT</span>
+                  <span className="text-xs text-red-500 leading-none mt-1">❤</span>
                 </div>
-                
-                <h2 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight leading-tight">
-                  Your Personal AI Stylist <br />
-                  Is Ready To Curate.
-                </h2>
-                
-                <p className="text-slate-300 text-sm sm:text-base md:text-lg leading-relaxed max-w-xl">
-                  Bypass the endless scroll. Type what you are shopping for in your own words (Hinglish/Telugu/Bhojpuri welcome!) and watch Genie build a cohesive 4-piece look on your custom Digital Twin.
+              </div>
+
+
+              {/* Middle Column: Text Details */}
+              <div className="flex flex-col gap-1 text-left">
+                <h4 className="text-xs font-black text-slate-800 tracking-wide">
+                  Support Local. Shop Unique.
+                </h4>
+                <p className="text-[9.5px] text-gray-500 font-bold leading-normal mt-0.5">
+                  Discover handpicked styles from <span className="text-[#ff3f6c] font-black">verified boutiques</span> near you!
                 </p>
 
-                {/* Features list */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 pt-2">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-200">
-                    <Zap className="w-4 h-4 text-[#ff3f6c] shrink-0" />
-                    <span>4-Piece Look Curation</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-200">
-                    <ShieldCheck className="w-4 h-4 text-[#ff3f6c] shrink-0" />
-                    <span>Digital Twin Fitting</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-200">
-                    <ShoppingBag className="w-4 h-4 text-[#ff3f6c] shrink-0" />
-                    <span>One-Click Checkout</span>
-                  </div>
-                </div>
-
-                <div className="pt-2 sm:pt-4">
-                  <Link 
-                    href="/genie" 
-                    className="inline-flex items-center gap-2.5 bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] hover:from-[#e02f59] hover:to-[#f05275] text-white font-extrabold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-xs sm:text-sm tracking-wider uppercase transition-all shadow-lg hover:shadow-pink-500/20 hover:scale-[1.02]"
-                  >
-                    Launch Genie Stylist <Sparkles className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Visual representation of the Genie workspace */}
-              <div className="lg:col-span-5 flex justify-center w-full">
-                <div className="bg-[#1e293b]/80 border border-[#334155] rounded-2xl p-4 sm:p-6 w-full max-w-[360px] shadow-xl relative overflow-hidden">
-                  {/* Digital Twin Placeholder */}
-                  <div className="flex items-center justify-between border-b border-[#334155] pb-3 sm:pb-4 mb-3 sm:mb-4">
-                    <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Digital Twin</span>
-                    <span className="text-[10px] sm:text-xs font-bold text-[#ff3f6c] bg-[#ff3f6c]/10 px-2 py-0.5 rounded">Active</span>
+                {/* Three feature icons side-by-side with divider lines */}
+                <div className="flex items-center gap-3 mt-2 select-none">
+                  <div className="flex flex-col items-center text-center">
+                    <ShieldCheck className="w-4 h-4 text-[#ff3f6c]" />
+                    <span className="text-[6.5px] font-black text-slate-700 leading-none mt-1.5 uppercase">Trusted</span>
+                    <span className="text-[6.5px] font-black text-slate-700 leading-none uppercase mt-0.5">Sellers</span>
                   </div>
                   
-                  {/* 2x2 Grid Preview */}
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="aspect-square bg-[#0f172a] rounded-lg border border-[#334155] p-2 flex flex-col justify-between">
-                      <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Topwear</span>
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-slate-800 mx-auto"></div>
-                      <span className="text-[8px] sm:text-[9px] text-slate-400 text-center font-semibold truncate">Kurta</span>
-                    </div>
-                    <div className="aspect-square bg-[#0f172a] rounded-lg border border-[#334155] p-2 flex flex-col justify-between">
-                      <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Bottomwear</span>
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-slate-800 mx-auto"></div>
-                      <span className="text-[8px] sm:text-[9px] text-slate-400 text-center font-semibold truncate">Palazzo</span>
-                    </div>
-                    <div className="aspect-square bg-[#0f172a] rounded-lg border border-[#334155] p-2 flex flex-col justify-between">
-                      <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Footwear</span>
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-slate-800 mx-auto"></div>
-                      <span className="text-[8px] sm:text-[9px] text-slate-400 text-center font-semibold truncate">Juttis</span>
-                    </div>
-                    <div className="aspect-square bg-[#0f172a] rounded-lg border border-[#334155] p-2 flex flex-col justify-between">
-                      <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Accessory</span>
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-slate-800 mx-auto"></div>
-                      <span className="text-[8px] sm:text-[9px] text-slate-400 text-center font-semibold truncate">Earrings</span>
-                    </div>
+                  <div className="w-[1px] h-6 bg-gray-200/80"></div>
+                  
+                  <div className="flex flex-col items-center text-center">
+                    <Truck className="w-4 h-4 text-[#ff3f6c]" />
+                    <span className="text-[6.5px] font-black text-slate-700 leading-none mt-1.5 uppercase">Fast Local</span>
+                    <span className="text-[6.5px] font-black text-slate-700 leading-none uppercase mt-0.5">Delivery</span>
                   </div>
+                  
+                  <div className="w-[1px] h-6 bg-gray-200/80"></div>
+                  
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-4 h-4 rounded-full border border-[#ff3f6c] flex items-center justify-center shrink-0">
+                      <span className="text-[8.5px] font-black text-[#ff3f6c] leading-none mt-[-1px]">₹</span>
+                    </div>
+                    <span className="text-[6.5px] font-black text-slate-700 leading-none mt-1.5 uppercase">Best Local</span>
+                    <span className="text-[6.5px] font-black text-slate-700 leading-none uppercase mt-0.5">Prices</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                  {/* Budget bar preview */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[8px] sm:text-[10px] text-slate-400 font-bold">
-                      <span>BUDGET TRACKER</span>
-                      <span className="text-[#ff3f6c]">₹4,350 / ₹5,000</span>
-                    </div>
-                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-[#ff3f6c] h-full rounded-full" style={{ width: "87%" }}></div>
-                    </div>
-                  </div>
+            {/* Right Weavers Illustration (Full Height with Background Blending) */}
+            <div className="absolute right-0 top-0 bottom-0 w-[150px] overflow-hidden select-none z-5">
+              <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[#fff6ee] via-[#fff6ee]/60 to-transparent z-10 pointer-events-none"></div>
+              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#fff6ee] to-transparent z-10 pointer-events-none"></div>
+              <img 
+                src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=280&h=320&q=80" 
+                alt="Local Weaver Boutique Owner" 
+                className="w-full h-full object-cover mix-blend-multiply" 
+              />
+            </div>
+
+            {/* Bottom Row: Button on left, Location Status Strip at bottom */}
+            <div className="flex flex-col gap-3.5 z-10">
+              {/* Button */}
+              <div className="bg-[#ff3f6c] hover:bg-[#e0355f] text-white text-[8.5px] font-black py-1.5 px-3 rounded-xl uppercase tracking-wider w-fit flex flex-col items-start leading-tight shadow-3xs transition-colors select-none">
+                <span>EXPLORE</span>
+                <span className="flex items-center gap-0.5">APNA BAZAAR <ArrowRight className="w-3 h-3 text-white inline-block ml-0.5" /></span>
+              </div>
+
+              {/* Location Strip nested at the bottom */}
+              <div className="bg-white border border-[#fde8d4] rounded-xl p-2.5 flex items-center justify-between text-[9.5px] font-bold text-gray-650 shadow-3xs">
+                <div className="flex items-center gap-1.5 truncate max-w-[170px]">
+                  <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="truncate">Showing sellers near <strong className="text-gray-800">New Delhi</strong></span>
+                </div>
+                
+                <div className="border border-emerald-100 px-2 py-1 rounded-md bg-[#eaf1eb] text-[7.5px] font-black text-gray-700 flex items-center gap-0.5 shrink-0 shadow-3xs">
+                  Within 5 km <span className="text-[6.5px]">▼</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </Link>
+
+        {/* 4. Main Campaign Banner */}
+        <div className="mx-3.5 mt-4 bg-[#fff9f3] rounded-2xl border border-orange-100 overflow-hidden shadow-xs flex items-center justify-between relative">
+          {/* Left Gym Image */}
+          <div className="w-1/2 h-44 bg-gray-50 overflow-hidden relative">
+            <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80" alt="Fitness Campaign" className="w-full h-full object-cover" />
+          </div>
+          {/* Right Text details */}
+          <div className="w-1/2 p-4 flex flex-col justify-center text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1.5">
+              <span className="font-extrabold text-[8px] bg-black text-white px-1.5 py-0.5 rounded tracking-widest uppercase scale-90">HRX</span>
+              <span className="text-[9px] text-gray-500 font-bold border-l pl-1 border-gray-300">ENRIZZ</span>
+            </div>
+            <span className="text-[8px] text-gray-400 font-bold uppercase tracking-wider block mb-0.5">& More</span>
+            <h3 className="text-xs font-black text-gray-700 leading-tight">Fuel Your Fitness</h3>
+            <div className="text-lg font-black text-gray-800 mt-1 uppercase tracking-tight">
+              UNDER <span className="text-[#ff3f6c]">₹899</span>
+            </div>
+            <div className="absolute bottom-2.5 right-2.5 bg-white/80 p-1 rounded-full border border-gray-150 shadow-xs scale-90 hover:bg-white cursor-pointer transition-colors">
+              <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* 4b. Banner Pagination Dots */}
+        <div className="flex justify-center items-center gap-1 mt-2.5 mb-4 select-none">
+          {[...Array(9)].map((_, i) => (
+            <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? "bg-gray-700" : "bg-gray-200"}`} />
+          ))}
+        </div>
+
+        {/* 5. Axis Bank Cashback Strip Offer */}
+        <div className="mx-3.5 mb-4 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl p-3 border border-emerald-100 flex items-center justify-between shadow-xs select-none">
+          <div className="flex items-center gap-2">
+            {/* Small Card Icon */}
+            <div className="w-7 h-5 bg-[#0b1329] rounded border border-gray-700 relative overflow-hidden flex items-center justify-center shrink-0">
+              <div className="absolute top-0.5 left-0.5 w-1.5 h-0.8 bg-yellow-500 rounded-3xs"></div>
+              <span className="text-[4px] text-teal-400 font-extrabold uppercase scale-[0.6] mt-2">AXIS</span>
+            </div>
+            <div>
+              <span className="text-[9px] font-black text-gray-800 block leading-tight">Get 7.5% Cashback* | 0 Joining Fee</span>
+              <span className="text-[8px] text-gray-500 font-bold block leading-none">With FLIPKART AXIS BANK Credit Card</span>
+            </div>
+          </div>
+          <button className="bg-[#ff3f6c] text-white text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-wider hover:bg-[#e0355f] cursor-pointer shrink-0 transition-colors">
+            Apply Now ›
+          </button>
+        </div>
+
+        {/* 6. Subcategory Capsules Reel */}
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none px-3.5 py-2 bg-white mb-6 select-none">
+          {[
+            { label: "Shirt", img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=100&q=80", href: "/shirts" },
+            { label: "Kurta Sets", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=100&q=80", href: "/" },
+            { label: "Jeans", img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=100&q=80", href: "/" },
+            { label: "Jeans", img: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&w=100&q=80", href: "/" },
+            { label: "T-Shirt", img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=100&q=80", href: "/shirts" },
+          ].map((capsule, i) => (
+            <Link key={i} href={capsule.href} className="flex flex-col items-center shrink-0 cursor-pointer snap-start">
+              <div className="w-13 h-17 rounded-2xl border border-gray-150 overflow-hidden bg-gray-50 shadow-3xs relative group hover:scale-95 transition-transform duration-200">
+                <img src={capsule.img} alt={capsule.label} className="w-full h-full object-cover" />
+              </div>
+              <span className="text-[9px] font-black text-gray-500 mt-1">{capsule.label}</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* 7. Continue Browsing These Brands */}
+        <div className="mx-3.5 mb-6">
+          <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-wider mb-3">Continue Browsing These Brands</h3>
+          <div className="grid grid-cols-2 gap-3.5">
+            {/* Left Image Card */}
+            <div className="relative h-52 rounded-2xl overflow-hidden border border-gray-150 shadow-xs group cursor-pointer bg-gray-50">
+              <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=300&q=80" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            {/* Right Image Card with PLAY TO SLAY */}
+            <div className="relative h-52 rounded-2xl overflow-hidden border border-gray-150 shadow-xs group cursor-pointer bg-gray-50">
+              <img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent flex items-end justify-center pb-3">
+                <div className="bg-black text-white text-[7.5px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-md border border-gray-800 select-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> PLAY TO SLAY
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Pocket Friendly Bargain Section */}
-        <div className="bg-[#f5f5f6] py-8 sm:py-12 px-4 md:px-12 border-t border-b border-[#eaeaec]">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6 sm:mb-8">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold tracking-wider text-[#282c3f] uppercase">
-                  Pocket Friendly Bargain!
-                </h2>
-                <p className="text-[#535766] text-xs sm:text-sm mt-0.5">Where style matches savings perfectly.</p>
-              </div>
-              <div className="flex items-center gap-1 text-[#ff3f6c] font-bold text-xs sm:text-sm cursor-pointer hover:underline">
-                View All Deals <ChevronRight className="w-4 h-4" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
-              {pocketFriendlyDeals.map((deal, index) => (
-                <Link 
-                  key={index}
-                  href={deal.href}
-                  className="bg-white hover:shadow-md border border-[#eaeaec] rounded-xl p-4 sm:p-6 text-center transition-all group flex flex-col items-center justify-center gap-2 sm:gap-3"
-                >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#ff3f6c]/5 flex items-center justify-center text-[#ff3f6c] group-hover:bg-[#ff3f6c] group-hover:text-white transition-all">
-                    <Percent className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <span className="font-extrabold text-sm sm:text-lg text-[#282c3f] group-hover:text-[#ff3f6c] transition-colors">
-                    {deal.label}
-                  </span>
-                  <span className="text-[9px] sm:text-xs text-[#9496a2] font-semibold uppercase tracking-wider">Shop Now</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Shop By Category Grid */}
-        <div className="max-w-7xl mx-auto w-full px-4 md:px-6 lg:px-12 py-10 sm:py-16">
-          <div className="text-center md:text-left mb-8 sm:text-left">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-widest text-[#282c3f] uppercase">
+        {/* 8. Original Shop By Category Section */}
+        <div className="max-w-7xl mx-auto w-full px-3.5 py-6 border-t border-gray-100">
+          <div className="text-left mb-6">
+            <h2 className="text-base font-black tracking-widest text-[#282c3f] uppercase">
               SHOP BY CATEGORY
             </h2>
-            <div className="h-1 w-20 bg-[#ff3f6c] mt-3 mx-auto md:mx-0"></div>
+            <div className="h-1 w-12 bg-[#ff3f6c] mt-2"></div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 gap-3">
             {categories.map((cat, index) => (
               <div 
                 key={index}
-                className="bg-white border border-[#eaeaec] rounded-xl overflow-hidden hover:shadow-lg transition-all group flex flex-col"
+                className="bg-white border border-[#eaeaec] rounded-xl overflow-hidden hover:shadow-lg transition-all group flex flex-col cursor-pointer"
               >
                 {/* Image Container */}
-                <div className="h-40 sm:h-48 overflow-hidden relative bg-slate-100">
+                <div className="h-36 overflow-hidden relative bg-slate-100">
                   <img 
                     src={cat.image} 
                     alt={cat.name} 
@@ -306,17 +355,17 @@ export default function Home() {
                 </div>
 
                 {/* Info */}
-                <div className="p-3 sm:p-4 text-center flex-1 flex flex-col justify-between">
+                <div className="p-3 text-center flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="font-bold text-[#282c3f] text-xs sm:text-sm md:text-base tracking-wide truncate">
+                    <h4 className="font-bold text-[#282c3f] text-xs tracking-wide truncate">
                       {cat.name}
                     </h4>
-                    <p className="text-[#ff3f6c] font-extrabold text-[10px] sm:text-xs md:text-sm mt-1">
+                    <p className="text-[#ff3f6c] font-extrabold text-[10px] mt-0.5">
                       {cat.discount}
                     </p>
                   </div>
-                  <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-[#f5f5f6]">
-                    <span className="text-[9px] sm:text-[11px] font-bold text-[#535766] uppercase tracking-wider group-hover:text-[#ff3f6c] transition-colors">
+                  <div className="mt-2 pt-2 border-t border-[#f5f5f6]">
+                    <span className="text-[9px] font-bold text-[#535766] uppercase tracking-wider group-hover:text-[#ff3f6c] transition-colors">
                       Shop Now
                     </span>
                   </div>
@@ -327,52 +376,6 @@ export default function Home() {
         </div>
 
       </main>
-
-      {/* Footer */}
-      <footer className="bg-[#282c3f] text-white py-10 sm:py-12 px-4 md:px-12 border-t border-[#eaeaec]">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-sm text-slate-300">
-          <div className="space-y-3 sm:space-y-4">
-            <h4 className="text-white font-bold tracking-wider uppercase">Online Shopping</h4>
-            <ul className="space-y-1.5 sm:space-y-2">
-              <li><Link href="/" className="hover:text-white">Men</Link></li>
-              <li><Link href="/" className="hover:text-white">Women</Link></li>
-              <li><Link href="/" className="hover:text-white">Kids</Link></li>
-              <li><Link href="/" className="hover:text-white">Home & Living</Link></li>
-              <li><Link href="/" className="hover:text-white">Beauty</Link></li>
-            </ul>
-          </div>
-          <div className="space-y-3 sm:space-y-4">
-            <h4 className="text-white font-bold tracking-wider uppercase">Customer Policies</h4>
-            <ul className="space-y-1.5 sm:space-y-2">
-              <li><Link href="/" className="hover:text-white">Contact Us</Link></li>
-              <li><Link href="/" className="hover:text-white">FAQ</Link></li>
-              <li><Link href="/" className="hover:text-white">T&C</Link></li>
-              <li><Link href="/" className="hover:text-white">Terms Of Use</Link></li>
-              <li><Link href="/" className="hover:text-white">Track Orders</Link></li>
-            </ul>
-          </div>
-          <div className="space-y-3 sm:space-y-4">
-            <h4 className="text-white font-bold tracking-wider uppercase">Experience Myntra App</h4>
-            <div className="flex gap-3">
-              <div className="bg-slate-800 px-3 py-2 rounded border border-slate-700 text-xs font-bold text-center flex-1 cursor-pointer hover:bg-slate-700">
-                Google Play
-              </div>
-              <div className="bg-slate-800 px-3 py-2 rounded border border-slate-700 text-xs font-bold text-center flex-1 cursor-pointer hover:bg-slate-700">
-                App Store
-              </div>
-            </div>
-          </div>
-          <div className="space-y-3 sm:space-y-4">
-            <h4 className="text-white font-bold tracking-wider uppercase">Keep In Touch</h4>
-            <p className="text-xs leading-relaxed">
-              Register now to get updates on promotions, coupons, and personalized AI styling recommendations.
-            </p>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-slate-700 text-center text-xs text-slate-400">
-          <p>© 2026 Myntra HackerRamp - Team BitWizards. Built for Bharat.</p>
-        </div>
-      </footer>
     </div>
   );
 }
