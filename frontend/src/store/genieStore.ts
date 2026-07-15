@@ -32,6 +32,14 @@ interface GenieState {
     weight: number;
     size: string;
     skinTone: string;
+    /** Biacromial breadth (cm) */
+    shoulderWidth: number;
+    /** Chest circumference (cm) */
+    bust: number;
+    /** Waist circumference (cm) */
+    waist: number;
+    /** Hip circumference (cm) */
+    hips: number;
   };
   activeSwapCategory: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY" | null;
   parsedContext: GenieParsedContext | null;
@@ -89,6 +97,11 @@ export const useGenieStore = create<GenieState>((set, get) => ({
     weight: 58,
     size: "S",
     skinTone: "#E8C39E",
+    // BMI-seeded defaults for 162cm / 58kg
+    shoulderWidth: 40,
+    bust: 82,
+    waist: 66,
+    hips: 88,
   },
   activeSwapCategory: "FOOTWEAR", // Footwear is active for swap in the screenshot
   parsedContext: null,

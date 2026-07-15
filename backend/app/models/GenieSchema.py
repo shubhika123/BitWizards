@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field as SQLField
 from sqlalchemy import Column, JSON
 
 class NLPParseRequest(BaseModel):
@@ -20,15 +20,35 @@ class NLPParseResponse(BaseModel):
     confidence: str  # high, medium, low
     ambiguous_fields: List[str] = []
 
+class GenieCurateRequest(BaseModel):
+    occasion_category: Optional[str] = None
+    primary_color: Optional[str] = None
+    excluded_colors: List[str] = Field(default_factory=list)
+    aesthetic_tags: List[str] = Field(default_factory=list)
+    max_budget: Optional[int] = None
+    is_local_preferred: bool = False
+    locked_item_ids: List[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(extra="ignore")
+
+class GenieSwapRequest(BaseModel):
+    slot_category: str  # Must be validated against "TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"
+    current_outfit_ids: List[str]
+    max_budget: int
+    aesthetic_tags: List[str] = Field(default_factory=list)
+    excluded_colors: List[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(extra="ignore")
+
 class GenieProduct(SQLModel, table=True):
     __tablename__ = "genie_products"
     
-    id: str = Field(primary_key=True)
-    name: str = Field(max_length=150, nullable=False)
-    category: str = Field(max_length=50, nullable=False) # TOP, BOTTOM, FOOTWEAR, ACCESSORY
-    price: int = Field(nullable=False)
-    image_url: str = Field(max_length=500, nullable=False)
-    occasions: List[str] = Field(default=[], sa_column=Column(JSON))
-    colors: List[str] = Field(default=[], sa_column=Column(JSON))
-    brand: Optional[str] = Field(default=None, max_length=100)
-    rating: float = Field(default=4.0)
+    id: str = SQLField(primary_key=True)
+    name: str = SQLField(max_length=150, nullable=False)
+    category: str = SQLField(max_length=50, nullable=False) # TOP, BOTTOM, FOOTWEAR, ACCESSORY
+    price: int = SQLField(nullable=False)
+    image_url: str = SQLField(max_length=500, nullable=False)
+    occasions: List[str] = SQLField(default=[], sa_column=Column(JSON))
+    colors: List[str] = SQLField(default=[], sa_column=Column(JSON))
+    brand: Optional[str] = SQLField(default=None, max_length=100)
+    rating: float = SQLField(default=4.0)
