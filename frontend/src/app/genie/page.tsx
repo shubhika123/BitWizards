@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "../../components/Header";
 import { DigitalTwin } from "../../components/DigitalTwin";
 import { useGenieStore, GenieItem, GenieParsedContext } from "../../store/genieStore";
@@ -12,7 +12,6 @@ import {
   Send, 
   Check, 
   DollarSign, 
-  Sliders, 
   ChevronRight, 
   ShoppingBag, 
   Share2,
@@ -25,29 +24,13 @@ import {
   Bug
 } from "lucide-react";
 
-// Mock alternatives database for interactive swaps
-const ALTERNATIVES_MOCK: Record<string, Omit<GenieItem, "category">[]> = {
-  TOP: [
-    { id: "top_alt_1", name: "Sabyasachi Kurti", price: 2490, image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" },
-    { id: "top_alt_2", name: "Biba Cotton Top", price: 1290, image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80" },
-    { id: "top_alt_3", name: "Libas Printed Kurta", price: 1590, image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80" },
-  ],
-  BOTTOM: [
-    { id: "bottom_alt_1", name: "Aurelia Salwar", price: 790, image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80" },
-    { id: "bottom_alt_2", name: "Global Desi Skirt", price: 1190, image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" },
-    { id: "bottom_alt_3", name: "Biba Leggings", price: 690, image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80" },
-  ],
-  FOOTWEAR: [
-    { id: "footwear_alt_1", name: "Block flats", price: 750, image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80" },
-    { id: "footwear_alt_2", name: "Mules", price: 920, image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" },
-    { id: "footwear_alt_3", name: "Sandals", price: 680, image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80" },
-  ],
-  ACCESSORY: [
-    { id: "accessory_alt_1", name: "Daniel Wellington", price: 1250, image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80" },
-    { id: "accessory_alt_2", name: "Titan Raga", price: 950, image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80" },
-    { id: "accessory_alt_3", name: "Fastrack Analog", price: 550, image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80" },
-  ],
-};
+interface BackendAlternative {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  image_url: string;
+}
 
 export default function GeniePage() {
   const {
@@ -68,7 +51,6 @@ export default function GeniePage() {
 
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showDummyModal, setShowDummyModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
@@ -79,14 +61,72 @@ export default function GeniePage() {
     ACCESSORY: "One Size",
   });
 
-  // Local state for dummy editing
-  const [tempHeight, setTempHeight] = useState(dummySettings.height);
-  const [tempWeight, setTempWeight] = useState(dummySettings.weight);
-  const [tempSize, setTempSize] = useState(dummySettings.size);
+  // Live swap alternatives state
+  const [swapAlternatives, setSwapAlternatives] = useState<Omit<GenieItem, "category">[]>([]);
+  const [isSwapLoading, setIsSwapLoading] = useState(false);
 
   const usedBudget = getUsedBudget();
   const budgetPercentage = Math.min(100, (usedBudget / maxBudget) * 100);
   const isOverBudget = usedBudget > maxBudget;
+
+  // Fetch live alternatives for the active swap slot from the backend
+  const loadAlternatives = useCallback(
+    async (slotCategory: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY") => {
+      setIsSwapLoading(true);
+      try {
+        const currentOutfitIds = (Object.keys(canvasItems) as Array<keyof typeof canvasItems>)
+          .filter((key) => key !== slotCategory)
+          .map((key) => canvasItems[key]?.id)
+          .filter((id): id is string => Boolean(id));
+
+        const payload = {
+          slot_category: slotCategory,
+          current_outfit_ids: currentOutfitIds,
+          max_budget: maxBudget,
+          aesthetic_tags: parsedContext?.aestheticTags || [],
+          excluded_colors: parsedContext?.excludedColors || [],
+        };
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/genie/curate/alternatives`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Alternatives API failed: ${response.status}`);
+        }
+
+        const data: BackendAlternative[] = await response.json();
+        const mappedAlternatives = data.map((alt) => ({
+          id: alt.id,
+          name: alt.name,
+          price: alt.price,
+          image: alt.image_url,
+        }));
+
+        setSwapAlternatives(mappedAlternatives);
+      } catch (err) {
+        console.error("Failed to load alternatives from backend:", err);
+        setSwapAlternatives([]);
+      } finally {
+        setIsSwapLoading(false);
+      }
+    },
+    [canvasItems, maxBudget, parsedContext]
+  );
+
+  // Reload alternatives whenever the active swap slot changes or relevant context updates
+  useEffect(() => {
+    if (activeSwapCategory) {
+      loadAlternatives(activeSwapCategory);
+    }
+  }, [activeSwapCategory, loadAlternatives]);
 
   const handlePromptSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +137,7 @@ export default function GeniePage() {
     let parsedOccasion = "Casual Wear";
     let parsedColor: string | null = null;
     let parsedBudget: number | null = null;
+    let currentContext: GenieParsedContext | null = null;
 
     try {
       // Call live backend NLP parsing endpoint
@@ -114,7 +155,7 @@ export default function GeniePage() {
         parsedColor = data.primary_color;
         parsedBudget = data.max_budget;
 
-        setParsedContext({
+        currentContext = {
           query: data.query,
           detectedLanguage: data.detected_language,
           occasionRaw: data.occasion_raw,
@@ -127,7 +168,9 @@ export default function GeniePage() {
           isLocalPreferred: data.is_local_preferred,
           confidence: data.confidence,
           ambiguousFields: data.ambiguous_fields || [],
-        });
+        };
+
+        setParsedContext(currentContext);
 
         // Update budget tracker limit if budget is parsed
         if (data.max_budget) {
@@ -224,9 +267,16 @@ export default function GeniePage() {
       parsedColor = fallbackContext.primaryColor;
       parsedBudget = fallbackContext.maxBudget;
 
+      currentContext = fallbackContext;
       setParsedContext(fallbackContext);
     } finally {
       try {
+        // Build the locked-item list from the current canvas pins
+        const lockedItemIds = Object.entries(lockedItems)
+          .filter(([_, isLocked]) => isLocked)
+          .map(([category]) => canvasItems[category as keyof typeof canvasItems]?.id)
+          .filter(Boolean);
+
         // Call backend curation API to fetch budget-compliant outfit
         const curateResponse = await fetch("http://localhost:8000/api/genie/curate", {
           method: "POST",
@@ -234,14 +284,25 @@ export default function GeniePage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            occasion: parsedOccasion,
-            color: parsedColor,
-            max_budget: parsedBudget || maxBudget,
+            occasion_category: currentContext?.occasionCategory || parsedOccasion,
+            primary_color: currentContext?.primaryColor || parsedColor,
+            excluded_colors: currentContext?.excludedColors || [],
+            aesthetic_tags: currentContext?.aestheticTags || [],
+            max_budget: currentContext?.maxBudget || parsedBudget || maxBudget,
+            is_local_preferred: currentContext?.isLocalPreferred || false,
+            locked_item_ids: lockedItemIds,
           }),
         });
 
         if (curateResponse.ok) {
-          const curatedItems = await curateResponse.json();
+          const curatedResult = await curateResponse.json();
+          const curatedItems = curatedResult.outfit || [];
+
+          // Surface local-boutique consent prompt if the backend returned one
+          if (curatedResult.local_consent_prompt) {
+            console.info("Local consent prompt:", curatedResult.local_consent_prompt);
+          }
+
           curatedItems.forEach((item: any) => {
             const category = item.category as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";
             // Swap item only if it's not locked/pinned
@@ -257,39 +318,12 @@ export default function GeniePage() {
           });
         }
       } catch (curateErr) {
-        console.warn("Curation API call failed, falling back to client-side mock swap.", curateErr);
-        // Fallback: Simulate AI curation item swap
-        const unlockedCategories = (Object.keys(canvasItems) as Array<keyof typeof canvasItems>).filter(
-          (cat) => !lockedItems[cat]
-        );
-        
-        if (unlockedCategories.length > 0) {
-          const randomCat = unlockedCategories[Math.floor(Math.random() * unlockedCategories.length)] as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";
-          const alternatives = ALTERNATIVES_MOCK[randomCat];
-          const randomAlt = alternatives[Math.floor(Math.random() * alternatives.length)];
-          
-          swapItem(randomCat, {
-            id: randomAlt.id,
-            category: randomCat,
-            name: randomAlt.name,
-            price: randomAlt.price,
-            image: randomAlt.image,
-          });
-        }
+        console.warn("Curation API call failed, no client-side mock swap available.", curateErr);
       }
 
       setIsGenerating(false);
       setPrompt("");
     }
-  };
-
-  const handleSaveDummy = () => {
-    updateDummy({
-      height: tempHeight,
-      weight: tempWeight,
-      size: tempSize,
-    });
-    setShowDummyModal(false);
   };
 
   const handleShareLook = () => {
@@ -487,32 +521,25 @@ export default function GeniePage() {
             </div>
           </div>
 
-          {/* Center Column: Your Look / Dummy */}
+          {/* Center Column: Your Look / Digital Twin */}
           <div className="order-1 lg:order-2 lg:col-span-6 flex flex-col items-center bg-white border border-myntra-border rounded-xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
             <div className="w-full flex justify-between items-center mb-4 z-10">
               <h3 className="text-sm sm:text-base font-bold text-myntra-dark">
                 Your Look
               </h3>
-              <button 
-                onClick={() => {
-                  setTempHeight(dummySettings.height);
-                  setTempWeight(dummySettings.weight);
-                  setTempSize(dummySettings.size);
-                  setShowDummyModal(true);
-                }}
-                className="border border-myntra-pink text-myntra-pink hover:bg-pink-50 text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
-              >
-                <Sliders size={12} />
-                Edit dummy
-              </button>
+              <span className="text-[10px] sm:text-xs font-semibold text-myntra-light">
+                Realistic 2D Twin • Size {dummySettings.size}
+              </span>
             </div>
 
-            {/* SVG Mannequin */}
-            <DigitalTwin 
-              height={dummySettings.height}
-              weight={dummySettings.weight}
-              size={dummySettings.size}
+            <DigitalTwin
+              activeOutfit={Object.values(canvasItems)}
               activeCategory={activeSwapCategory}
+              initialHeight={dummySettings.height}
+              initialWeight={dummySettings.weight}
+              onBiometricsChange={({ height, weight, size }) =>
+                updateDummy({ height, weight, size })
+              }
             />
           </div>
 
@@ -639,7 +666,9 @@ export default function GeniePage() {
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xs sm:text-sm font-bold text-myntra-dark flex items-center gap-1.5 uppercase tracking-wider">
                 <span className="w-1.5 h-4 bg-myntra-pink rounded-full" />
-                {ALTERNATIVES_MOCK[activeSwapCategory]?.length || 0} {activeSwapCategory.toLowerCase()} swaps • within budget
+                {isSwapLoading
+                  ? `Loading ${activeSwapCategory.toLowerCase()} alternatives...`
+                  : `${swapAlternatives.length} ${activeSwapCategory.toLowerCase()} swap${swapAlternatives.length === 1 ? "" : "s"} • within budget`}
               </h3>
               <span className="text-[10px] sm:text-xs text-myntra-light">
                 Active Category: <strong className="text-myntra-pink">{activeSwapCategory}</strong>
@@ -648,56 +677,67 @@ export default function GeniePage() {
 
             {/* Horizontal Scroll on Mobile, Grid on Desktop */}
             <div className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory scrollbar-none pb-2 md:pb-0">
-              {ALTERNATIVES_MOCK[activeSwapCategory]?.map((alt) => {
-                const isActive = canvasItems[activeSwapCategory]?.id === alt.id;
-                return (
-                  <div 
-                    key={alt.id}
-                    onClick={() => swapItem(activeSwapCategory, {
-                      id: alt.id,
-                      category: activeSwapCategory,
-                      name: alt.name,
-                      price: alt.price,
-                      image: alt.image,
-                    })}
-                    className={`border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all min-w-[260px] md:min-w-0 snap-start shrink-0 md:shrink ${
-                      isActive 
-                        ? "border-myntra-pink bg-pink-50/30 ring-1 ring-myntra-pink shadow-sm" 
-                        : "border-myntra-border hover:border-myntra-light hover:bg-myntra-gray/20"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border shrink-0">
-                        <img 
-                          src={alt.image} 
-                          alt={alt.name}
-                          className="w-full h-full object-cover"
-                        />
+              {isSwapLoading ? (
+                <div className="col-span-3 flex items-center justify-center py-8 text-xs text-myntra-light">
+                  <RefreshCw size={16} className="animate-spin mr-2" />
+                  Finding the best alternatives for you...
+                </div>
+              ) : swapAlternatives.length === 0 ? (
+                <div className="col-span-3 flex items-center justify-center py-8 text-xs text-myntra-light">
+                  No alternatives available within the remaining budget.
+                </div>
+              ) : (
+                swapAlternatives.map((alt) => {
+                  const isActive = canvasItems[activeSwapCategory]?.id === alt.id;
+                  return (
+                    <div
+                      key={alt.id}
+                      onClick={() => swapItem(activeSwapCategory, {
+                        id: alt.id,
+                        category: activeSwapCategory,
+                        name: alt.name,
+                        price: alt.price,
+                        image: alt.image,
+                      })}
+                      className={`border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all min-w-[260px] md:min-w-0 snap-start shrink-0 md:shrink ${
+                        isActive
+                          ? "border-myntra-pink bg-pink-50/30 ring-1 ring-myntra-pink shadow-sm"
+                          : "border-myntra-border hover:border-myntra-light hover:bg-myntra-gray/20"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border shrink-0">
+                          <img
+                            src={alt.image}
+                            alt={alt.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-myntra-dark">
+                            {alt.name}
+                          </h4>
+                          <p className="text-[11px] text-myntra-light">
+                            ₹{alt.price.toLocaleString()}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-myntra-dark">
-                          {alt.name}
-                        </h4>
-                        <p className="text-[11px] text-myntra-light">
-                          ₹{alt.price.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center">
-                      {isActive ? (
-                        <span className="w-5 h-5 rounded-full bg-myntra-pink text-white flex items-center justify-center">
-                          <Check size={12} strokeWidth={3} />
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-myntra-pink border border-myntra-pink px-2.5 py-1 rounded-md hover:bg-myntra-pink hover:text-white transition-all">
-                          Swap
-                        </span>
-                      )}
+                      <div className="flex items-center">
+                        {isActive ? (
+                          <span className="w-5 h-5 rounded-full bg-myntra-pink text-white flex items-center justify-center">
+                            <Check size={12} strokeWidth={3} />
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-myntra-pink border border-myntra-pink px-2.5 py-1 rounded-md hover:bg-myntra-pink hover:text-white transition-all">
+                            Swap
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+            )}
             </div>
           </div>
         )}
@@ -843,106 +883,7 @@ export default function GeniePage() {
 
       </main>
 
-      {/* 6. Edit Dummy Modal */}
-      {showDummyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-myntra-border animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-myntra-dark flex items-center gap-2">
-                <Sliders size={20} className="text-myntra-pink" />
-                Edit Your Dummy
-              </h3>
-              <button 
-                onClick={() => setShowDummyModal(false)}
-                className="text-myntra-light hover:text-myntra-dark p-1 rounded-full hover:bg-myntra-gray transition-all cursor-pointer"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              {/* Height Slider */}
-              <div>
-                <div className="flex justify-between text-sm font-bold text-myntra-dark mb-2">
-                  <span>Height</span>
-                  <span className="text-myntra-pink">{tempHeight} cm</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="140" 
-                  max="200" 
-                  value={tempHeight}
-                  onChange={(e) => setTempHeight(parseInt(e.target.value))}
-                  className="w-full h-2 bg-myntra-gray rounded-lg appearance-none cursor-pointer accent-myntra-pink"
-                />
-                <div className="flex justify-between text-[10px] text-myntra-light mt-1">
-                  <span>140 cm</span>
-                  <span>200 cm</span>
-                </div>
-              </div>
-
-              {/* Weight Slider */}
-              <div>
-                <div className="flex justify-between text-sm font-bold text-myntra-dark mb-2">
-                  <span>Weight</span>
-                  <span className="text-myntra-pink">{tempWeight} kg</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="40" 
-                  max="120" 
-                  value={tempWeight}
-                  onChange={(e) => setTempWeight(parseInt(e.target.value))}
-                  className="w-full h-2 bg-myntra-gray rounded-lg appearance-none cursor-pointer accent-myntra-pink"
-                />
-                <div className="flex justify-between text-[10px] text-myntra-light mt-1">
-                  <span>40 kg</span>
-                  <span>120 kg</span>
-                </div>
-              </div>
-
-              {/* Size Selector */}
-              <div>
-                <label className="block text-sm font-bold text-myntra-dark mb-2">
-                  Standard Size
-                </label>
-                <div className="grid grid-cols-6 gap-2">
-                  {["XS", "S", "M", "L", "XL", "XXL"].map((sz) => (
-                    <button
-                      key={sz}
-                      onClick={() => setTempSize(sz)}
-                      className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                        tempSize === sz 
-                          ? "border-myntra-pink bg-pink-50 text-myntra-pink" 
-                          : "border-myntra-border hover:border-myntra-light text-myntra-dark"
-                      }`}
-                    >
-                      {sz}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 flex gap-3">
-              <button 
-                onClick={() => setShowDummyModal(false)}
-                className="flex-1 border border-myntra-border text-myntra-dark hover:bg-myntra-gray font-bold py-2.5 rounded-xl transition-all text-sm cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleSaveDummy}
-                className="flex-1 bg-myntra-pink text-white hover:bg-opacity-90 font-bold py-2.5 rounded-xl transition-all text-sm shadow-sm cursor-pointer"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 7. Unified Checkout Modal */}
+      {/* Unified Checkout Modal */}
       {showCheckoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-myntra-border animate-in fade-in zoom-in duration-200">

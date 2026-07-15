@@ -96,117 +96,117 @@ CATALOG: List[Dict[str, Any]] = [
     # --- TOPWEAR (15) ---
     {
         "id": "top_001",
-        "name": "Embroidered Silk Kurta",
+        "name": "Peplum Kurti",
         "category": "Topwear",
         "price": 1890,
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "maroon", "cream"],
         "aesthetic_tags": ["ethnic", "heavy", "traditional"],
-        "image_url": "/catalog/top_001.png"
+        "image_url": "/catalog/top_001.jpg"
     },
     {
         "id": "top_002",
-        "name": "Royal Velvet Sherwani",
+        "name": "Corset",
         "category": "Topwear",
         "price": 3200,
         "occasions": ["Wedding"],
         "colors": ["black", "navy", "wine"],
         "aesthetic_tags": ["ethnic", "heavy", "royal"],
-        "image_url": "/catalog/top_002.png"
+        "image_url": "/catalog/top_002.jpg"
     },
     {
         "id": "top_003",
-        "name": "Chikankari Cotton Kurta",
+        "name": "Cotton Kurti",
         "category": "Topwear",
         "price": 1290,
         "occasions": ["Festive", "Casual"],
         "colors": ["white", "pastel", "mint"],
         "aesthetic_tags": ["ethnic", "light", "elegant"],
-        "image_url": "/catalog/top_003.png"
+        "image_url": "/catalog/top_003.jpg"
     },
     {
         "id": "top_004",
-        "name": "Bandhani Print Festive Kurta",
+        "name": "Peplum Kurti",
         "category": "Topwear",
         "price": 1450,
         "occasions": ["Festive", "Party"],
         "colors": ["red", "orange", "yellow"],
         "aesthetic_tags": ["ethnic", "bright", "traditional"],
-        "image_url": "/catalog/top_004.png"
+        "image_url": "/catalog/top_004.jpg"
     },
     {
         "id": "top_005",
-        "name": "Linen Casual Shirt",
+        "name": "Linen Wrap-top",
         "category": "Topwear",
         "price": 890,
         "occasions": ["Casual", "Office"],
         "colors": ["white", "blue", "beige"],
         "aesthetic_tags": ["minimalist", "light", "clean"],
-        "image_url": "/catalog/top_005.png"
+        "image_url": "/catalog/top_005.jpg"
     },
     {
         "id": "top_006",
-        "name": "Oversized Graphic Street Tee",
+        "name": "LinenWrap-top",
         "category": "Topwear",
         "price": 590,
         "occasions": ["Casual", "College Fest"],
         "colors": ["black", "white", "grey"],
         "aesthetic_tags": ["streetwear", "relaxed", "urban"],
-        "image_url": "/catalog/top_006.png"
+        "image_url": "/catalog/top_006.jpg"
     },
     {
         "id": "top_007",
-        "name": "Polar Fleece Hoodie",
+        "name": "Woolen Cardigan",
         "category": "Topwear",
         "price": 1100,
         "occasions": ["Casual"],
         "colors": ["black", "navy", "olive"],
         "aesthetic_tags": ["streetwear", "cozy", "minimalist"],
-        "image_url": "/catalog/top_007.png"
+        "image_url": "/catalog/top_007.jpg"
     },
     {
         "id": "top_008",
-        "name": "Premium Polo T-Shirt",
+        "name": "Woolen Cardigan",
         "category": "Topwear",
         "price": 750,
         "occasions": ["Casual", "Office"],
         "colors": ["white", "navy", "burgundy"],
         "aesthetic_tags": ["smart-casual", "sleek", "minimalist"],
-        "image_url": "/catalog/top_008.png"
+        "image_url": "/catalog/top_008.jpg"
     },
     {
         "id": "top_009",
-        "name": "Vintage Denim Jacket",
+        "name": "Casual Cotton Men's Shirt",
         "category": "Topwear",
         "price": 1650,
         "occasions": ["Casual", "Party"],
         "colors": ["blue", "black"],
         "aesthetic_tags": ["streetwear", "vintage", "layered"],
-        "image_url": "/catalog/top_009.png"
+        "image_url": "/catalog/top_009.jpg"
     },
     {
         "id": "top_010",
-        "name": "Brocade Evening Blazer",
+        "name": "Knitted Men's Polo T-shirt",
         "category": "Topwear",
         "price": 2400,
         "occasions": ["Formal", "Party"],
         "colors": ["black", "gold", "burgundy"],
         "aesthetic_tags": ["sleek", "heavy", "statement"],
-        "image_url": "/catalog/top_010.png"
+        "image_url": "/catalog/top_010.jpg"
     },
     {
         "id": "top_011",
-        "name": "Satin Party Shirt",
+        "name": "Striped Men's  CottonShirt",
         "category": "Topwear",
         "price": 1350,
         "occasions": ["Party", "Date"],
         "colors": ["black", "silver", "rose"],
         "aesthetic_tags": ["sleek", "glam", "minimalist"],
-        "image_url": "/catalog/top_011.png"
+        "image_url": "/catalog/top_011.jpg"
     },
     {
         "id": "top_012",
-        "name": "Pathani Style Kurta",
+        "name": "Men's Jacket",
         "category": "Topwear",
         "price": 980,
         "occasions": ["Festive", "Casual"],
@@ -216,33 +216,33 @@ CATALOG: List[Dict[str, Any]] = [
     },
     {
         "id": "top_013",
-        "name": "Mandarin Collar Nehru Jacket",
+        "name": "Men's black toggle jacket",
         "category": "Topwear",
         "price": 1750,
         "occasions": ["Festive", "Formal"],
         "colors": ["navy", "grey", "mustard"],
         "aesthetic_tags": ["ethnic", "sleek", "structured"],
-        "image_url": "/catalog/top_013.png"
+        "image_url": "/catalog/top_013.jpg"
     },
     {
         "id": "top_014",
-        "name": "Ribbed Knit Crop Top",
+        "name": "Girls' Peter Pan collar peplum top",
         "category": "Topwear",
         "price": 450,
         "occasions": ["Casual", "Party"],
         "colors": ["black", "white", "pink"],
         "aesthetic_tags": ["minimalist", "trendy", "casual"],
-        "image_url": "/catalog/top_014.png"
+        "image_url": "/catalog/top_014.jpg"
     },
     {
         "id": "top_015",
-        "name": "Off-Shoulder Ruffle Top",
+        "name": "Girls' striped bow-detail peplum top",
         "category": "Topwear",
         "price": 880,
         "occasions": ["Party", "Date"],
         "colors": ["red", "black", "peach"],
         "aesthetic_tags": ["feminine", "glam", "statement"],
-        "image_url": "/catalog/top_015.png"
+        "image_url": "/catalog/top_015.jpg"
     },
 
     # --- BOTTOMWEAR (15) ---
@@ -254,7 +254,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["white", "cream", "gold"],
         "aesthetic_tags": ["ethnic", "light", "traditional"],
-        "image_url": "/catalog/bottom_001.png"
+        "image_url": "/catalog/bot_001.jpg"
     },
     {
         "id": "bottom_002",
@@ -264,7 +264,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["white", "gold", "beige"],
         "aesthetic_tags": ["ethnic", " airy", "traditional"],
-        "image_url": "/catalog/bottom_002.png"
+        "image_url": "/catalog/bot_002.jpg"
     },
     {
         "id": "bottom_003",
@@ -274,7 +274,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["ivory", "white", "gold"],
         "aesthetic_tags": ["ethnic", "elegant", "flowy"],
-        "image_url": "/catalog/bottom_003.png"
+        "image_url": "/catalog/bot_003.jpg"
     },
     {
         "id": "bottom_004",
@@ -284,7 +284,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["white", "black", "grey"],
         "aesthetic_tags": ["ethnic", "comfort", "relaxed"],
-        "image_url": "/catalog/bottom_004.png"
+        "image_url": "/catalog/bot_004.jpg"
     },
     {
         "id": "bottom_005",
@@ -294,7 +294,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Office"],
         "colors": ["beige", "khaki", "navy"],
         "aesthetic_tags": ["minimalist", "sleek", "smart-casual"],
-        "image_url": "/catalog/bottom_005.png"
+        "image_url": "/catalog/bot_005.jpg"
     },
     {
         "id": "bottom_006",
@@ -304,7 +304,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "College Fest"],
         "colors": ["green", "black", "grey"],
         "aesthetic_tags": ["streetwear", "utility", "trendy"],
-        "image_url": "/catalog/bottom_006.png"
+        "image_url": "/catalog/bot_006.jpg"
     },
     {
         "id": "bottom_007",
@@ -314,7 +314,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["blue", "black"],
         "aesthetic_tags": ["minimalist", "classic", "versatile"],
-        "image_url": "/catalog/bottom_007.png"
+        "image_url": "/catalog/bot_007.jpg"
     },
     {
         "id": "bottom_008",
@@ -324,7 +324,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["black", "grey", "olive"],
         "aesthetic_tags": ["streetwear", "comfort", "relaxed"],
-        "image_url": "/catalog/bottom_008.png"
+        "image_url": "/catalog/bot_008.jpg"
     },
     {
         "id": "bottom_009",
@@ -334,7 +334,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Office"],
         "colors": ["black", "charcoal", "navy"],
         "aesthetic_tags": ["sleek", "structured", "minimalist"],
-        "image_url": "/catalog/bottom_009.png"
+        "image_url": "/catalog/bot_009.jpg"
     },
     {
         "id": "bottom_010",
@@ -344,7 +344,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["white", "gold", "red"],
         "aesthetic_tags": ["ethnic", "flowy", "traditional"],
-        "image_url": "/catalog/bottom_010.png"
+        "image_url": "/catalog/bot_010.jpg"
     },
     {
         "id": "bottom_011",
@@ -354,7 +354,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "pink", "green"],
         "aesthetic_tags": ["ethnic", "heavy", "glam"],
-        "image_url": "/catalog/bottom_011.png"
+        "image_url": "/catalog/bot_011.jpg"
     },
     {
         "id": "bottom_012",
@@ -364,7 +364,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Festive"],
         "colors": ["black", "maroon", "mustard"],
         "aesthetic_tags": ["ethnic", "relaxed", "boho"],
-        "image_url": "/catalog/bottom_012.png"
+        "image_url": "/catalog/bot_012.jpg"
     },
     {
         "id": "bottom_013",
@@ -374,7 +374,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Party"],
         "colors": ["black", "navy", "burgundy"],
         "aesthetic_tags": ["sleek", "structured", "elegant"],
-        "image_url": "/catalog/bottom_013.png"
+        "image_url": "/catalog/bot_013.jpg"
     },
     {
         "id": "bottom_014",
@@ -384,7 +384,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["blue", "beige", "black"],
         "aesthetic_tags": ["minimalist", "comfort", "summer"],
-        "image_url": "/catalog/bottom_014.png"
+        "image_url": "/catalog/bot_014.jpg"
     },
     {
         "id": "bottom_015",
@@ -394,7 +394,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["black", "grey", "white"],
         "aesthetic_tags": ["streetwear", "sporty", "relaxed"],
-        "image_url": "/catalog/bottom_015.png"
+        "image_url": "/catalog/bot_015.jpg"
     },
 
     # --- FOOTWEAR (10) ---
@@ -406,7 +406,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "brown", "tan"],
         "aesthetic_tags": ["ethnic", "handcrafted", "traditional"],
-        "image_url": "/catalog/footwear_001.png"
+        "image_url": "/catalog/foot_001.jpg"
     },
     {
         "id": "footwear_002",
@@ -416,7 +416,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["black", "maroon", "navy"],
         "aesthetic_tags": ["ethnic", "heavy", "royal"],
-        "image_url": "/catalog/footwear_002.png"
+        "image_url": "/catalog/foot_002.jpg"
     },
     {
         "id": "footwear_003",
@@ -426,7 +426,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "silver", "pink"],
         "aesthetic_tags": ["ethnic", "glam", "delicate"],
-        "image_url": "/catalog/footwear_003.png"
+        "image_url": "/catalog/foot_003.jpg"
     },
     {
         "id": "footwear_004",
@@ -436,7 +436,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Office"],
         "colors": ["black", "brown"],
         "aesthetic_tags": ["sleek", "classic", "polished"],
-        "image_url": "/catalog/footwear_004.png"
+        "image_url": "/catalog/foot_004.jpg"
     },
     {
         "id": "footwear_005",
@@ -446,7 +446,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["white", "black"],
         "aesthetic_tags": ["minimalist", "clean", "versatile"],
-        "image_url": "/catalog/footwear_005.png"
+        "image_url": "/catalog/foot_005.jpg"
     },
     {
         "id": "footwear_006",
@@ -456,7 +456,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "College Fest"],
         "colors": ["white", "blue", "pink"],
         "aesthetic_tags": ["streetwear", "bold", "trendy"],
-        "image_url": "/catalog/footwear_006.png"
+        "image_url": "/catalog/foot_006.jpg"
     },
     {
         "id": "footwear_007",
@@ -466,7 +466,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Office"],
         "colors": ["brown", "tan", "black"],
         "aesthetic_tags": ["smart-casual", "sleek", "minimalist"],
-        "image_url": "/catalog/footwear_007.png"
+        "image_url": "/catalog/foot_007.jpg"
     },
     {
         "id": "footwear_008",
@@ -476,7 +476,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Party", "Date"],
         "colors": ["black", "red", "nude"],
         "aesthetic_tags": ["glam", "sleek", "statement"],
-        "image_url": "/catalog/footwear_008.png"
+        "image_url": "/catalog/foot_008.jpg"
     },
     {
         "id": "footwear_009",
@@ -486,7 +486,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["gold", "brown", "red"],
         "aesthetic_tags": ["ethnic", "boho", "handcrafted"],
-        "image_url": "/catalog/footwear_009.png"
+        "image_url": "/catalog/foot_009.jpg"
     },
     {
         "id": "footwear_010",
@@ -496,7 +496,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Party"],
         "colors": ["black", "brown"],
         "aesthetic_tags": ["streetwear", "edgy", "versatile"],
-        "image_url": "/catalog/footwear_010.png"
+        "image_url": "/catalog/foot_010.jpg"
     },
 
     # --- ACCESSORY (10) ---
@@ -508,7 +508,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "green", "red"],
         "aesthetic_tags": ["ethnic", "heavy", "statement"],
-        "image_url": "/catalog/accessory_001.png"
+        "image_url": "/catalog/acc_001.jpg"
     },
     {
         "id": "accessory_002",
@@ -518,7 +518,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["white", "ivory", "gold"],
         "aesthetic_tags": ["elegant", "classic", "ethnic"],
-        "image_url": "/catalog/accessory_002.png"
+        "image_url": "/catalog/acc_002.jpg"
     },
     {
         "id": "accessory_003",
@@ -528,7 +528,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Office"],
         "colors": ["brown", "black", "silver"],
         "aesthetic_tags": ["minimalist", "sleek", "classic"],
-        "image_url": "/catalog/accessory_003.png"
+        "image_url": "/catalog/acc_003.jpg"
     },
     {
         "id": "accessory_004",
@@ -538,7 +538,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["black", "blue", "grey"],
         "aesthetic_tags": ["sporty", "minimalist", "functional"],
-        "image_url": "/catalog/accessory_004.png"
+        "image_url": "/catalog/acc_004.jpg"
     },
     {
         "id": "accessory_005",
@@ -548,7 +548,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Party"],
         "colors": ["gold", "black", "green"],
         "aesthetic_tags": ["classic", "sleek", "cool"],
-        "image_url": "/catalog/accessory_005.png"
+        "image_url": "/catalog/acc_005.jpg"
     },
     {
         "id": "accessory_006",
@@ -558,7 +558,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Office"],
         "colors": ["black", "brown"],
         "aesthetic_tags": ["minimalist", "sleek", "essential"],
-        "image_url": "/catalog/accessory_006.png"
+        "image_url": "/catalog/acc_006.jpg"
     },
     {
         "id": "accessory_007",
@@ -568,7 +568,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Party"],
         "colors": ["blue", "red", "gold"],
         "aesthetic_tags": ["sleek", "minimalist", "polished"],
-        "image_url": "/catalog/accessory_007.png"
+        "image_url": "/catalog/acc_007.jpg"
     },
     {
         "id": "accessory_008",
@@ -578,7 +578,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["red", "gold", "pink"],
         "aesthetic_tags": ["ethnic", "heavy", "traditional"],
-        "image_url": "/catalog/accessory_008.png"
+        "image_url": "/catalog/acc_008.jpg"
     },
     {
         "id": "accessory_009",
@@ -588,7 +588,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Party", "Date"],
         "colors": ["black", "gold", "silver"],
         "aesthetic_tags": ["glam", "sleek", "statement"],
-        "image_url": "/catalog/accessory_009.png"
+        "image_url": "/catalog/acc_009.jpg"
     },
     {
         "id": "accessory_010",
@@ -598,7 +598,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Party"],
         "colors": ["gold", "silver", "black"],
         "aesthetic_tags": ["trendy", "minimalist", "layered"],
-        "image_url": "/catalog/accessory_010.png"
+        "image_url": "/catalog/acc_010.png"
     }
 ]
 
