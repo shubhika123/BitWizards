@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import { DigitalTwin } from "../../components/DigitalTwin";
-import { useGenieStore, GenieItem } from "../../store/genieStore";
+import { useGenieStore, GenieItem, GenieParsedContext } from "../../store/genieStore";
 import { 
   Lock, 
   Unlock, 
@@ -18,7 +18,11 @@ import {
   Share2,
   X,
   Info,
-  ArrowRight
+  ArrowRight,
+  Globe,
+  Tag,
+  Calendar,
+  Bug
 } from "lucide-react";
 
 // Mock alternatives database for interactive swaps
@@ -52,11 +56,14 @@ export default function GeniePage() {
     maxBudget,
     dummySettings,
     activeSwapCategory,
+    parsedContext,
     toggleLock,
     setSwapCategory,
     swapItem,
     updateDummy,
     getUsedBudget,
+    setParsedContext,
+    setMaxBudget,
   } = useGenieStore();
 
   const [prompt, setPrompt] = useState("");
@@ -64,6 +71,7 @@ export default function GeniePage() {
   const [showDummyModal, setShowDummyModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [selectedSizes, setSelectedSelectedSizes] = useState<Record<string, string>>({
     TOP: "S",
     BOTTOM: "S",
@@ -104,35 +112,199 @@ export default function GeniePage() {
   const budgetPercentage = Math.min(100, (usedBudget / maxBudget) * 100);
   const isOverBudget = usedBudget > maxBudget;
 
-  const handlePromptSubmit = (e: React.FormEvent) => {
+  const handlePromptSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isGenerating) return;
 
     setIsGenerating(true);
-    // Simulate AI generation / styling
-    setTimeout(() => {
+
+    let parsedOccasion = "Casual Wear";
+    let parsedColor: string | null = null;
+    let parsedBudget: number | null = null;
+
+    try {
+      // Call live backend NLP parsing endpoint
+      const response = await fetch("http://localhost:8000/api/genie/parse", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: prompt }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        parsedOccasion = data.occasion_category || data.occasion_raw || "Casual Wear";
+        parsedColor = data.primary_color;
+        parsedBudget = data.max_budget;
+
+        setParsedContext({
+          query: data.query,
+          detectedLanguage: data.detected_language,
+          occasionRaw: data.occasion_raw,
+          occasionCategory: data.occasion_category,
+          primaryColor: data.primary_color,
+          excludedColors: data.excluded_colors || [],
+          aestheticTags: data.aesthetic_tags || [],
+          excludedTags: data.excluded_tags || [],
+          maxBudget: data.max_budget,
+          isLocalPreferred: data.is_local_preferred,
+          confidence: data.confidence,
+          ambiguousFields: data.ambiguous_fields || [],
+        });
+
+        // Update budget tracker limit if budget is parsed
+        if (data.max_budget) {
+          setMaxBudget(data.max_budget);
+        }
+      } else {
+        throw new Error("Failed to call backend parser");
+      }
+    } catch (err) {
+      console.warn("Backend parsing failed, using high-fidelity client-side fallback parsing.", err);
+      // Client-side fallback parsing
+      const queryLower = prompt.toLowerCase();
+      const fallbackContext: GenieParsedContext = {
+        query: prompt,
+        detectedLanguage: "English",
+        occasionRaw: prompt,
+        occasionCategory: "Casual Wear",
+        primaryColor: null,
+        excludedColors: [],
+        aestheticTags: [],
+        excludedTags: [],
+        maxBudget: null,
+        isLocalPreferred: false,
+        confidence: "low",
+        ambiguousFields: ["occasionCategory", "primaryColor"],
+      };
+
+      // Language detection
+      if (["khatir", "badhiya", "dikha", "da", "bhaauji", "hamar", "खातिर", "बढ़िया", "खरीदे", "खाती", "दा", "हमार", "रउआ"].some(w => queryLower.includes(w))) {
+        fallbackContext.detectedLanguage = "Bhojpuri";
+      } else if (["naa", "kosam", "manchi", "battalu", "kavali"].some(w => queryLower.includes(w))) {
+        fallbackContext.detectedLanguage = "Telugu";
+      } else if (["bhai", "ki", "shaadi", "liye", "ek", "dum", "dikhao", "शादी", "भाई", "के", "लिए", "एक", "दम", "सस्ता", "दिखाओ", "सूट", "कुर्ता", "शेरवानी"].some(w => queryLower.includes(w))) {
+        fallbackContext.detectedLanguage = "Hinglish";
+      }
+
+      // Occasion detection
+      const occasionsMap: Record<string, string> = {
+        shaadi: "Wedding", wedding: "Wedding", marriage: "Wedding", "शादी": "Wedding", "विवाह": "Wedding", "ब्याह": "Wedding", "दूल्हा": "Wedding",
+        sangeet: "Sangeet", "संगीत": "Sangeet",
+        haldi: "Haldi", "हल्दी": "Haldi",
+        mehendi: "Mehendi", "मेहंदी": "Mehendi",
+        fest: "College Fest", college: "College Fest",
+        conference: "Tech Conference", office: "Office Wear", "ऑफिस": "Office Wear",
+        party: "Party Wear", "पार्टी": "Party Wear",
+        function: "Family Function", "फंक्शन": "Family Function",
+        "सूट": "Wedding"
+      };
+      for (const [key, val] of Object.entries(occasionsMap)) {
+        if (queryLower.includes(key)) {
+          fallbackContext.occasionCategory = val;
+          break;
+        }
+      }
+
+      // Color detection
+      const colorsMap: Record<string, string> = {
+        black: "black", "काला": "black", "काले": "black",
+        white: "white", "सफेद": "white", "उजला": "white",
+        yellow: "yellow", "पीला": "yellow", "पीले": "yellow",
+        red: "red", "लाल": "red",
+        blue: "blue", "नीला": "blue", "नीले": "blue",
+        pink: "pink", "गुलाबी": "pink",
+        green: "green", "हरा": "green", "हरे": "green",
+        gold: "gold", "सुनहरा": "gold", "गोल्डन": "gold",
+        ivory: "ivory", "rose gold": "rose gold"
+      };
+      for (const [key, val] of Object.entries(colorsMap)) {
+        if (queryLower.includes(key)) {
+          fallbackContext.primaryColor = val;
+          break;
+        }
+      }
+
+      // Budget detection
+      const budgetMatch = queryLower.match(/(?:under|below|budget\s*(?:of|:)?|rs\.?|in|₹|max|upto|कम|अंदर|तक|बजट|रुपये|रु\.?)\s*(\d+)\s*(k)?/);
+      const budgetMatchHindi = queryLower.match(/(\d+)\s*(k)?\s*(?:से कम|के अंदर|तक|बजट|रुपये|रु|k)/);
+      const finalMatch = budgetMatch || budgetMatchHindi;
+      
+      if (finalMatch) {
+        let val = parseInt(finalMatch[1]);
+        if (finalMatch[2]) val *= 1000;
+        fallbackContext.maxBudget = val;
+        setMaxBudget(val);
+      } else if (queryLower.includes("5k")) {
+        fallbackContext.maxBudget = 5000;
+        setMaxBudget(5000);
+      } else if (queryLower.includes("2k")) {
+        fallbackContext.maxBudget = 2000;
+        setMaxBudget(2000);
+      }
+
+      parsedOccasion = fallbackContext.occasionCategory || fallbackContext.occasionRaw || "Casual Wear";
+      parsedColor = fallbackContext.primaryColor;
+      parsedBudget = fallbackContext.maxBudget;
+
+      setParsedContext(fallbackContext);
+    } finally {
+      try {
+        // Call backend curation API to fetch budget-compliant outfit
+        const curateResponse = await fetch("http://localhost:8000/api/genie/curate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            occasion: parsedOccasion,
+            color: parsedColor,
+            max_budget: parsedBudget || maxBudget,
+          }),
+        });
+
+        if (curateResponse.ok) {
+          const curatedItems = await curateResponse.json();
+          curatedItems.forEach((item: any) => {
+            const category = item.category as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";
+            // Swap item only if it's not locked/pinned
+            if (!lockedItems[category]) {
+              swapItem(category, {
+                id: item.id,
+                category: category,
+                name: item.name,
+                price: item.price,
+                image: item.image_url,
+              });
+            }
+          });
+        }
+      } catch (curateErr) {
+        console.warn("Curation API call failed, falling back to client-side mock swap.", curateErr);
+        // Fallback: Simulate AI curation item swap
+        const unlockedCategories = (Object.keys(canvasItems) as Array<keyof typeof canvasItems>).filter(
+          (cat) => !lockedItems[cat]
+        );
+        
+        if (unlockedCategories.length > 0) {
+          const randomCat = unlockedCategories[Math.floor(Math.random() * unlockedCategories.length)] as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";
+          const alternatives = ALTERNATIVES_MOCK[randomCat];
+          const randomAlt = alternatives[Math.floor(Math.random() * alternatives.length)];
+          
+          swapItem(randomCat, {
+            id: randomAlt.id,
+            category: randomCat,
+            name: randomAlt.name,
+            price: randomAlt.price,
+            image: randomAlt.image,
+          });
+        }
+      }
+
       setIsGenerating(false);
       setPrompt("");
-      
-      // Randomly swap one unlocked category to simulate AI styling
-      const unlockedCategories = (Object.keys(canvasItems) as Array<keyof typeof canvasItems>).filter(
-        (cat) => !lockedItems[cat]
-      );
-      
-      if (unlockedCategories.length > 0) {
-        const randomCat = unlockedCategories[Math.floor(Math.random() * unlockedCategories.length)] as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";
-        const alternatives = ALTERNATIVES_MOCK[randomCat];
-        const randomAlt = alternatives[Math.floor(Math.random() * alternatives.length)];
-        
-        swapItem(randomCat, {
-          id: randomAlt.id,
-          category: randomCat,
-          name: randomAlt.name,
-          price: randomAlt.price,
-          image: randomAlt.image,
-        });
-      }
-    }, 1500);
+    }
   };
 
   const handleSaveDummy = () => {
@@ -556,6 +728,108 @@ export default function GeniePage() {
           </div>
         )}
 
+        {/* Real-time AI Understanding Panel */}
+        {parsedContext && (
+          <div className="flex flex-col gap-4">
+            {parsedContext.confidence === "low" && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-800 animate-in fade-in slide-in-from-top-2 duration-300">
+                <Info size={16} className="text-amber-600 shrink-0 mt-0.5 animate-bounce" />
+                <div>
+                  We're having trouble catching all the details. We've found some general results for you.
+                </div>
+              </div>
+            )}
+            
+            <div className="bg-gradient-to-r from-pink-50/30 to-purple-50/30 border border-pink-100 rounded-xl p-4 shadow-sm animate-in fade-in slide-in-from-bottom-3 duration-300">
+              <div className="flex justify-between items-start mb-3">
+                <h4 className="text-xs font-bold text-myntra-pink uppercase tracking-widest flex items-center gap-1.5">
+                  <Sparkles size={14} className="animate-pulse" />
+                  Genie Real-time AI Understanding
+                </h4>
+                <button
+                  onClick={() => setShowDebugInfo(!showDebugInfo)}
+                  className="text-[10px] font-bold text-myntra-light hover:text-myntra-pink flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Toggle Debug Info"
+                >
+                  {showDebugInfo ? <X size={12} /> : <Bug size={12} />}
+                  {showDebugInfo ? "Hide Debug" : "Debug Info"}
+                </button>
+              </div>
+              
+              {showDebugInfo && (
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 text-xs font-mono text-slate-700 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 font-bold">detected_language:</span>
+                    <span className="font-semibold text-slate-800">{parsedContext.detectedLanguage}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 font-bold">confidence:</span>
+                    <span className={`font-semibold capitalize ${
+                      parsedContext.confidence === "high" ? "text-emerald-600" :
+                      parsedContext.confidence === "medium" ? "text-amber-600" : "text-red-600"
+                    }`}>
+                      {parsedContext.confidence}
+                    </span>
+                  </div>
+                  {parsedContext.ambiguousFields.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 font-bold">ambiguous_fields:</span>
+                      <span className="font-semibold text-slate-800">[{parsedContext.ambiguousFields.join(", ")}]</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-1.5 bg-white border border-myntra-border px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                  <Calendar size={13} className="text-myntra-pink" />
+                  <span>Occasion: <strong>{parsedContext.occasionCategory || parsedContext.occasionRaw || "Casual Wear"}</strong></span>
+                </div>
+                {parsedContext.primaryColor && (
+                  <div className="flex items-center gap-1.5 bg-white border border-myntra-border px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                    <Tag size={13} className="text-myntra-pink" />
+                    <span>Color: <strong className="capitalize">{parsedContext.primaryColor}</strong></span>
+                  </div>
+                )}
+                {parsedContext.maxBudget && (
+                  <div className="flex items-center gap-1.5 bg-white border border-myntra-border px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                    <DollarSign size={13} className="text-myntra-pink" />
+                    <span>Budget Limit: <strong>₹{parsedContext.maxBudget.toLocaleString()}</strong></span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 bg-white border border-myntra-border px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                  <Globe size={13} className="text-myntra-pink" />
+                  <span>Language: <strong>{parsedContext.detectedLanguage}</strong></span>
+                </div>
+                {parsedContext.isLocalPreferred && (
+                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 shadow-sm animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>Local Stores Preferred</span>
+                  </div>
+                )}
+                {parsedContext.aestheticTags && parsedContext.aestheticTags.length > 0 && (
+                  <div className="flex items-center gap-1.5 bg-pink-50/50 border border-pink-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                    <Sparkles size={13} className="text-myntra-pink" />
+                    <span>Aesthetics: <strong>{parsedContext.aestheticTags.join(", ")}</strong></span>
+                  </div>
+                )}
+                {parsedContext.excludedColors && parsedContext.excludedColors.length > 0 && (
+                  <div className="flex items-center gap-1.5 bg-red-50/50 border border-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-800 shadow-sm">
+                    <X size={13} className="text-red-500" />
+                    <span>Excluding Colors: <strong className="capitalize">{parsedContext.excludedColors.join(", ")}</strong></span>
+                  </div>
+                )}
+                {parsedContext.excludedTags && parsedContext.excludedTags.length > 0 && (
+                  <div className="flex items-center gap-1.5 bg-red-50/50 border border-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-800 shadow-sm">
+                    <X size={13} className="text-red-500" />
+                    <span>Excluding Styles: <strong className="capitalize">{parsedContext.excludedTags.join(", ")}</strong></span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 5. AI Prompt Bar (Bottom Section - Sticky on Mobile) */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-myntra-border z-40 md:relative md:p-4 md:border md:rounded-xl shadow-[0_-4px_12px_rgba(0,0,0,0.05)] md:shadow-sm">
           <form onSubmit={handlePromptSubmit} className="flex gap-2 sm:gap-3 items-center max-w-7xl mx-auto">
@@ -565,7 +839,7 @@ export default function GeniePage() {
                 type="text"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder='Try: "Make it darker, pin the kurta..."'
+                placeholder='Try: "Bhai ki shaadi ke liye black sherwani ya kurta set, price max 5k."'
                 className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-myntra-dark placeholder-myntra-light"
                 disabled={isGenerating}
               />

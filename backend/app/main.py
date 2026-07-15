@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.api import feed, search, bazaar, social
+from app.api import feed, search, bazaar, social, genie
 
 app = FastAPI(
     title="Myntra Bharat Layer API",
@@ -24,6 +24,7 @@ app.include_router(feed.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
 app.include_router(bazaar.router, prefix="/api")
 app.include_router(social.router, prefix="/api")
+app.include_router(genie.router, prefix="/api")
 
 @app.get("/")
 def read_root():
@@ -31,5 +32,5 @@ def read_root():
         "status": "online",
         "service": "Myntra Bharat Layer Backend",
         "version": "1.0.0",
-        "gemini_api_configured": bool(settings.GEMINI_API_KEY)
+        "groq_api_configured": bool(settings.GROQ_API_KEY)
     }
