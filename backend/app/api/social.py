@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any, Optional
-from backend.app.models.FestivalSchema import VoteRequest, CommentRequest
+from app.models.FestivalSchema import VoteRequest, CommentRequest
 from app.services.database import MockDB
 
 router = APIRouter(prefix="/social", tags=["social"])

@@ -1,34 +1,141 @@
 import json
 import logging
-from typing import Dict, Any, Optional
+import re
+import requests
+from typing import Dict, Any, Optional, List
+from pydantic import ValidationError
 from app.config import settings
+from app.models.GenieSchema import NLPParseResponse
 
 logger = logging.getLogger("app.services.gemini")
 
-# Try importing google-genai, fall back gracefully if missing or keys absent
-GENAI_AVAILABLE = False
-try:
-    from google import genai
-    from google.genai import types
-    if settings.GEMINI_API_KEY:
-        GENAI_AVAILABLE = True
-except ImportError:
-    logger.warning("google-genai library not found. Falling back to rule-based processing.")
+GENIE_PARSE_PROMPT = """
+You are a multilingual fashion query parser for an Indian e-commerce platform.
+You must understand queries in: English, Hindi, Hinglish (Hindi-English code-mixed),
+Bengali, Tamil, and Bhojpuri — in native script or transliterated form.
+
+Extract structured attributes as JSON. Follow these rules strictly:
+
+1. detected_language: identify the actual language/script used. Must be one of:
+   "English", "Hindi", "Hinglish", "Bengali", "Tamil", "Bhojpuri", "Unknown".
+   Use "Unknown" if you cannot confidently identify it — do not guess.
+
+2. occasion_raw: capture the user's own described occasion/context in English translation,
+   even if unusual (e.g. "grandmother's 80th birthday puja", "college farewell").
+
+3. occasion_category: map occasion_raw to the closest fit from this list:
+   ["Casual", "Formal", "Wedding", "Party", "Festive", "Date", "Work", "Religious", "Other"]
+   Use "Other" if nothing fits well. Do NOT force an incorrect match.
+
+4. primary_color / excluded_colors: extract explicitly mentioned colors.
+   CRITICAL: if a color is negated ("not red", "no red please", "avoid black"),
+   put it in excluded_colors, NEVER in primary_color.
+
+5. aesthetic_tags / excluded_tags: extract style descriptors (e.g. minimalist, streetwear,
+   smart-casual, ethnic, boho, formal-chic). Apply the same negation rule as colors —
+   negated style terms go into excluded_tags.
+
+6. max_budget: extract numeric budget if mentioned (assume INR unless stated otherwise).
+   Return null if not mentioned — do not guess a default.
+
+7. is_local_preferred: true only if the user expresses preference for local/nearby/
+   physical/boutique shopping (e.g. "nearby store", "local shop", "not online").
+   Default false if not mentioned.
+
+8. confidence: rate your own confidence as "high", "medium", or "low" based on how
+   clear and complete the query is. Vague, contradictory, or very short queries = "low".
+
+9. ambiguous_fields: list field names you were not confident about (e.g. ["occasion_category", "primary_color"]).
+
+Return ONLY valid JSON matching this exact structure, no markdown, no explanation:
+{
+  "detected_language": "",
+  "occasion_raw": "",
+  "occasion_category": null,
+  "primary_color": null,
+  "excluded_colors": [],
+  "aesthetic_tags": [],
+  "excluded_tags": [],
+  "max_budget": null,
+  "is_local_preferred": false,
+  "confidence": "",
+  "ambiguous_fields": []
+}
+
+---
+Examples:
+
+Query: "outfit for my grandmother's 80th birthday puja, budget 4000"
+Output: {"detected_language": "English", "occasion_raw": "grandmother's 80th birthday puja", "occasion_category": "Religious", "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": 4000, "is_local_preferred": false, "confidence": "medium", "ambiguous_fields": ["occasion_category"]}
+
+Query: "not red, nothing too formal, casual hangout with friends"
+Output: {"detected_language": "English", "occasion_raw": "casual hangout with friends", "occasion_category": "Casual", "primary_color": null, "excluded_colors": ["red"], "aesthetic_tags": ["casual"], "excluded_tags": ["formal"], "max_budget": null, "is_local_preferred": false, "confidence": "high", "ambiguous_fields": []}
+
+Query: "শাড়ি চাই বিয়ের জন্য, বাজেট ৫০০০ টাকা" (Bengali: "want a saree for wedding, budget 5000 rupees")
+Output: {"detected_language": "Bengali", "occasion_raw": "wedding", "occasion_category": "Wedding", "primary_color": null, "excluded_colors": [], "aesthetic_tags": ["saree", "traditional"], "excluded_tags": [], "max_budget": 5000, "is_local_preferred": false, "confidence": "high", "ambiguous_fields": []}
+
+Query: "திருமணத்திற்கு ஒரு அழகான உடை வேண்டும், நீல நிறம்" (Tamil: "want a beautiful outfit for wedding, blue color")
+Output: {"detected_language": "Tamil", "occasion_raw": "wedding", "occasion_category": "Wedding", "primary_color": "blue", "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": null, "is_local_preferred": false, "confidence": "high", "ambiguous_fields": []}
+
+Query: "Mujhe ek shaadi ke liye outfit chahiye khatir 2000 rupees, local dukan se"
+Output: {"detected_language": "Hinglish", "occasion_raw": "wedding", "occasion_category": "Wedding", "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": 2000, "is_local_preferred": true, "confidence": "high", "ambiguous_fields": []}
+
+Query: "shaadi khatir ek accha sa outfit chahiye, battalu na ho"
+Output: {"detected_language": "Bhojpuri", "occasion_raw": "wedding", "occasion_category": "Wedding", "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": ["battalu"], "max_budget": null, "is_local_preferred": false, "confidence": "medium", "ambiguous_fields": ["excluded_tags"]}
+
+Query: "asdkfjaslkdfj outfit for the thing you know"
+Output: {"detected_language": "English", "occasion_raw": "unclear", "occasion_category": null, "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": null, "is_local_preferred": false, "confidence": "low", "ambiguous_fields": ["occasion_category", "occasion_raw"]}
+
+Now parse this query:
+"{user_query}"
+"""
 
 class GeminiService:
-    _client = None
-
     @classmethod
-    def get_client(cls):
-        if not GENAI_AVAILABLE or not settings.GEMINI_API_KEY:
-            return None
-        if cls._client is None:
+    def call_groq(cls, prompt: str, temperature: float = 0.2, json_mode: bool = False) -> str:
+        if not settings.GROQ_API_KEY:
+            raise ValueError("GROQ_API_KEY is not configured.")
+        
+        headers = {
+            "Authorization": f"Bearer {settings.GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        # Try llama-3.3-70b-versatile first, then fallback models if needed
+        models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-8b-8192", "mixtral-8x7b-32768"]
+        
+        last_err = None
+        for model in models:
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": temperature
+            }
+            if json_mode:
+                payload["response_format"] = {"type": "json_object"}
+                
             try:
-                cls._client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                response = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    json=payload,
+                    headers=headers,
+                    timeout=10
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    return data["choices"][0]["message"]["content"].strip()
+                else:
+                    logger.warning(f"Groq API returned status {response.status_code} for model {model}: {response.text}")
+                    last_err = Exception(f"Status {response.status_code}: {response.text}")
             except Exception as e:
-                logger.error(f"Failed to initialize Gemini Client: {e}")
-                return None
-        return cls._client
+                logger.warning(f"Groq request failed for model {model}: {e}")
+                last_err = e
+        
+        if last_err:
+            raise last_err
+        raise Exception("Failed to call Groq API with any models")
 
     @classmethod
     def parse_natural_language_search(cls, query: str) -> Dict[str, Any]:
@@ -41,10 +148,9 @@ class GeminiService:
         - style (traditional, casual, western, streetwear)
         - categories / products (e.g. saree, kurta, t-shirt)
         """
-        client = cls.get_client()
-        if not client:
+        if not settings.GROQ_API_KEY:
             # High-quality Rule-based Fallback Parser
-            logger.info("Using rule-based parser fallback.")
+            logger.info("Using rule-based parser fallback (Groq key missing).")
             return cls._fallback_parse_query(query)
 
         prompt = f"""
@@ -64,33 +170,74 @@ class GeminiService:
         Output: {{"festival": "Teej", "region": "Jaipur", "weather": null, "budget": 2000, "style": "traditional", "categories": ["suit set", "kurta"]}}
         """
         try:
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.1
-                )
-            )
-            parsed = json.loads(response.text.strip())
+            res_text = cls.call_groq(prompt, temperature=0.1, json_mode=True)
+            parsed = json.loads(res_text)
             return parsed
         except Exception as e:
-            logger.error(f"Gemini API parse failed: {e}. Using fallback.")
+            logger.error(f"Groq API parse failed: {e}. Using fallback.")
             return cls._fallback_parse_query(query)
+
+    @classmethod
+    def parse_genie_query(cls, query: str) -> Dict[str, Any]:
+        """
+        Parses raw Hinglish/Regional/English text to extract structured fields according to the new schema.
+        """
+        if not settings.GROQ_API_KEY:
+            logger.info("Using rule-based fallback for Genie query parsing (Groq key missing).")
+            return cls._fallback_parse_genie_query(query)
+
+        prompt = GENIE_PARSE_PROMPT.replace("{user_query}", query)
+        try:
+            res_text = cls.call_groq(prompt, temperature=0.2, json_mode=True)
+            # Clean up markdown block fences if returned
+            if res_text.startswith("```"):
+                res_text = re.sub(r"^```(?:json)?\n|```$", "", res_text, flags=re.MULTILINE).strip()
+            # Fix duplicate closing braces if any
+            if res_text.count("{") == 1 and res_text.count("}") > 1:
+                res_text = res_text.rstrip("}\n\r\t ") + "}"
+            parsed = json.loads(res_text)
+            
+            # Validate against schema to ensure correctness
+            validated = NLPParseResponse(query=query, **parsed)
+            return validated.dict()
+        except (json.JSONDecodeError, ValidationError, Exception) as e:
+            logger.error(f"Groq API parse_genie_query failed or validation failed: {e}. Using fallback.")
+            return cls._fallback_parse_genie_query(query)
+
+    @classmethod
+    def _fallback_parse_genie_query(cls, query: str) -> Dict[str, Any]:
+        """
+        Safe fallback — NO keyword-based language guessing for Bengali/Tamil
+        (their scripts can't be reliably keyword-matched without a real dictionary).
+        Just return a low-confidence, mostly-null response so downstream UI
+        can gracefully say "we couldn't fully understand this query."
+        """
+        return {
+            "query": query,
+            "detected_language": "Unknown",
+            "occasion_raw": query[:50],
+            "occasion_category": None,
+            "primary_color": None,
+            "excluded_colors": [],
+            "aesthetic_tags": [],
+            "excluded_tags": [],
+            "max_budget": None,
+            "is_local_preferred": False,
+            "confidence": "low",
+            "ambiguous_fields": ["occasion_category", "aesthetic_tags", "primary_color"]
+        }
 
     @classmethod
     def generate_recommendation_reason(cls, product: Dict[str, Any], context: Dict[str, Any]) -> str:
         """
         Generates a human-friendly personalized trust explanation of why a product is recommended.
         """
-        client = cls.get_client()
-        
         region = context.get("region", "your region")
         weather = context.get("weather", "")
         festival = context.get("festival", "")
         budget = context.get("budget")
 
-        if not client:
+        if not settings.GROQ_API_KEY:
             # Rule-based generator fallback
             reasons = []
             if festival and festival.lower() in [f.lower() for f in product.get("festivals", [])]:
@@ -125,14 +272,9 @@ class GeminiService:
         Focus on regional alignment, local weather, and budget fit. Keep it short (max 30 words total).
         """
         try:
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config=types.GenerateContentConfig(temperature=0.3)
-            )
-            return response.text.strip()
+            return cls.call_groq(prompt, temperature=0.3)
         except Exception as e:
-            logger.error(f"Gemini API reasoning failed: {e}")
+            logger.error(f"Groq API reasoning failed: {e}")
             return f"✓ Trending in {product.get('region', 'your area')} \n✓ Comfortable material \n✓ Within budget"
 
     @classmethod
@@ -140,8 +282,7 @@ class GeminiService:
         """
         Summarizes customer reviews focusing on regional fit, fabric and sizing feedback.
         """
-        client = cls.get_client()
-        if not client or not reviews:
+        if not settings.GROQ_API_KEY or not reviews:
             return "✓ Soft breathable fabric \n✓ Fits true to size \n✓ Highly recommended for festive wear"
 
         prompt = f"""
@@ -153,14 +294,9 @@ class GeminiService:
         {chr(10).join(reviews)}
         """
         try:
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config=types.GenerateContentConfig(temperature=0.2)
-            )
-            return response.text.strip()
+            return cls.call_groq(prompt, temperature=0.2)
         except Exception as e:
-            logger.error(f"Gemini API review summary failed: {e}")
+            logger.error(f"Groq API review summary failed: {e}")
             return "✓ Fabric is lightweight & high quality \n✓ Fits perfectly \n✓ True value for money"
 
     @staticmethod
@@ -205,7 +341,6 @@ class GeminiService:
                 break
                 
         # Budget detection
-        import re
         budget_match = re.search(r'(?:under|below|budget of|rs\.?|in|₹)\s*(\d+)', q)
         if budget_match:
             result["budget"] = int(budget_match.group(1))
@@ -227,3 +362,79 @@ class GeminiService:
                 result["categories"].append(cat)
                 
         return result
+
+    @classmethod
+    def curate_genie_outfit(cls, occasion: str, color: Optional[str], max_budget: Optional[int]) -> List[Dict[str, Any]]:
+        """
+        Curation algorithm:
+        1. Filters mock products by occasion and color.
+        2. Groups them into TOP, BOTTOM, FOOTWEAR, and ACCESSORY.
+        3. Finds a combination of 4 items whose sum is <= max_budget.
+        4. Employs fallback logic if the budget is tight.
+        """
+        from app.services.database import MockDB
+        all_products = MockDB.get_genie_products()
+        
+        # Filter by occasion (or default to Casual if no match)
+        matched_products = [
+            p for p in all_products 
+            if any(occ.lower() == occasion.lower() for occ in p.get("occasions", []))
+        ]
+        
+        if not matched_products:
+            # Fallback to general Casual if specific occasion has no products
+            matched_products = [
+                p for p in all_products 
+                if any(occ.lower() == "casual" for occ in p.get("occasions", []))
+            ]
+
+        # Filter by color if specified and available
+        if color:
+            color_filtered = [
+                p for p in matched_products 
+                if any(col.lower() == color.lower() for col in p.get("colors", []))
+            ]
+            if color_filtered:
+                matched_products = color_filtered
+
+        # Group by category
+        categories = {"TOP": [], "BOTTOM": [], "FOOTWEAR": [], "ACCESSORY": []}
+        for p in matched_products:
+            cat = p.get("category")
+            if cat in categories:
+                categories[cat].append(p)
+
+        # Ensure we have at least one item in each category. If not, fill from general pool
+        for cat, items in categories.items():
+            if not items:
+                categories[cat] = [p for p in all_products if p.get("category") == cat]
+
+        budget_limit = max_budget if max_budget else 5000
+
+        # Try to find a combination of 4 items within budget
+        best_combination = None
+        min_budget_diff = float('inf')
+
+        # Simple greedy search or random sampling to find a good combination under budget
+        # Since we have a small mock DB, we can do a nested check or just pick the best matching ones
+        for top in sorted(categories["TOP"], key=lambda x: x["price"]):
+            for bottom in sorted(categories["BOTTOM"], key=lambda x: x["price"]):
+                for footwear in sorted(categories["FOOTWEAR"], key=lambda x: x["price"]):
+                    for acc in sorted(categories["ACCESSORY"], key=lambda x: x["price"]):
+                        total = top["price"] + bottom["price"] + footwear["price"] + acc["price"]
+                        if total <= budget_limit:
+                            diff = budget_limit - total
+                            if diff < min_budget_diff:
+                                min_budget_diff = diff
+                                best_combination = [top, bottom, footwear, acc]
+
+        # Fallback: If no combination is under budget, pick the cheapest items in each category
+        if not best_combination:
+            best_combination = [
+                min(categories["TOP"], key=lambda x: x["price"]),
+                min(categories["BOTTOM"], key=lambda x: x["price"]),
+                min(categories["FOOTWEAR"], key=lambda x: x["price"]),
+                min(categories["ACCESSORY"], key=lambda x: x["price"])
+            ]
+
+        return best_combination
