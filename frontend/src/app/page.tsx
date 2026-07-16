@@ -3,7 +3,7 @@ import RakshaBandhanBanner from "../components/RakshaBandhanBanner";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
-import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck } from "lucide-react";
+import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck, Heart, Gem, Gift } from "lucide-react";
 import { categories } from "../lib/Categories";
 
 export default function Home() {  
@@ -17,7 +17,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-white min-h-screen flex flex-col font-sans relative">
+    <div className="bg-gradient-to-b from-[#fff0f3] via-white to-[#fffbeb] min-h-screen flex flex-col font-sans relative">
       {/* Header */}
       <Header />
        
@@ -25,7 +25,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col pb-6">
         {/* 1. Location Indicator Row */}
-        <div className="bg-[#fff5f2] px-3.5 py-2 flex items-center justify-between text-[10px] text-gray-700 font-bold border-b border-orange-100 select-none animate-fade-in">
+        <div className="bg-gradient-to-r from-[#ffe4e6] to-[#fff1f2] px-3.5 py-2 flex items-center justify-between text-[10px] text-gray-700 font-bold border-b border-rose-100 select-none animate-fade-in">
           <div className="flex items-center gap-1.5 truncate">
             <MapPin className="w-3.5 h-3.5 text-[#ff3f6c] shrink-0" />
             <span className="truncate">Deliver to Kadubeesanahalli, Bengaluru, Karnataka</span>
@@ -34,16 +34,45 @@ export default function Home() {
         </div>
 
         {/* 2. Category Tab Bar */}
-        <div className="flex items-center justify-between px-3.5 bg-white border-b border-[#ff3f6c]/20 relative h-10 select-none text-[11.5px] font-extrabold text-gray-500">
-          <div className="flex items-center gap-5 h-full">
+        <div className="flex items-center justify-between px-3.5 bg-white border-b border-[#ff3f6c]/20 relative h-10 select-none text-[11px] font-extrabold text-gray-500">
+          <div className="flex items-center gap-3.5 h-full">
             {/* ALL Tab with matching curved layout wave border */}
-            <div className="bg-white border-t-2 border-x border-[#ff3f6c] rounded-t-xl px-5 h-full flex items-center justify-center text-[#ff3f6c] font-black relative top-[1px] z-10 border-b-2 border-b-white">
-              ALL
+            <div className="bg-white border-t-2 border-x border-[#ff3f6c] rounded-t-xl px-4.5 h-full flex items-center justify-center text-[#ff3f6c] font-black relative top-[1px] z-10 border-b-2 border-b-white gap-1">
+              <span>ALL</span>
+              <Sparkles className="w-3 h-3 text-[#ff3f6c] animate-pulse" />
             </div>
-            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">MEN</div>
-            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">WOMEN</div>
-            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">KIDS</div>
+            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-0.5">MEN</div>
+            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-0.5">WOMEN</div>
+            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-0.5">KIDS</div>
 
+            {/* Rakhi Festive Badge */}
+            <Link 
+              href="/Category/Rakhi"
+              className="flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fff9f0] via-[#ffe4e6] to-[#fff9f0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-0.5"
+            >
+              {/* SVG Rakhi on Left */}
+              <div className="absolute left-[-7px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
+                <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
+                  {/* Red Thread cord */}
+                  <path d="M 0 25 Q 12.5 22 25 25 Q 37.5 28 50 25" stroke="#ef4444" strokeWidth="2" fill="none" />
+                  <path d="M 0 25 Q 12.5 28 25 25 Q 37.5 22 50 25" stroke="#f59e0b" strokeWidth="1" fill="none" />
+                  {/* Center Rakhi Flower */}
+                  <circle cx="25" cy="25" r="7" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
+                  <circle cx="25" cy="25" r="4.5" fill="#be123c" />
+                  <circle cx="25" cy="25" r="2" fill="#ffd700" />
+                  {/* Golden beads */}
+                  {[...Array(8)].map((_, i) => {
+                    const angle = (i * 45 * Math.PI) / 180;
+                    const x = 25 + 6.2 * Math.cos(angle);
+                    const y = 25 + 6.2 * Math.sin(angle);
+                    return <circle key={i} cx={x} cy={y} r="0.8" fill="#ffd700" />;
+                  })}
+                </svg>
+              </div>
+              
+              <span>RAKHI</span>
+              <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+            </Link>
           </div>
           
           {/* Layout Grid Dot Icon */}
