@@ -4,50 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
 import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck } from "lucide-react";
+import { categories } from "../lib/Categories";
 
-export default function Home() {
-  const categories = [
-    {
-      name: "Ethnic Wear",
-      discount: "50-80% OFF",
-      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Casual Wear",
-      discount: "40-80% OFF",
-      image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Men's Activewear",
-      discount: "30-70% OFF",
-      image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Women's Activewear",
-      discount: "30-70% OFF",
-      image: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Western Wear",
-      discount: "40-80% OFF",
-      image: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Sportswear",
-      discount: "30-80% OFF",
-      image: "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Loungewear",
-      discount: "30-60% OFF",
-      image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      name: "Innerwear",
-      discount: "UP TO 70% OFF",
-      image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&w=400&q=80",
-    },
-  ];
+export default function Home() {  
 
   return (
     <div className="bg-white min-h-screen flex flex-col font-sans relative">
@@ -344,8 +303,9 @@ export default function Home() {
 
           <div className="grid grid-cols-2 gap-3">
             {categories.map((cat, index) => (
-              <div 
+              <Link 
                 key={index}
+                href={`/Category/${encodeURIComponent(cat.name)}`}
                 className="bg-white border border-[#eaeaec] rounded-xl overflow-hidden hover:shadow-lg transition-all group flex flex-col cursor-pointer"
               >
                 {/* Image Container */}
@@ -374,7 +334,7 @@ export default function Home() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
