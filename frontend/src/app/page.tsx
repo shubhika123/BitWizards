@@ -1,5 +1,5 @@
 "use client";
-
+import RakshaBandhanBanner from "../components/RakshaBandhanBanner";
 import React, { useState } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
@@ -53,6 +53,7 @@ export default function Home() {
     <div className="bg-white min-h-screen flex flex-col font-sans relative">
       {/* Header */}
       <Header />
+       
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col pb-6">
@@ -89,6 +90,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <RakshaBandhanBanner />
 
         {/* 3. Category Story Reels */}
         <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none px-3.5 py-4 bg-white border-b border-gray-50 select-none">
