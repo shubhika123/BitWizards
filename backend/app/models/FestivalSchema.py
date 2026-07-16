@@ -49,3 +49,45 @@ class User(SQLModel, table=True):
     address: Optional[str] = Field(default=None)
     pincode: Optional[str] = Field(default=None, max_length=10)
     muted_festivals: Optional[list] = Field(default=None, sa_column=Column(JSON))
+
+class FeedRequest(BaseModel):
+    region: Optional[str] = None
+    weather: Optional[str] = None
+    festival: Optional[str] = None
+    budget: Optional[float] = None
+    style: Optional[str] = None
+
+class FeedResponse(BaseModel):
+    context: Dict[str, Any]
+    products: List[Dict[str, Any]]
+    regional_trends: List[str]
+
+class BazaarNegotiationRequest(BaseModel):
+    original_price: int
+    proposed_price: int
+
+class BazaarNegotiationResponse(BaseModel):
+    status: str
+    final_price: int
+    message: str
+
+class SearchRequest(BaseModel):
+    query: str
+    region: Optional[str] = None
+    weather: Optional[str] = None
+
+class SearchResponse(BaseModel):
+    query: str
+    parsed_intent: Dict[str, Any]
+    products: List[Dict[str, Any]]
+
+class VoteRequest(BaseModel):
+    group_id: str
+    item_id: str
+    user: str
+
+class CommentRequest(BaseModel):
+    group_id: str
+    item_id: str
+    user: str
+    text: str

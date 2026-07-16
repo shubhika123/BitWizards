@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Dict, Any, Optional
-from backend.app.models.FestivalSchema import BazaarNegotiationRequest, BazaarNegotiationResponse
+from app.models.FestivalSchema import BazaarNegotiationRequest, BazaarNegotiationResponse
 from app.services.database import MockDB
 
 router = APIRouter(prefix="/bazaar", tags=["bazaar"])
