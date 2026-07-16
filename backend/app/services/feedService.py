@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from sqlmodel import Session, select
 
-from models.FestivalSchema import Festival, FestivalBoostRule, Category 
+from app.models.FestivalSchema import Festival, FestivalBoostRule, Category
 
 
 def get_active_festivals(

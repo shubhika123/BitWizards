@@ -4,7 +4,7 @@ import { Assistant } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, ShoppingBag, Users } from "lucide-react";
+import { Sparkles, ShoppingBag, Users, Store } from "lucide-react";
 
 const assistant = Assistant({
   variable: "--font-assistant",
@@ -51,17 +51,12 @@ export default function RootLayout({
             <span className="text-[8.5px] font-extrabold tracking-wider uppercase">Home</span>
           </Link>
 
-          {/* Bharat Feed Tab */}
-          <Link href="/bharat-feed" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/bharat-feed" ? "text-[#ff3f6c]" : "text-gray-450 hover:text-[#ff3f6c]"}`}>
-            <span className="text-[10px] font-black italic tracking-tighter">fwd</span>
-            <span className="text-[8.5px] font-bold tracking-wider uppercase">Bharat</span>
+          {/* Apna Bazaar Tab */}
+          <Link href="/local-bazaar" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/local-bazaar" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
+            <Store className="w-4.5 h-4.5" />
+            <span className="text-[8.5px] font-bold tracking-wider uppercase">Apna Bazaar</span>
           </Link>
 
-          {/* Luxe Tab */}
-          <Link href="/" className="flex flex-col items-center gap-0.5 cursor-pointer text-gray-400 hover:text-[#ff3f6c]">
-            <span className="text-[9px] font-serif tracking-widest font-black uppercase">LUXE</span>
-            <span className="text-[8.5px] font-bold tracking-wider uppercase">Luxury</span>
-          </Link>
           {/* Outfit Circle Tab */}
           <Link href="/OutfitCircle" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/OutfitCircle" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
             <Users className="w-4.5 h-4.5" />

@@ -1,12 +1,20 @@
 "use client";
 import RakshaBandhanBanner from "../components/RakshaBandhanBanner";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
 import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck } from "lucide-react";
 import { categories } from "../lib/Categories";
 
 export default function Home() {  
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % 3);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="bg-white min-h-screen flex flex-col font-sans relative">
@@ -50,6 +58,109 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* HIGH-FIDELITY CAMPAIGN CAROUSEL (AUTO-PLAYING SLIDER) */}
+        <div className="relative mx-3.5 mt-3.5 mb-2.5 rounded-2xl overflow-hidden shadow-sm aspect-[4/3] max-h-[260px] border border-gray-100/50 bg-[#282c3f]">
+          <div 
+            className="flex h-full transition-transform duration-700 ease-in-out"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            
+            {/* Slide 1: Genie Stylist */}
+            <Link 
+              href="/genie" 
+              className="w-full h-full shrink-0 relative block select-none"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80" 
+                alt="Genie Stylist"
+                className="w-full h-full object-cover filter brightness-[0.82]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left">
+                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-[#ff3f6c] self-start px-2 py-0.5 rounded-md uppercase">FRESH fwd</span>
+                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans">
+                  GENIE STYLIST
+                </h2>
+                <h3 className="text-amber-300 text-[11px] font-extrabold mt-1.5 uppercase tracking-wide">
+                  YOUR VIRTUAL STYLING TWIN
+                </h3>
+              </div>
+              {/* Yellow Bottom Strip */}
+              <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#ffd166] flex items-center justify-between px-4">
+                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider">YOUR TWIN, YOUR RULES!</span>
+                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1">
+                  TRY IT NOW <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </Link>
+
+            {/* Slide 2: Bharat Festive Feed */}
+            <Link 
+              href="/bharat-feed" 
+              className="w-full h-full shrink-0 relative block select-none"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80" 
+                alt="Festive Feed"
+                className="w-full h-full object-cover filter brightness-[0.82]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left">
+                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-[#ff3f6c] self-start px-2 py-0.5 rounded-md uppercase">FESTIVE BOOST</span>
+                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans">
+                  BHARAT FEED
+                </h2>
+                <h3 className="text-amber-300 text-[11px] font-extrabold mt-1.5 uppercase tracking-wide">
+                  REGIONAL TRADITIONS UNDER ₹999
+                </h3>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#ffd166] flex items-center justify-between px-4">
+                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider">CELEBRATE THE ROOTS!</span>
+                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1">
+                  EXPLORE MELAS <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </Link>
+
+            {/* Slide 3: Apna Bazaar */}
+            <Link 
+              href="/local-bazaar" 
+              className="w-full h-full shrink-0 relative block select-none"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80" 
+                alt="Apna Bazaar"
+                className="w-full h-full object-cover filter brightness-[0.82]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left">
+                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-emerald-600 self-start px-2 py-0.5 rounded-md uppercase">HYPERLOCAL</span>
+                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans">
+                  APNA BAZAAR
+                </h2>
+                <h3 className="text-amber-300 text-[11px] font-extrabold mt-1.5 uppercase tracking-wide">
+                  BARGAIN DIRECT WITH WEAVERS
+                </h3>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#ffd166] flex items-center justify-between px-4">
+                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider">SUPPORT LOCAL BOUTIQUES!</span>
+                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1">
+                  SHOP & CHAT <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </Link>
+
+          </div>
+          
+          {/* Circular Pagination dots floating on top */}
+          <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-2 z-10 select-none pointer-events-none">
+            {[0, 1, 2].map((idx) => (
+              <span 
+                key={idx}
+                className={`w-2.5 h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx ? "bg-white w-5" : "bg-white/40"}`}
+              />
+            ))}
+          </div>
+        </div>
+
         <RakshaBandhanBanner />
 
         {/* 3. Category Story Reels */}

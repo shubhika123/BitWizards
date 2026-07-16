@@ -10,8 +10,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from datetime import datetime
 
-from database import get_session
-from models.OutfitCircleSchema import OutfitBoard, BoardMember, PinnedProduct, Poll, PollOption, PollVote
+from app.database import get_session
+from app.models.OutfitCircleSchema import OutfitBoard, BoardMember, PinnedProduct, Poll, PollOption, PollVote
 router = APIRouter(prefix="/outfit-circle", tags=["Outfit Circle"])
 
 # ...baaki saara code jo pehle diya tha, same rahega
@@ -67,7 +67,7 @@ def create_board(payload: CreateBoardRequest, session: Session = Depends(get_ses
     return board
 
 
-from models.FestivalSchema import User  # or wherever User model is
+from app.models.FestivalSchema import User  # or wherever User model is
 
 @router.get("/boards/{board_id}")
 def get_board(board_id: int, session: Session = Depends(get_session)):
