@@ -28,7 +28,7 @@ export default function Home() {
         <div className="bg-[#fff5f2] px-3.5 py-2 flex items-center justify-between text-[10px] text-gray-700 font-bold border-b border-orange-100 select-none animate-fade-in">
           <div className="flex items-center gap-1.5 truncate">
             <MapPin className="w-3.5 h-3.5 text-[#ff3f6c] shrink-0" />
-            <span className="truncate">Deliver to INDIRA GANDHI DELHI TECHNICAL UNIVERSIT...</span>
+            <span className="truncate">Deliver to Kadubeesanahalli, Bengaluru, Karnataka</span>
           </div>
           <span className="text-gray-400 font-black shrink-0">∨</span>
         </div>
@@ -47,16 +47,29 @@ export default function Home() {
           </div>
           
           {/* Layout Grid Dot Icon */}
-          <div className="p-1 cursor-pointer scale-90">
-            <div className="w-5.5 h-5.5 rounded-lg bg-[#282c3f] flex items-center justify-center p-1">
-              <div className="grid grid-cols-2 gap-0.5">
-                <span className="w-1.2 h-1.2 rounded-full bg-white"></span>
-                <span className="w-1.2 h-1.2 rounded-full bg-white"></span>
-                <span className="w-1.2 h-1.2 rounded-full bg-white"></span>
-                <span className="w-1.2 h-1.2 rounded-full bg-white"></span>
-              </div>
-            </div>
+          <div className="p-1.5 cursor-pointer hover:scale-105 transition-transform flex items-center justify-center">
+            <LayoutGrid className="w-5 h-5 text-gray-500 hover:text-[#ff3f6c] transition-colors" />
           </div>
+        </div>
+
+        {/* 3. Category Story Reels */}
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none px-3.5 py-4 bg-white border-b border-gray-50 select-none">
+          {[
+            { label: "Fashion", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=150&q=80", bg: "bg-[#1c2536]", href: "/", active: true },
+            { label: "Beauty", img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=150&q=80", bg: "bg-[#f5f5f7]", href: "/" },
+            { label: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=150&q=80", bg: "bg-[#fcf3f3]", href: "/" },
+            { label: "Homeliving", img: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=150&q=80", bg: "bg-[#ffffff]", href: "/" },
+            { label: "Accessories", img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80", bg: "bg-[#3a4439]", href: "/" },
+          ].map((story, i) => (
+            <Link key={i} href={story.href} className="flex flex-col items-center shrink-0 cursor-pointer snap-start">
+              <div className={`w-14 h-14 rounded-[22px] overflow-hidden ${story.bg} border border-gray-150 relative shadow-2xs hover:scale-95 transition-all duration-200 p-0.5`}>
+                <img src={story.img} alt={story.label} className="w-full h-full object-cover rounded-[20px]" />
+              </div>
+              <span className={`text-[9px] mt-1.5 tracking-tight font-black ${story.active ? "text-[#ff3f6c]" : "text-gray-500"}`}>
+                {story.label}
+              </span>
+            </Link>
+          ))}
         </div>
 
         {/* HIGH-FIDELITY CAMPAIGN CAROUSEL (AUTO-PLAYING SLIDER) */}
@@ -162,158 +175,6 @@ export default function Home() {
         </div>
 
         <RakshaBandhanBanner />
-
-        {/* 3. Category Story Reels */}
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none px-3.5 py-4 bg-white border-b border-gray-50 select-none">
-          {[
-            { label: "Fashion", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=150&q=80", bg: "bg-[#1c2536]", href: "/", active: true },
-            { label: "Beauty", img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=150&q=80", bg: "bg-[#f5f5f7]", href: "/" },
-            { label: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=150&q=80", bg: "bg-[#fcf3f3]", href: "/" },
-            { label: "Homeliving", img: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=150&q=80", bg: "bg-[#ffffff]", href: "/" },
-            { label: "Accessories", img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80", bg: "bg-[#3a4439]", href: "/" },
-          ].map((story, i) => (
-            <Link key={i} href={story.href} className="flex flex-col items-center shrink-0 cursor-pointer snap-start">
-              <div className={`w-14 h-14 rounded-[22px] overflow-hidden ${story.bg} border border-gray-150 relative shadow-2xs hover:scale-95 transition-all duration-200 p-0.5`}>
-                <img src={story.img} alt={story.label} className="w-full h-full object-cover rounded-[20px]" />
-              </div>
-              <span className={`text-[9px] mt-1.5 tracking-tight font-black ${story.active ? "text-[#ff3f6c]" : "text-gray-500"}`}>
-                {story.label}
-              </span>
-            </Link>
-          ))}
-        </div>
-
-        {/* DEDICATED HIGH-FIDELITY APNA BAZAAR CAMPAIGN CARD */}
-        <Link href="/local-bazaar" className="block mx-3.5 mt-3 mb-4 group cursor-pointer select-none relative">
-          <div className="bg-[#fff6ee] border border-[#fde8d4] rounded-2xl p-4 shadow-3xs text-left relative overflow-hidden flex flex-col justify-between hover:shadow-xs transition-shadow duration-300 min-h-[200px]">
-            
-            {/* Faint hand-sketched leaf branches background decoration */}
-            <div className="absolute right-[120px] top-[15px] opacity-25 pointer-events-none select-none z-5">
-              <svg className="w-10 h-24 text-amber-600/35" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 60">
-                <path d="M12 60 C12 40 18 30 18 20 C18 10 12 5 12 0 M12 45 C15 42 19 40 19 35 C19 30 14 30 12 35 M12 35 C8 32 4 30 4 25 C4 20 9 20 12 25 M12 25 C15 22 19 20 19 15 C19 10 14 10 12 15 M12 15 C8 12 4 10 4 5 C4 0 9 0 12 5" />
-              </svg>
-            </div>
-
-            {/* Top Content Row: Stamp on left, description in middle, weaver on right */}
-            <div className="flex gap-4 items-start z-10 pr-28">
-              {/* Left Column: Double Dotted/Scalloped Stamp */}
-              <div className="w-[92px] h-[92px] shrink-0 relative flex items-center justify-center select-none scale-105">
-                {/* Custom SVG Stamp Borders */}
-                <svg className="absolute inset-0 w-full h-full rotate-[15deg]" viewBox="0 0 100 100">
-                  {/* Outer bold dotted scalloped frame */}
-                  <circle 
-                    cx="50" 
-                    cy="50" 
-                    r="46" 
-                    fill="none" 
-                    stroke="#ff3f6c" 
-                    strokeWidth="3.5" 
-                    strokeDasharray="6 7" 
-                    strokeLinecap="round"
-                  />
-                  {/* Inner thin dashed gold line */}
-                  <circle 
-                    cx="50" 
-                    cy="50" 
-                    r="40" 
-                    fill="none" 
-                    stroke="#b45309" 
-                    strokeWidth="1" 
-                    strokeDasharray="2 4" 
-                  />
-                </svg>
-
-                {/* Stamp text content absolutely centered */}
-                <div className="z-10 flex flex-col items-center justify-center text-center mt-[-2px]">
-                  <span className="text-[10px] font-black text-slate-800 leading-none tracking-tight">APNA</span>
-                  <span className="text-[10.5px] font-black text-slate-800 leading-none mt-0.5 tracking-tight">BAZAAR</span>
-                  
-                  {/* Small gold line with dot */}
-                  <div className="flex items-center gap-1 my-1">
-                    <span className="w-1.5 h-[1px] bg-amber-600/50"></span>
-                    <span className="w-1 h-1 rounded-full bg-amber-600"></span>
-                    <span className="w-1.5 h-[1px] bg-amber-600/50"></span>
-                  </div>
-
-                  <span className="text-[6.5px] font-black text-gray-500 uppercase tracking-widest leading-none">MADE IN</span>
-                  <span className="text-[7.5px] font-black text-emerald-800 tracking-tighter leading-none mt-0.5">BHARAT</span>
-                  <span className="text-xs text-red-500 leading-none mt-1">❤</span>
-                </div>
-              </div>
-
-
-              {/* Middle Column: Text Details */}
-              <div className="flex flex-col gap-1 text-left">
-                <h4 className="text-xs font-black text-slate-800 tracking-wide">
-                  Support Local. Shop Unique.
-                </h4>
-                <p className="text-[9.5px] text-gray-500 font-bold leading-normal mt-0.5">
-                  Discover handpicked styles from <span className="text-[#ff3f6c] font-black">verified boutiques</span> near you!
-                </p>
-
-                {/* Three feature icons side-by-side with divider lines */}
-                <div className="flex items-center gap-3 mt-2 select-none">
-                  <div className="flex flex-col items-center text-center">
-                    <ShieldCheck className="w-4 h-4 text-[#ff3f6c]" />
-                    <span className="text-[6.5px] font-black text-slate-700 leading-none mt-1.5 uppercase">Trusted</span>
-                    <span className="text-[6.5px] font-black text-slate-700 leading-none uppercase mt-0.5">Sellers</span>
-                  </div>
-                  
-                  <div className="w-[1px] h-6 bg-gray-200/80"></div>
-                  
-                  <div className="flex flex-col items-center text-center">
-                    <Truck className="w-4 h-4 text-[#ff3f6c]" />
-                    <span className="text-[6.5px] font-black text-slate-700 leading-none mt-1.5 uppercase">Fast Local</span>
-                    <span className="text-[6.5px] font-black text-slate-700 leading-none uppercase mt-0.5">Delivery</span>
-                  </div>
-                  
-                  <div className="w-[1px] h-6 bg-gray-200/80"></div>
-                  
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-4 h-4 rounded-full border border-[#ff3f6c] flex items-center justify-center shrink-0">
-                      <span className="text-[8.5px] font-black text-[#ff3f6c] leading-none mt-[-1px]">₹</span>
-                    </div>
-                    <span className="text-[6.5px] font-black text-slate-700 leading-none mt-1.5 uppercase">Best Local</span>
-                    <span className="text-[6.5px] font-black text-slate-700 leading-none uppercase mt-0.5">Prices</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Weavers Illustration (Full Height with Background Blending) */}
-            <div className="absolute right-0 top-0 bottom-0 w-[150px] overflow-hidden select-none z-5">
-              <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[#fff6ee] via-[#fff6ee]/60 to-transparent z-10 pointer-events-none"></div>
-              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#fff6ee] to-transparent z-10 pointer-events-none"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=280&h=320&q=80" 
-                alt="Local Weaver Boutique Owner" 
-                className="w-full h-full object-cover mix-blend-multiply" 
-              />
-            </div>
-
-            {/* Bottom Row: Button on left, Location Status Strip at bottom */}
-            <div className="flex flex-col gap-3.5 z-10">
-              {/* Button */}
-              <div className="bg-[#ff3f6c] hover:bg-[#e0355f] text-white text-[8.5px] font-black py-1.5 px-3 rounded-xl uppercase tracking-wider w-fit flex flex-col items-start leading-tight shadow-3xs transition-colors select-none">
-                <span>EXPLORE</span>
-                <span className="flex items-center gap-0.5">APNA BAZAAR <ArrowRight className="w-3 h-3 text-white inline-block ml-0.5" /></span>
-              </div>
-
-              {/* Location Strip nested at the bottom */}
-              <div className="bg-white border border-[#fde8d4] rounded-xl p-2.5 flex items-center justify-between text-[9.5px] font-bold text-gray-650 shadow-3xs">
-                <div className="flex items-center gap-1.5 truncate max-w-[170px]">
-                  <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span className="truncate">Showing sellers near <strong className="text-gray-800">New Delhi</strong></span>
-                </div>
-                
-                <div className="border border-emerald-100 px-2 py-1 rounded-md bg-[#eaf1eb] text-[7.5px] font-black text-gray-700 flex items-center gap-0.5 shrink-0 shadow-3xs">
-                  Within 5 km <span className="text-[6.5px]">▼</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </Link>
 
         {/* 4. Main Campaign Banner */}
         <div className="mx-3.5 mt-4 bg-[#fff9f3] rounded-2xl border border-orange-100 overflow-hidden shadow-xs flex items-center justify-between relative">

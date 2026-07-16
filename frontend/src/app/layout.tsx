@@ -64,7 +64,7 @@ export default function RootLayout({
           </Link>
 
           {/* Bag Tab */}
-          <Link href="/" className="flex flex-col items-center gap-0.5 cursor-pointer text-gray-400 hover:text-[#ff3f6c]">
+          <Link href="/bag" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/bag" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
             <ShoppingBag className="w-4.5 h-4.5" />
             <span className="text-[8.5px] font-bold tracking-wider uppercase">Bag</span>
           </Link>
