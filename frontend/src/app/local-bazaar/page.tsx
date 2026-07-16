@@ -103,7 +103,7 @@ export default function LocalBazaar() {
       name: "White Chikankari Cotton Kurti",
       price: 1299,
       originalPrice: 1999,
-      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80",
+      image: "https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=400&q=80",
       trustScore: 92,
       distance: 2.4,
       deliveryTime: "3 Hours",
@@ -121,7 +121,7 @@ export default function LocalBazaar() {
       name: "Handloom Banarasi Saree",
       price: 1980,
       originalPrice: 2999,
-      image: "https://images.unsplash.com/photo-1610030469583-b7880df965aa?auto=format&fit=crop&w=400&q=80",
+      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80",
       trustScore: 90,
       distance: 4.2,
       deliveryTime: "4 Hours",
@@ -139,7 +139,7 @@ export default function LocalBazaar() {
       name: "Embroidered Kurta Set",
       price: 1699,
       originalPrice: 2499,
-      image: "https://images.unsplash.com/photo-1597983073492-bc24058bf375?auto=format&fit=crop&w=400&q=80",
+      image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80",
       trustScore: 88,
       distance: 7.1,
       deliveryTime: "5 Hours",
@@ -270,6 +270,8 @@ export default function LocalBazaar() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          boutique_id: selectedProduct.boutique || "avadh",
+          product_id: selectedProduct.id || "local_1",
           original_price: selectedProduct.price,
           proposed_price: proposedBid
         })
@@ -322,6 +324,8 @@ export default function LocalBazaar() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          boutique_id: selectedProduct.boutique || "avadh",
+          product_id: selectedProduct.id || "local_1",
           original_price: selectedProduct.price,
           proposed_price: price
         })
@@ -407,7 +411,7 @@ export default function LocalBazaar() {
           {/* Header */}
           <header className="w-full bg-white px-3.5 py-3 flex items-center justify-between border-b border-gray-100 sticky top-0 z-30 shadow-3xs">
             <div className="flex items-center gap-2">
-              <Link href="/bharat-feed" className="p-1 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+              <Link href="/" className="p-1 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
                 <ArrowLeft className="w-5 h-5 text-gray-700" />
               </Link>
               <span className="font-extrabold text-sm text-gray-800 tracking-wide">Apna Bazaar</span>
