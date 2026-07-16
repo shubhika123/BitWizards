@@ -4,7 +4,7 @@ import { Assistant } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, ShoppingBag } from "lucide-react";
+import { Sparkles, ShoppingBag, Users } from "lucide-react";
 
 const assistant = Assistant({
   variable: "--font-assistant",
@@ -61,6 +61,11 @@ export default function RootLayout({
           <Link href="/" className="flex flex-col items-center gap-0.5 cursor-pointer text-gray-400 hover:text-[#ff3f6c]">
             <span className="text-[9px] font-serif tracking-widest font-black uppercase">LUXE</span>
             <span className="text-[8.5px] font-bold tracking-wider uppercase">Luxury</span>
+          </Link>
+          {/* Outfit Circle Tab */}
+          <Link href="/OutfitCircle" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/OutfitCircle" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
+            <Users className="w-4.5 h-4.5" />
+            <span className="text-[8.5px] font-bold tracking-wider uppercase">Circle</span>
           </Link>
 
           {/* Bag Tab */}

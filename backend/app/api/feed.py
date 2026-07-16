@@ -7,6 +7,16 @@ from services.feedService import get_active_festivals, get_category_boost_map
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()  
+from sqlmodel import SQLModel
+from database import engine
+import models.OutfitCircleSchema  # ensure models are registered before create_all
+import models.FestivalSchema
+import models.LocalBazaarSchema
+from api.OutfitCircle import router as outfit_circle_router
+
+app.include_router(outfit_circle_router)
+
+app.include_router(outfit_circle_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # your Next.js dev server

@@ -76,6 +76,7 @@ export default function Home() {
             <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">MEN</div>
             <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">WOMEN</div>
             <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-1">KIDS</div>
+
           </div>
           
           {/* Layout Grid Dot Icon */}
@@ -166,6 +167,7 @@ export default function Home() {
 
                   <span className="text-[6.5px] font-black text-gray-500 uppercase tracking-widest leading-none">MADE IN</span>
                   <span className="text-[7.5px] font-black text-emerald-800 tracking-tighter leading-none mt-0.5">BHARAT</span>
+                  <span>Outfit Circle</span>
                   <span className="text-xs text-red-500 leading-none mt-1">❤</span>
                 </div>
               </div>
