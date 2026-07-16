@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any, List
-from backend.app.models.FestivalSchema import FeedRequest, FeedResponse
+from app.models.FestivalSchema import FeedRequest, FeedResponse
 from app.services.database import MockDB
 from app.services.gemini import GeminiService
 
