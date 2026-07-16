@@ -1,49 +1,36 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "../../components/Header";
 import { DigitalTwin } from "../../components/DigitalTwin";
-import { useGenieStore, GenieItem } from "../../store/genieStore";
-import { 
-  Lock, 
-  Unlock, 
-  RefreshCw, 
-  Sparkles, 
-  Send, 
-  Check, 
-  DollarSign, 
-  Sliders, 
-  ChevronRight, 
-  ShoppingBag, 
+import { useGenieStore, GenieItem, GenieParsedContext } from "../../store/genieStore";
+import {
+  Lock,
+  Unlock,
+  RefreshCw,
+  Sparkles,
+  Send,
+  Check,
+  DollarSign,
+  ChevronRight,
+  ShoppingBag,
   Share2,
   X,
   Info,
-  ArrowRight
+  ArrowRight,
+  Globe,
+  Tag,
+  Calendar,
+  Bug
 } from "lucide-react";
 
-// Mock alternatives database for interactive swaps
-const ALTERNATIVES_MOCK: Record<string, Omit<GenieItem, "category">[]> = {
-  TOP: [
-    { id: "top_alt_1", name: "Sabyasachi Kurti", price: 2490, image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" },
-    { id: "top_alt_2", name: "Biba Cotton Top", price: 1290, image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80" },
-    { id: "top_alt_3", name: "Libas Printed Kurta", price: 1590, image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80" },
-  ],
-  BOTTOM: [
-    { id: "bottom_alt_1", name: "Aurelia Salwar", price: 790, image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80" },
-    { id: "bottom_alt_2", name: "Global Desi Skirt", price: 1190, image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" },
-    { id: "bottom_alt_3", name: "Biba Leggings", price: 690, image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80" },
-  ],
-  FOOTWEAR: [
-    { id: "footwear_alt_1", name: "Block flats", price: 750, image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80" },
-    { id: "footwear_alt_2", name: "Mules", price: 920, image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" },
-    { id: "footwear_alt_3", name: "Sandals", price: 680, image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80" },
-  ],
-  ACCESSORY: [
-    { id: "accessory_alt_1", name: "Daniel Wellington", price: 1250, image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80" },
-    { id: "accessory_alt_2", name: "Titan Raga", price: 950, image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80" },
-    { id: "accessory_alt_3", name: "Fastrack Analog", price: 550, image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80" },
-  ],
-};
+interface BackendAlternative {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  image_url: string;
+}
 
 export default function GeniePage() {
   const {
@@ -52,18 +39,21 @@ export default function GeniePage() {
     maxBudget,
     dummySettings,
     activeSwapCategory,
+    parsedContext,
     toggleLock,
     setSwapCategory,
     swapItem,
     updateDummy,
     getUsedBudget,
+    setParsedContext,
+    setMaxBudget,
   } = useGenieStore();
 
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showDummyModal, setShowDummyModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [selectedSizes, setSelectedSelectedSizes] = useState<Record<string, string>>({
     TOP: "S",
     BOTTOM: "S",
@@ -71,79 +61,269 @@ export default function GeniePage() {
     ACCESSORY: "One Size",
   });
 
-  // Local state for dummy editing
-  const [tempHeight, setTempHeight] = useState(dummySettings.height);
-  const [tempWeight, setTempWeight] = useState(dummySettings.weight);
-  const [tempSize, setTempSize] = useState(dummySettings.size);
-
-  // Sync localStorage settings on mount & check query params
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const query = params.get("q");
-      if (query) {
-        setPrompt(query);
-      }
-    }
-
-    const saved = localStorage.getItem("dummySettings");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        updateDummy(parsed);
-        if (parsed.height) setTempHeight(parsed.height);
-        if (parsed.weight) setTempWeight(parsed.weight);
-        if (parsed.size) setTempSize(parsed.size);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, []);
+  // Live swap alternatives state
+  const [swapAlternatives, setSwapAlternatives] = useState<Omit<GenieItem, "category">[]>([]);
+  const [isSwapLoading, setIsSwapLoading] = useState(false);
 
   const usedBudget = getUsedBudget();
   const budgetPercentage = Math.min(100, (usedBudget / maxBudget) * 100);
   const isOverBudget = usedBudget > maxBudget;
 
-  const handlePromptSubmit = (e: React.FormEvent) => {
+  // Fetch live alternatives for the active swap slot from the backend
+  const loadAlternatives = useCallback(
+    async (slotCategory: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY") => {
+      setIsSwapLoading(true);
+      try {
+        const currentOutfitIds = (Object.keys(canvasItems) as Array<keyof typeof canvasItems>)
+          .filter((key) => key !== slotCategory)
+          .map((key) => canvasItems[key]?.id)
+          .filter((id): id is string => Boolean(id));
+
+        const payload = {
+          slot_category: slotCategory,
+          current_outfit_ids: currentOutfitIds,
+          max_budget: maxBudget,
+          aesthetic_tags: parsedContext?.aestheticTags || [],
+          excluded_colors: parsedContext?.excludedColors || [],
+        };
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/genie/curate/alternatives`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Alternatives API failed: ${response.status}`);
+        }
+
+        const data: BackendAlternative[] = await response.json();
+        const mappedAlternatives = data.map((alt) => ({
+          id: alt.id,
+          name: alt.name,
+          price: alt.price,
+          image: alt.image_url,
+        }));
+
+        setSwapAlternatives(mappedAlternatives);
+      } catch (err) {
+        console.error("Failed to load alternatives from backend:", err);
+        setSwapAlternatives([]);
+      } finally {
+        setIsSwapLoading(false);
+      }
+    },
+    [canvasItems, maxBudget, parsedContext]
+  );
+
+  // Reload alternatives whenever the active swap slot changes or relevant context updates
+  useEffect(() => {
+    if (activeSwapCategory) {
+      loadAlternatives(activeSwapCategory);
+    }
+  }, [activeSwapCategory, loadAlternatives]);
+
+  const handlePromptSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isGenerating) return;
 
     setIsGenerating(true);
-    // Simulate AI generation / styling
-    setTimeout(() => {
+
+    let parsedOccasion = "Casual Wear";
+    let parsedColor: string | null = null;
+    let parsedBudget: number | null = null;
+    let currentContext: GenieParsedContext | null = null;
+
+    try {
+      // Call live backend NLP parsing endpoint
+      const response = await fetch("http://localhost:8000/api/genie/parse", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: prompt }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        parsedOccasion = data.occasion_category || data.occasion_raw || "Casual Wear";
+        parsedColor = data.primary_color;
+        parsedBudget = data.max_budget;
+
+        currentContext = {
+          query: data.query,
+          detectedLanguage: data.detected_language,
+          occasionRaw: data.occasion_raw,
+          occasionCategory: data.occasion_category,
+          primaryColor: data.primary_color,
+          excludedColors: data.excluded_colors || [],
+          aestheticTags: data.aesthetic_tags || [],
+          excludedTags: data.excluded_tags || [],
+          maxBudget: data.max_budget,
+          isLocalPreferred: data.is_local_preferred,
+          confidence: data.confidence,
+          ambiguousFields: data.ambiguous_fields || [],
+        };
+
+        setParsedContext(currentContext);
+
+        // Update budget tracker limit if budget is parsed
+        if (data.max_budget) {
+          setMaxBudget(data.max_budget);
+        }
+      } else {
+        throw new Error("Failed to call backend parser");
+      }
+    } catch (err) {
+      console.warn("Backend parsing failed, using high-fidelity client-side fallback parsing.", err);
+      // Client-side fallback parsing
+      const queryLower = prompt.toLowerCase();
+      const fallbackContext: GenieParsedContext = {
+        query: prompt,
+        detectedLanguage: "English",
+        occasionRaw: prompt,
+        occasionCategory: "Casual Wear",
+        primaryColor: null,
+        excludedColors: [],
+        aestheticTags: [],
+        excludedTags: [],
+        maxBudget: null,
+        isLocalPreferred: false,
+        confidence: "low",
+        ambiguousFields: ["occasionCategory", "primaryColor"],
+      };
+
+      // Language detection
+      if (["khatir", "badhiya", "dikha", "da", "bhaauji", "hamar", "खातिर", "बढ़िया", "खरीदे", "खाती", "दा", "हमार", "रउआ"].some(w => queryLower.includes(w))) {
+        fallbackContext.detectedLanguage = "Bhojpuri";
+      } else if (["naa", "kosam", "manchi", "battalu", "kavali"].some(w => queryLower.includes(w))) {
+        fallbackContext.detectedLanguage = "Telugu";
+      } else if (["bhai", "ki", "shaadi", "liye", "ek", "dum", "dikhao", "शादी", "भाई", "के", "लिए", "एक", "दम", "सस्ता", "दिखाओ", "सूट", "कुर्ता", "शेरवानी"].some(w => queryLower.includes(w))) {
+        fallbackContext.detectedLanguage = "Hinglish";
+      }
+
+      // Occasion detection
+      const occasionsMap: Record<string, string> = {
+        shaadi: "Wedding", wedding: "Wedding", marriage: "Wedding", "शादी": "Wedding", "विवाह": "Wedding", "ब्याह": "Wedding", "दूल्हा": "Wedding",
+        sangeet: "Sangeet", "संगीत": "Sangeet",
+        haldi: "Haldi", "हल्दी": "Haldi",
+        mehendi: "Mehendi", "मेहंदी": "Mehendi",
+        fest: "College Fest", college: "College Fest",
+        conference: "Tech Conference", office: "Office Wear", "ऑफिस": "Office Wear",
+        party: "Party Wear", "पार्टी": "Party Wear",
+        function: "Family Function", "फंक्शन": "Family Function",
+        "सूट": "Wedding"
+      };
+      for (const [key, val] of Object.entries(occasionsMap)) {
+        if (queryLower.includes(key)) {
+          fallbackContext.occasionCategory = val;
+          break;
+        }
+      }
+
+      // Color detection
+      const colorsMap: Record<string, string> = {
+        black: "black", "काला": "black", "काले": "black",
+        white: "white", "सफेद": "white", "उजला": "white",
+        yellow: "yellow", "पीला": "yellow", "पीले": "yellow",
+        red: "red", "लाल": "red",
+        blue: "blue", "नीला": "blue", "नीले": "blue",
+        pink: "pink", "गुलाबी": "pink",
+        green: "green", "हरा": "green", "हरे": "green",
+        gold: "gold", "सुनहरा": "gold", "गोल्डन": "gold",
+        ivory: "ivory", "rose gold": "rose gold"
+      };
+      for (const [key, val] of Object.entries(colorsMap)) {
+        if (queryLower.includes(key)) {
+          fallbackContext.primaryColor = val;
+          break;
+        }
+      }
+
+      // Budget detection
+      const budgetMatch = queryLower.match(/(?:under|below|budget\s*(?:of|:)?|rs\.?|in|₹|max|upto|कम|अंदर|तक|बजट|रुपये|रु\.?)\s*(\d+)\s*(k)?/);
+      const budgetMatchHindi = queryLower.match(/(\d+)\s*(k)?\s*(?:से कम|के अंदर|तक|बजट|रुपये|रु|k)/);
+      const finalMatch = budgetMatch || budgetMatchHindi;
+
+      if (finalMatch) {
+        let val = parseInt(finalMatch[1]);
+        if (finalMatch[2]) val *= 1000;
+        fallbackContext.maxBudget = val;
+        setMaxBudget(val);
+      } else if (queryLower.includes("5k")) {
+        fallbackContext.maxBudget = 5000;
+        setMaxBudget(5000);
+      } else if (queryLower.includes("2k")) {
+        fallbackContext.maxBudget = 2000;
+        setMaxBudget(2000);
+      }
+
+      parsedOccasion = fallbackContext.occasionCategory || fallbackContext.occasionRaw || "Casual Wear";
+      parsedColor = fallbackContext.primaryColor;
+      parsedBudget = fallbackContext.maxBudget;
+
+      currentContext = fallbackContext;
+      setParsedContext(fallbackContext);
+    } finally {
+      try {
+        // Build the locked-item list from the current canvas pins
+        const lockedItemIds = Object.entries(lockedItems)
+          .filter(([_, isLocked]) => isLocked)
+          .map(([category]) => canvasItems[category as keyof typeof canvasItems]?.id)
+          .filter(Boolean);
+
+        // Call backend curation API to fetch budget-compliant outfit
+        const curateResponse = await fetch("http://localhost:8000/api/genie/curate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            occasion_category: currentContext?.occasionCategory || parsedOccasion,
+            primary_color: currentContext?.primaryColor || parsedColor,
+            excluded_colors: currentContext?.excludedColors || [],
+            aesthetic_tags: currentContext?.aestheticTags || [],
+            max_budget: currentContext?.maxBudget || parsedBudget || maxBudget,
+            is_local_preferred: currentContext?.isLocalPreferred || false,
+            locked_item_ids: lockedItemIds,
+          }),
+        });
+
+        if (curateResponse.ok) {
+          const curatedResult = await curateResponse.json();
+          const curatedItems = curatedResult.outfit || [];
+
+          // Surface local-boutique consent prompt if the backend returned one
+          if (curatedResult.local_consent_prompt) {
+            console.info("Local consent prompt:", curatedResult.local_consent_prompt);
+          }
+
+          curatedItems.forEach((item: any) => {
+            const category = item.category as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";
+            // Swap item only if it's not locked/pinned
+            if (!lockedItems[category]) {
+              swapItem(category, {
+                id: item.id,
+                category: category,
+                name: item.name,
+                price: item.price,
+                image: item.image_url,
+              });
+            }
+          });
+        }
+      } catch (curateErr) {
+        console.warn("Curation API call failed, no client-side mock swap available.", curateErr);
+      }
+
       setIsGenerating(false);
       setPrompt("");
-      
-      // Randomly swap one unlocked category to simulate AI styling
-      const unlockedCategories = (Object.keys(canvasItems) as Array<keyof typeof canvasItems>).filter(
-        (cat) => !lockedItems[cat]
-      );
-      
-      if (unlockedCategories.length > 0) {
-        const randomCat = unlockedCategories[Math.floor(Math.random() * unlockedCategories.length)] as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";
-        const alternatives = ALTERNATIVES_MOCK[randomCat];
-        const randomAlt = alternatives[Math.floor(Math.random() * alternatives.length)];
-        
-        swapItem(randomCat, {
-          id: randomAlt.id,
-          category: randomCat,
-          name: randomAlt.name,
-          price: randomAlt.price,
-          image: randomAlt.image,
-        });
-      }
-    }, 1500);
-  };
-
-  const handleSaveDummy = () => {
-    updateDummy({
-      height: tempHeight,
-      weight: tempWeight,
-      size: tempSize,
-    });
-    const settings = { height: tempHeight, weight: tempWeight, size: tempSize };
-    localStorage.setItem("dummySettings", JSON.stringify(settings));
-    setShowDummyModal(false);
+    }
   };
 
   const handleShareLook = () => {
@@ -153,7 +333,7 @@ export default function GeniePage() {
       stateParams.set(cat.toLowerCase(), `${item.id}:${item.price}`);
     });
     const shareUrl = `${window.location.origin}/genie?${stateParams.toString()}`;
-    
+
     navigator.clipboard.writeText(shareUrl).then(() => {
       setShowShareToast(true);
       setTimeout(() => setShowShareToast(false), 3000);
@@ -167,7 +347,7 @@ export default function GeniePage() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 flex flex-col gap-6">
-        
+
         {/* 2. Budget Tracker (Top Bar) */}
         <div className="bg-white border border-myntra-border rounded-xl p-4 shadow-sm">
           <div className="flex flex-col gap-3.5">
@@ -182,14 +362,13 @@ export default function GeniePage() {
                 ₹{usedBudget.toLocaleString()} of ₹{maxBudget.toLocaleString()} used
               </span>
             </div>
-            
+
             {/* Progress Bar */}
             <div className="w-full flex items-center gap-3">
               <div className="flex-1 h-3 bg-myntra-gray rounded-full overflow-hidden border border-myntra-border">
-                <div 
-                  className={`h-full transition-all duration-500 ease-out rounded-full ${
-                    isOverBudget ? "bg-red-500" : "bg-myntra-pink"
-                  }`}
+                <div
+                  className={`h-full transition-all duration-500 ease-out rounded-full ${isOverBudget ? "bg-red-500" : "bg-myntra-pink"
+                    }`}
                   style={{ width: `${budgetPercentage}%` }}
                 />
               </div>
@@ -200,20 +379,20 @@ export default function GeniePage() {
 
             <div className="flex items-center justify-between w-full gap-4">
               <span className={`text-sm font-bold ${isOverBudget ? "text-red-500" : "text-emerald-600"}`}>
-                {isOverBudget 
-                  ? `₹${(usedBudget - maxBudget).toLocaleString()} Over` 
+                {isOverBudget
+                  ? `₹${(usedBudget - maxBudget).toLocaleString()} Over`
                   : `₹${(maxBudget - usedBudget).toLocaleString()} Left`
                 }
               </span>
               <div className="flex items-center gap-2">
-                <button 
+                <button
                   onClick={() => setShowCheckoutModal(true)}
                   className="bg-myntra-pink text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-opacity-90 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <ShoppingBag size={14} />
                   Checkout Look
                 </button>
-                <button 
+                <button
                   onClick={handleShareLook}
                   className="border border-myntra-border text-myntra-light hover:bg-myntra-gray p-2.5 rounded-lg transition-all cursor-pointer"
                   title="Share Look"
@@ -227,17 +406,16 @@ export default function GeniePage() {
 
         {/* 3. Interactive Stacked Canvas Layout */}
         <div className="flex flex-col gap-5 items-stretch">
-          
+
           {/* Left Column: FOOTWEAR & ACCESSORY */}
           <div className="order-2 grid grid-cols-2 gap-3.5">
             {/* FOOTWEAR SLOT */}
-            <div 
+            <div
               onClick={() => setSwapCategory("FOOTWEAR")}
-              className={`relative border rounded-xl p-3 sm:p-4 bg-white transition-all cursor-pointer flex flex-col justify-between h-[130px] sm:h-[170px] ${
-                activeSwapCategory === "FOOTWEAR" 
-                  ? "border-myntra-pink ring-1 ring-myntra-pink shadow-md" 
+              className={`relative border rounded-xl p-3 sm:p-4 bg-white transition-all cursor-pointer flex flex-col justify-between h-[130px] sm:h-[170px] ${activeSwapCategory === "FOOTWEAR"
+                  ? "border-myntra-pink ring-1 ring-myntra-pink shadow-md"
                   : "border-myntra-border hover:border-myntra-light shadow-sm"
-              }`}
+                }`}
             >
               <div className="flex justify-between items-start">
                 <span className="text-[10px] sm:text-xs font-bold text-myntra-light tracking-wider uppercase">
@@ -247,7 +425,7 @@ export default function GeniePage() {
                   <span className="bg-myntra-pink text-white text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full uppercase">
                     Active
                   </span>
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleLock("FOOTWEAR");
@@ -261,8 +439,8 @@ export default function GeniePage() {
 
               <div className="flex items-center gap-2 sm:gap-3 my-1 sm:my-2">
                 <div className="w-10 h-10 sm:w-16 sm:h-16 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border shrink-0">
-                  <img 
-                    src={canvasItems.FOOTWEAR.image} 
+                  <img
+                    src={canvasItems.FOOTWEAR.image}
                     alt={canvasItems.FOOTWEAR.name}
                     className="w-full h-full object-cover"
                   />
@@ -285,13 +463,12 @@ export default function GeniePage() {
             </div>
 
             {/* ACCESSORY SLOT */}
-            <div 
+            <div
               onClick={() => setSwapCategory("ACCESSORY")}
-              className={`relative border rounded-xl p-3 sm:p-4 bg-white transition-all cursor-pointer flex flex-col justify-between h-[130px] sm:h-[170px] ${
-                activeSwapCategory === "ACCESSORY" 
-                  ? "border-myntra-pink ring-1 ring-myntra-pink shadow-md" 
+              className={`relative border rounded-xl p-3 sm:p-4 bg-white transition-all cursor-pointer flex flex-col justify-between h-[130px] sm:h-[170px] ${activeSwapCategory === "ACCESSORY"
+                  ? "border-myntra-pink ring-1 ring-myntra-pink shadow-md"
                   : "border-myntra-border hover:border-myntra-light shadow-sm"
-              }`}
+                }`}
             >
               <div className="flex justify-between items-start">
                 <span className="text-[10px] sm:text-xs font-bold text-myntra-light tracking-wider uppercase">
@@ -303,7 +480,7 @@ export default function GeniePage() {
                       Locked
                     </span>
                   )}
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleLock("ACCESSORY");
@@ -317,8 +494,8 @@ export default function GeniePage() {
 
               <div className="flex items-center gap-2 sm:gap-3 my-1 sm:my-2">
                 <div className="w-10 h-10 sm:w-16 sm:h-16 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border shrink-0">
-                  <img 
-                    src={canvasItems.ACCESSORY.image} 
+                  <img
+                    src={canvasItems.ACCESSORY.image}
                     alt={canvasItems.ACCESSORY.name}
                     className="w-full h-full object-cover"
                   />
@@ -341,45 +518,37 @@ export default function GeniePage() {
             </div>
           </div>
 
-          {/* Center Column: Your Look / Dummy */}
-          <div className="order-1 flex flex-col items-center bg-white border border-myntra-border rounded-xl p-4 shadow-sm relative overflow-hidden">
+          {/* Center Column: Your Look / Digital Twin */}
+          <div className="order-1 lg:order-2 lg:col-span-6 flex flex-col items-center bg-white border border-myntra-border rounded-xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
             <div className="w-full flex justify-between items-center mb-4 z-10">
               <h3 className="text-sm sm:text-base font-bold text-myntra-dark">
                 Your Look
               </h3>
-              <button 
-                onClick={() => {
-                  setTempHeight(dummySettings.height);
-                  setTempWeight(dummySettings.weight);
-                  setTempSize(dummySettings.size);
-                  setShowDummyModal(true);
-                }}
-                className="border border-myntra-pink text-myntra-pink hover:bg-pink-50 text-xs font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
-              >
-                <Sliders size={12} />
-                Edit dummy
-              </button>
+              <span className="text-[10px] sm:text-xs font-semibold text-myntra-light">
+                Realistic 2D Twin • Size {dummySettings.size}
+              </span>
             </div>
 
-            {/* SVG Mannequin */}
-            <DigitalTwin 
-              height={dummySettings.height}
-              weight={dummySettings.weight}
-              size={dummySettings.size}
+            <DigitalTwin
+              activeOutfit={Object.values(canvasItems)}
               activeCategory={activeSwapCategory}
+              initialHeight={dummySettings.height}
+              initialWeight={dummySettings.weight}
+              onBiometricsChange={({ height, weight, size }) =>
+                updateDummy({ height, weight, size })
+              }
             />
           </div>
 
           {/* Right Column: TOP & BOTTOM */}
           <div className="order-3 grid grid-cols-2 gap-3.5">
             {/* TOP SLOT */}
-            <div 
+            <div
               onClick={() => setSwapCategory("TOP")}
-              className={`relative border rounded-xl p-3 sm:p-4 bg-white transition-all cursor-pointer flex flex-col justify-between h-[130px] sm:h-[170px] ${
-                activeSwapCategory === "TOP" 
-                  ? "border-myntra-pink ring-1 ring-myntra-pink shadow-md" 
+              className={`relative border rounded-xl p-3 sm:p-4 bg-white transition-all cursor-pointer flex flex-col justify-between h-[130px] sm:h-[170px] ${activeSwapCategory === "TOP"
+                  ? "border-myntra-pink ring-1 ring-myntra-pink shadow-md"
                   : "border-myntra-border hover:border-myntra-light shadow-sm"
-              }`}
+                }`}
             >
               <div className="flex justify-between items-start">
                 <span className="text-[10px] sm:text-xs font-bold text-myntra-light tracking-wider uppercase">
@@ -391,7 +560,7 @@ export default function GeniePage() {
                       Locked
                     </span>
                   )}
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleLock("TOP");
@@ -405,8 +574,8 @@ export default function GeniePage() {
 
               <div className="flex items-center gap-2 sm:gap-3 my-1 sm:my-2">
                 <div className="w-10 h-10 sm:w-16 sm:h-16 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border shrink-0">
-                  <img 
-                    src={canvasItems.TOP.image} 
+                  <img
+                    src={canvasItems.TOP.image}
                     alt={canvasItems.TOP.name}
                     className="w-full h-full object-cover"
                   />
@@ -429,13 +598,12 @@ export default function GeniePage() {
             </div>
 
             {/* BOTTOM SLOT */}
-            <div 
+            <div
               onClick={() => setSwapCategory("BOTTOM")}
-              className={`relative border rounded-xl p-3 sm:p-4 bg-white transition-all cursor-pointer flex flex-col justify-between h-[130px] sm:h-[170px] ${
-                activeSwapCategory === "BOTTOM" 
-                  ? "border-myntra-pink ring-1 ring-myntra-pink shadow-md" 
+              className={`relative border rounded-xl p-3 sm:p-4 bg-white transition-all cursor-pointer flex flex-col justify-between h-[130px] sm:h-[170px] ${activeSwapCategory === "BOTTOM"
+                  ? "border-myntra-pink ring-1 ring-myntra-pink shadow-md"
                   : "border-myntra-border hover:border-myntra-light shadow-sm"
-              }`}
+                }`}
             >
               <div className="flex justify-between items-start">
                 <span className="text-[10px] sm:text-xs font-bold text-myntra-light tracking-wider uppercase">
@@ -447,7 +615,7 @@ export default function GeniePage() {
                       Locked
                     </span>
                   )}
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleLock("BOTTOM");
@@ -461,8 +629,8 @@ export default function GeniePage() {
 
               <div className="flex items-center gap-2 sm:gap-3 my-1 sm:my-2">
                 <div className="w-10 h-10 sm:w-16 sm:h-16 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border shrink-0">
-                  <img 
-                    src={canvasItems.BOTTOM.image} 
+                  <img
+                    src={canvasItems.BOTTOM.image}
                     alt={canvasItems.BOTTOM.name}
                     className="w-full h-full object-cover"
                   />
@@ -493,65 +661,178 @@ export default function GeniePage() {
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xs sm:text-sm font-bold text-myntra-dark flex items-center gap-1.5 uppercase tracking-wider">
                 <span className="w-1.5 h-4 bg-myntra-pink rounded-full" />
-                {ALTERNATIVES_MOCK[activeSwapCategory]?.length || 0} {activeSwapCategory.toLowerCase()} swaps • within budget
+                {isSwapLoading
+                  ? `Loading ${activeSwapCategory.toLowerCase()} alternatives...`
+                  : `${swapAlternatives.length} ${activeSwapCategory.toLowerCase()} swap${swapAlternatives.length === 1 ? "" : "s"} • within budget`}
               </h3>
               <span className="text-[10px] sm:text-xs text-myntra-light">
                 Active Category: <strong className="text-myntra-pink">{activeSwapCategory}</strong>
               </span>
             </div>
 
-            {/* Horizontal Scroll Reel */}
-            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-2">
-              {ALTERNATIVES_MOCK[activeSwapCategory]?.map((alt) => {
-                const isActive = canvasItems[activeSwapCategory]?.id === alt.id;
-                return (
-                  <div 
-                    key={alt.id}
-                    onClick={() => swapItem(activeSwapCategory, {
-                      id: alt.id,
-                      category: activeSwapCategory,
-                      name: alt.name,
-                      price: alt.price,
-                      image: alt.image,
-                    })}
-                    className={`border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all min-w-[260px] snap-start shrink-0 ${
-                      isActive 
-                        ? "border-myntra-pink bg-pink-50/30 ring-1 ring-myntra-pink shadow-sm" 
-                        : "border-myntra-border hover:border-myntra-light hover:bg-myntra-gray/20"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border shrink-0">
-                        <img 
-                          src={alt.image} 
-                          alt={alt.name}
-                          className="w-full h-full object-cover"
-                        />
+            {/* Horizontal Scroll on Mobile, Grid on Desktop */}
+            <div className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory scrollbar-none pb-2 md:pb-0">
+              {isSwapLoading ? (
+                <div className="col-span-3 flex items-center justify-center py-8 text-xs text-myntra-light">
+                  <RefreshCw size={16} className="animate-spin mr-2" />
+                  Finding the best alternatives for you...
+                </div>
+              ) : swapAlternatives.length === 0 ? (
+                <div className="col-span-3 flex items-center justify-center py-8 text-xs text-myntra-light">
+                  No alternatives available within the remaining budget.
+                </div>
+              ) : (
+                swapAlternatives.map((alt) => {
+                  const isActive = canvasItems[activeSwapCategory]?.id === alt.id;
+                  return (
+                    <div
+                      key={alt.id}
+                      onClick={() => swapItem(activeSwapCategory, {
+                        id: alt.id,
+                        category: activeSwapCategory,
+                        name: alt.name,
+                        price: alt.price,
+                        image: alt.image,
+                      })}
+                      className={`border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all min-w-[260px] md:min-w-0 snap-start shrink-0 md:shrink ${isActive
+                          ? "border-myntra-pink bg-pink-50/30 ring-1 ring-myntra-pink shadow-sm"
+                          : "border-myntra-border hover:border-myntra-light hover:bg-myntra-gray/20"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border shrink-0">
+                          <img
+                            src={alt.image}
+                            alt={alt.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-myntra-dark">
+                            {alt.name}
+                          </h4>
+                          <p className="text-[11px] text-myntra-light">
+                            ₹{alt.price.toLocaleString()}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-myntra-dark">
-                          {alt.name}
-                        </h4>
-                        <p className="text-[11px] text-myntra-light">
-                          ₹{alt.price.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center">
-                      {isActive ? (
-                        <span className="w-5 h-5 rounded-full bg-myntra-pink text-white flex items-center justify-center">
-                          <Check size={12} strokeWidth={3} />
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-myntra-pink border border-myntra-pink px-2.5 py-1 rounded-md hover:bg-myntra-pink hover:text-white transition-all">
-                          Swap
-                        </span>
-                      )}
+                      <div className="flex items-center">
+                        {isActive ? (
+                          <span className="w-5 h-5 rounded-full bg-myntra-pink text-white flex items-center justify-center">
+                            <Check size={12} strokeWidth={3} />
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-myntra-pink border border-myntra-pink px-2.5 py-1 rounded-md hover:bg-myntra-pink hover:text-white transition-all">
+                            Swap
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Real-time AI Understanding Panel */}
+        {parsedContext && (
+          <div className="flex flex-col gap-4">
+            {parsedContext.confidence === "low" && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-800 animate-in fade-in slide-in-from-top-2 duration-300">
+                <Info size={16} className="text-amber-600 shrink-0 mt-0.5 animate-bounce" />
+                <div>
+                  We're having trouble catching all the details. We've found some general results for you.
+                </div>
+              </div>
+            )}
+
+            <div className="bg-gradient-to-r from-pink-50/30 to-purple-50/30 border border-pink-100 rounded-xl p-4 shadow-sm animate-in fade-in slide-in-from-bottom-3 duration-300">
+              <div className="flex justify-between items-start mb-3">
+                <h4 className="text-xs font-bold text-myntra-pink uppercase tracking-widest flex items-center gap-1.5">
+                  <Sparkles size={14} className="animate-pulse" />
+                  Genie Real-time AI Understanding
+                </h4>
+                <button
+                  onClick={() => setShowDebugInfo(!showDebugInfo)}
+                  className="text-[10px] font-bold text-myntra-light hover:text-myntra-pink flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Toggle Debug Info"
+                >
+                  {showDebugInfo ? <X size={12} /> : <Bug size={12} />}
+                  {showDebugInfo ? "Hide Debug" : "Debug Info"}
+                </button>
+              </div>
+
+              {showDebugInfo && (
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4 text-xs font-mono text-slate-700 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 font-bold">detected_language:</span>
+                    <span className="font-semibold text-slate-800">{parsedContext.detectedLanguage}</span>
                   </div>
-                );
-              })}
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 font-bold">confidence:</span>
+                    <span className={`font-semibold capitalize ${parsedContext.confidence === "high" ? "text-emerald-600" :
+                        parsedContext.confidence === "medium" ? "text-amber-600" : "text-red-600"
+                      }`}>
+                      {parsedContext.confidence}
+                    </span>
+                  </div>
+                  {parsedContext.ambiguousFields.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 font-bold">ambiguous_fields:</span>
+                      <span className="font-semibold text-slate-800">[{parsedContext.ambiguousFields.join(", ")}]</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-1.5 bg-white border border-myntra-border px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                  <Calendar size={13} className="text-myntra-pink" />
+                  <span>Occasion: <strong>{parsedContext.occasionCategory || parsedContext.occasionRaw || "Casual Wear"}</strong></span>
+                </div>
+                {parsedContext.primaryColor && (
+                  <div className="flex items-center gap-1.5 bg-white border border-myntra-border px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                    <Tag size={13} className="text-myntra-pink" />
+                    <span>Color: <strong className="capitalize">{parsedContext.primaryColor}</strong></span>
+                  </div>
+                )}
+                {parsedContext.maxBudget && (
+                  <div className="flex items-center gap-1.5 bg-white border border-myntra-border px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                    <DollarSign size={13} className="text-myntra-pink" />
+                    <span>Budget Limit: <strong>₹{parsedContext.maxBudget.toLocaleString()}</strong></span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 bg-white border border-myntra-border px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                  <Globe size={13} className="text-myntra-pink" />
+                  <span>Language: <strong>{parsedContext.detectedLanguage}</strong></span>
+                </div>
+                {parsedContext.isLocalPreferred && (
+                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 shadow-sm animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>Local Stores Preferred</span>
+                  </div>
+                )}
+                {parsedContext.aestheticTags && parsedContext.aestheticTags.length > 0 && (
+                  <div className="flex items-center gap-1.5 bg-pink-50/50 border border-pink-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-myntra-dark shadow-sm">
+                    <Sparkles size={13} className="text-myntra-pink" />
+                    <span>Aesthetics: <strong>{parsedContext.aestheticTags.join(", ")}</strong></span>
+                  </div>
+                )}
+                {parsedContext.excludedColors && parsedContext.excludedColors.length > 0 && (
+                  <div className="flex items-center gap-1.5 bg-red-50/50 border border-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-800 shadow-sm">
+                    <X size={13} className="text-red-500" />
+                    <span>Excluding Colors: <strong className="capitalize">{parsedContext.excludedColors.join(", ")}</strong></span>
+                  </div>
+                )}
+                {parsedContext.excludedTags && parsedContext.excludedTags.length > 0 && (
+                  <div className="flex items-center gap-1.5 bg-red-50/50 border border-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-800 shadow-sm">
+                    <X size={13} className="text-red-500" />
+                    <span>Excluding Styles: <strong className="capitalize">{parsedContext.excludedTags.join(", ")}</strong></span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -561,16 +842,16 @@ export default function GeniePage() {
           <form onSubmit={handlePromptSubmit} className="flex gap-2 sm:gap-3 items-center max-w-7xl mx-auto">
             <div className="flex-1 relative flex items-center bg-myntra-gray border border-myntra-border rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 focus-within:border-myntra-light transition-all">
               <Sparkles className="text-myntra-pink mr-2 sm:mr-3 flex-shrink-0 animate-pulse w-4 h-4 sm:w-[18px] sm:h-[18px]" />
-              <input 
+              <input
                 type="text"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder='Try: "Make it darker, pin the kurta..."'
+                placeholder='Try: "Bhai ki shaadi ke liye black sherwani ya kurta set, price max 5k."'
                 className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-myntra-dark placeholder-myntra-light"
                 disabled={isGenerating}
               />
             </div>
-            <button 
+            <button
               type="submit"
               disabled={isGenerating || !prompt.trim()}
               className="bg-myntra-pink text-white font-bold text-xs sm:text-sm px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl hover:bg-opacity-90 disabled:opacity-50 transition-all flex items-center gap-1.5 sm:gap-2 shadow-sm whitespace-nowrap cursor-pointer"
@@ -595,106 +876,7 @@ export default function GeniePage() {
 
       </main>
 
-      {/* 6. Edit Dummy Modal */}
-      {showDummyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-myntra-border animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-myntra-dark flex items-center gap-2">
-                <Sliders size={20} className="text-myntra-pink" />
-                Edit Your Dummy
-              </h3>
-              <button 
-                onClick={() => setShowDummyModal(false)}
-                className="text-myntra-light hover:text-myntra-dark p-1 rounded-full hover:bg-myntra-gray transition-all cursor-pointer"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              {/* Height Slider */}
-              <div>
-                <div className="flex justify-between text-sm font-bold text-myntra-dark mb-2">
-                  <span>Height</span>
-                  <span className="text-myntra-pink">{tempHeight} cm</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="140" 
-                  max="200" 
-                  value={tempHeight}
-                  onChange={(e) => setTempHeight(parseInt(e.target.value))}
-                  className="w-full h-2 bg-myntra-gray rounded-lg appearance-none cursor-pointer accent-myntra-pink"
-                />
-                <div className="flex justify-between text-[10px] text-myntra-light mt-1">
-                  <span>140 cm</span>
-                  <span>200 cm</span>
-                </div>
-              </div>
-
-              {/* Weight Slider */}
-              <div>
-                <div className="flex justify-between text-sm font-bold text-myntra-dark mb-2">
-                  <span>Weight</span>
-                  <span className="text-myntra-pink">{tempWeight} kg</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="40" 
-                  max="120" 
-                  value={tempWeight}
-                  onChange={(e) => setTempWeight(parseInt(e.target.value))}
-                  className="w-full h-2 bg-myntra-gray rounded-lg appearance-none cursor-pointer accent-myntra-pink"
-                />
-                <div className="flex justify-between text-[10px] text-myntra-light mt-1">
-                  <span>40 kg</span>
-                  <span>120 kg</span>
-                </div>
-              </div>
-
-              {/* Size Selector */}
-              <div>
-                <label className="block text-sm font-bold text-myntra-dark mb-2">
-                  Standard Size
-                </label>
-                <div className="grid grid-cols-6 gap-2">
-                  {["XS", "S", "M", "L", "XL", "XXL"].map((sz) => (
-                    <button
-                      key={sz}
-                      onClick={() => setTempSize(sz)}
-                      className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                        tempSize === sz 
-                          ? "border-myntra-pink bg-pink-50 text-myntra-pink" 
-                          : "border-myntra-border hover:border-myntra-light text-myntra-dark"
-                      }`}
-                    >
-                      {sz}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 flex gap-3">
-              <button 
-                onClick={() => setShowDummyModal(false)}
-                className="flex-1 border border-myntra-border text-myntra-dark hover:bg-myntra-gray font-bold py-2.5 rounded-xl transition-all text-sm cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleSaveDummy}
-                className="flex-1 bg-myntra-pink text-white hover:bg-opacity-90 font-bold py-2.5 rounded-xl transition-all text-sm shadow-sm cursor-pointer"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 7. Unified Checkout Modal */}
+      {/* Unified Checkout Modal */}
       {showCheckoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-myntra-border animate-in fade-in zoom-in duration-200">
@@ -703,7 +885,7 @@ export default function GeniePage() {
                 <ShoppingBag size={20} className="text-myntra-pink" />
                 Unified Checkout Look
               </h3>
-              <button 
+              <button
                 onClick={() => setShowCheckoutModal(false)}
                 className="text-myntra-light hover:text-myntra-dark p-1 rounded-full hover:bg-myntra-gray transition-all cursor-pointer"
               >
@@ -723,8 +905,8 @@ export default function GeniePage() {
                   <div key={item.id} className="py-3 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-myntra-gray rounded-lg overflow-hidden flex items-center justify-center border border-myntra-border flex-shrink-0">
-                        <img 
-                          src={item.image} 
+                        <img
+                          src={item.image}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />
@@ -782,13 +964,13 @@ export default function GeniePage() {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button 
+              <button
                 onClick={() => setShowCheckoutModal(false)}
                 className="flex-1 border border-myntra-border text-myntra-dark hover:bg-myntra-gray font-bold py-2.5 rounded-xl transition-all text-sm cursor-pointer"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => {
                   alert("Order Placed Successfully! Your curated outfit is on its way.");
                   setShowCheckoutModal(false);

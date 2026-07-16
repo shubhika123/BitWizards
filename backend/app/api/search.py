@@ -1,24 +1,59 @@
+import logging
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from app.models.FestivalSchema import SearchRequest, SearchResponse
 from app.services.database import MockDB
 from app.services.gemini import GeminiService
 
+logger = logging.getLogger("app.api.search")
+
 router = APIRouter(prefix="/search", tags=["search"])
+
+# Local in-memory cache for parsed search intents.
+# Used during isolated NLP parser testing to avoid repeated Groq API calls for identical queries.
+PARSED_INTENT_CACHE: Dict[str, Any] = {}
+
 
 @router.post("", response_model=SearchResponse)
 def search_products(req: SearchRequest):
     """
-    NLP powered Search. First extracts search attributes (categories, region, festival, budget, style)
-    from the natural language prompt, and then finds matching products.
+    NLP powered Search. CURRENTLY IN PARSER-ONLY TESTING MODE.
+    Extracts search attributes from the natural language prompt and returns immediately
+    to isolate intent extraction and save API quota.
     """
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Search query cannot be empty")
-        
-    # Extract intent from natural language query using Gemini (or fallback)
+
+    normalized_query = req.query.strip().lower()
+
+    # 1. Check local cache first to avoid redundant API calls.
+    if normalized_query in PARSED_INTENT_CACHE:
+        logger.info(f"Cache hit for query: {normalized_query}")
+        return SearchResponse(
+            query=req.query,
+            parsed_intent=PARSED_INTENT_CACHE[normalized_query],
+            products=[]  # Empty list satisfies the schema contract so frontend won't crash
+        )
+
+    # 2. The ONLY API call made right now — isolates testing to just the core NLP logic.
     parsed_intent = GeminiService.parse_natural_language_search(req.query)
-    
-    # Merge query context with optional request context if not parsed by LLM
+
+    # 3. Commit the parsed intent to the in-memory cache for future identical queries.
+    PARSED_INTENT_CACHE[normalized_query] = parsed_intent
+    logger.info(f"Cache miss — stored parsed intent for query: {normalized_query}")
+
+    # 4. SHORT-CIRCUIT FOR DEV MODE: Return intent immediately with an empty products list.
+    # This completely halts downstream loops, protecting your Groq TPM/RPM limit.
+    return SearchResponse(
+        query=req.query,
+        parsed_intent=parsed_intent,
+        products=[]  # Empty list satisfies the schema contract so frontend won't crash
+    )
+
+    # =========================================================================
+    # THE REST OF THE PIPELINE IS TEMPORARILY BYPASSED UNTIL DB/CURATION IS READY
+    # =========================================================================
+    """
     region = parsed_intent.get("region") or req.region or "Lucknow"
     weather = parsed_intent.get("weather") or req.weather or "Summer"
     festival = parsed_intent.get("festival")
@@ -43,7 +78,7 @@ def search_products(req: SearchRequest):
         # Category matching
         cat_match = False
         if not categories:
-            cat_match = True  # If user didn't specify category, allow all
+            cat_match = True
         else:
             for cat in categories:
                 if (cat.lower() in p["name"].lower() or 
@@ -55,9 +90,8 @@ def search_products(req: SearchRequest):
                     break
         
         if not cat_match:
-            continue  # category mismatch, filter out
+            continue
             
-        # Festival match
         if festival:
             matched_fest = [f for f in p.get("festivals", []) if f.lower() == festival.lower()]
             if matched_fest:
@@ -65,28 +99,23 @@ def search_products(req: SearchRequest):
             else:
                 score -= 2
                 
-        # Region match
         if region and p.get("region", "").lower() == region.lower():
             score += 5
             
-        # Weather match
         if weather:
             matched_weather = [w for w in p.get("weather", []) if w.lower() == weather.lower()]
             if matched_weather:
                 score += 3
                 
-        # Budget filter/score
         if budget:
             if p["price"] <= budget:
                 score += 5
             else:
-                continue  # Hard filter for budget constraints
+                continue
                 
-        # Style match
         if style and style.lower() in p.get("style", "").lower():
             score += 4
             
-        # Add basic search term relevance
         q_words = req.query.lower().split()
         for word in q_words:
             if len(word) > 2:
@@ -95,10 +124,9 @@ def search_products(req: SearchRequest):
                 if word in p["description"].lower():
                     score += 1
                     
-        # Add rating boost
         score += p.get("rating", 4.0)
         
-        # Build explanation and review summaries for search outcomes
+        # O(N) API Calls completely bypassed above
         ai_reason = GeminiService.generate_recommendation_reason(p, context)
         ai_review_summary = GeminiService.summarize_reviews(p["name"], p.get("reviews", []))
         
@@ -108,11 +136,5 @@ def search_products(req: SearchRequest):
         product_copy["ai_review_summary"] = ai_review_summary
         matched_products.append(product_copy)
         
-    # Sort matched products by similarity score
     matched_products.sort(key=lambda x: x["score"], reverse=True)
-    
-    return SearchResponse(
-        query=req.query,
-        parsed_intent=parsed_intent,
-        products=matched_products
-    )
+    """
