@@ -68,6 +68,7 @@ export default function Header() {
         <div className="flex items-center justify-between w-full gap-4">
           <div className="flex items-center gap-3">
             {/* Logo */}
+            {/* Logo */}
             <Link href="/" className="flex items-center shrink-0">
               <img 
                 src="/logo.png" 
@@ -77,6 +78,14 @@ export default function Header() {
                   e.currentTarget.src = "https://images.indianexpress.com/2021/01/myntra-logo.jpg";
                 }}
               />
+            </Link>
+
+            {/* Festive Live Tag */}
+            <Link 
+              href="/Category/Rakhi"
+              className="flex items-center gap-1.5 px-3 py-0.5 bg-gradient-to-r from-[#fffbf0] via-[#fff1f2] to-[#fffbf0] border-2 border-double border-amber-300 rounded-full text-[#9f1239] text-[8px] font-black tracking-widest uppercase shadow-3xs select-none shrink-0 animate-pulse"
+            >
+              <span>🌸 RAKHI FESTIVAL LIVE 🌸</span>
             </Link>
           </div>
 
@@ -115,7 +124,7 @@ export default function Header() {
                 placeholder={
                   searchMode === "genie"
                     ? "Ask Genie: 'Sangeet outfit under 2500'..."
-                    : "Search for products, brands and more"
+                    : "Search for Rakhi, Sweets, Gifts & more..."
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
