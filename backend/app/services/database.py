@@ -1,176 +1,613 @@
-import random
-from typing import List, Dict, Any, Optional
+"""
+Module 2 Data Repository — Target Production Schema
 
-# Mock Catalog Database
-PRODUCTS = [
-    # North India / ethnic
+This module acts as an in-memory abstraction of the production MySQL relational
+schema used by the Core Curation Engine (Module 2). The target schema is
+normalized into four tables to support flexible many-to-many tag matching.
+
+Target MySQL Relational Schema:
+
+1. Table `products` (
+       id          VARCHAR(64) PRIMARY KEY,
+       name        VARCHAR(150) NOT NULL,
+       category    ENUM('Topwear', 'Bottomwear', 'Footwear', 'Accessory') NOT NULL,
+       price       INT NOT NULL,
+       image_url   VARCHAR(255) NOT NULL
+   )
+
+2. Table `product_occasions` (
+       product_id  VARCHAR(64) NOT NULL,
+       occasion    VARCHAR(64) NOT NULL,
+       FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+       PRIMARY KEY (product_id, occasion)
+   )
+   -> Many-to-Many relationship linking products to occasions such as Wedding,
+      Festive, Formal, Casual, Party, Date.
+
+3. Table `product_colors` (
+       product_id  VARCHAR(64) NOT NULL,
+       color       VARCHAR(64) NOT NULL,
+       FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+       PRIMARY KEY (product_id, color)
+   )
+   -> Many-to-Many relationship linking products to extractable colors.
+
+4. Table `product_aesthetics` (
+       product_id  VARCHAR(64) NOT NULL,
+       tag         VARCHAR(64) NOT NULL,
+       FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+       PRIMARY KEY (product_id, tag)
+   )
+   -> Many-to-Many relationship linking products to style/aesthetic tags such as
+      ethnic, minimalist, heavy, sleek, streetwear.
+
+The in-memory `MockDB` class below mirrors this abstraction using a validated
+Pydantic ORM entity (`ProductEntity`) and a thread-safe cache (`_table_cache`).
+"""
+
+from typing import List, Dict, Any, Optional
+from threading import Lock
+from pydantic import BaseModel, Field, ConfigDict
+
+
+# =============================================================================
+# PYDANTIC ORM ENTITY
+# =============================================================================
+
+class ProductEntity(BaseModel):
+    """
+    Pydantic model mirroring the production `products` row plus its related
+    many-to-many tag tables (occasions, colors, aesthetics).
+    """
+    id: str
+    name: str
+    category: str = Field(
+        ...,
+        pattern="^(Topwear|Bottomwear|Footwear|Accessory)$",
+        description="Production ENUM value from the products table"
+    )
+    price: int = Field(..., ge=300, le=4000, description="Price in INR")
+    occasions: List[str] = Field(
+        default_factory=list,
+        description="Values that would live in the product_occasions join table"
+    )
+    colors: List[str] = Field(
+        default_factory=list,
+        description="Values that would live in the product_colors join table"
+    )
+    aesthetic_tags: List[str] = Field(
+        default_factory=list,
+        description="Values that would live in the product_aesthetics join table"
+    )
+    image_url: str = Field(
+        ...,
+        description="Local transparent mannequin asset path: /catalog/{id}.png"
+    )
+
+    model_config = ConfigDict(extra="ignore")
+
+
+# =============================================================================
+# HIGH-FIDELITY IN-LINE SEED CATALOG (50 PRODUCTS)
+# Distribution: 15 Topwear, 15 Bottomwear, 10 Footwear, 10 Accessory
+# =============================================================================
+
+CATALOG: List[Dict[str, Any]] = [
+    # --- TOPWEAR (15) ---
     {
-        "id": "prod_1",
-        "name": "Handcrafted Chikankari Cotton Kurta",
-        "category": "Ethnic Wear",
-        "sub_category": "Kurta",
-        "price": 1299,
-        "region": "Lucknow",
-        "festivals": ["Raksha Bandhan", "Teej", "Eid"],
-        "weather": ["Summer", "Humid", "Monsoon"],
-        "budget_bracket": "budget",
-        "style": "Traditional Elegant",
-        "description": "Premium hand-woven cotton Chikankari kurta in pastel shades. Breathable fabric perfect for warm weather and festive family gatherings.",
-        "image_url": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80",
-        "local_boutique": "Avadh Weaves",
-        "rating": 4.5,
-        "reviews": [
-            "Super comfortable for summer. The chikankari embroidery is genuine.",
-            "Loved the material, size fits perfectly. Recommended for Teej!"
-        ]
+        "id": "top_001",
+        "name": "Peplum Kurti",
+        "category": "Topwear",
+        "price": 1890,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["gold", "maroon", "cream"],
+        "aesthetic_tags": ["ethnic", "heavy", "traditional"],
+        "image_url": "/catalog/top_001.jpg"
     },
     {
-        "id": "prod_2",
-        "name": "Jaipur Bandhani Printed Anarkali Suit Set",
-        "category": "Ethnic Wear",
-        "sub_category": "Suit Set",
-        "price": 2499,
-        "region": "Jaipur",
-        "festivals": ["Teej", "Diwali", "Karwa Chauth"],
-        "weather": ["Summer", "Dry"],
-        "budget_bracket": "mid-range",
-        "style": "Traditional Bright",
-        "description": "Vibrant Jaipur Bandhani tie-dye Anarkali suit with beautiful gotta-patti borders. Comes with a matching chiffon dupatta.",
-        "image_url": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
-        "local_boutique": "Rajputana Heritage Boutique",
-        "rating": 4.7,
-        "reviews": [
-            "Wore it for Teej, got so many compliments! True Rajasthani vibe.",
-            "Bright colors, didn't bleed after first wash. Great quality."
-        ]
-    },
-    # South India / traditional
-    {
-        "id": "prod_3",
-        "name": "Classic Kerala Kasavu Saree with Golden Zari",
-        "category": "Ethnic Wear",
-        "sub_category": "Saree",
-        "price": 1850,
-        "region": "Kerala",
-        "festivals": ["Onam", "Vishu", "Weddings"],
-        "weather": ["Humid", "Rainy", "Summer"],
-        "budget_bracket": "budget",
-        "style": "Traditional Minimalist",
-        "description": "Authentic Kerala Kasavu handloom cotton saree with fine golden zari border. Lightweight, traditional off-white drape.",
-        "image_url": "https://images.unsplash.com/photo-1610030469668-93535c17b6b3?auto=format&fit=crop&w=600&q=80",
-        "local_boutique": "Nair Handlooms",
-        "rating": 4.8,
-        "reviews": [
-            "Exactly what I needed for Onam. Pure cotton, comfortable in humid weather.",
-            "Beautiful gold border. Drapes perfectly."
-        ]
-    },
-    {
-        "id": "prod_4",
-        "name": "Royal Kanjeevaram Silk Saree",
-        "category": "Ethnic Wear",
-        "sub_category": "Saree",
-        "price": 4500,
-        "region": "Coimbatore",
-        "festivals": ["Diwali", "Pongal", "Weddings"],
-        "weather": ["Cool", "Dry"],
-        "budget_bracket": "premium",
-        "style": "Grand Traditional",
-        "description": "Luxurious Coimbatore-woven silk saree with intricate temple motifs and rich zari border. Perfect for brides and wedding guests.",
-        "image_url": "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=600&q=80",
-        "local_boutique": "Coimbatore Silk House",
-        "rating": 4.9,
-        "reviews": [
-            "Pure silk mark certified. The shine and drape are outstanding.",
-            "Absolutely beautiful for my sister's wedding in Chennai. Highly recommended."
-        ]
-    },
-    # Modern / GenZ
-    {
-        "id": "prod_5",
-        "name": "Oversized Streetwear Tee - Monsoon Drop",
-        "category": "Western Wear",
-        "sub_category": "T-Shirt",
-        "price": 799,
-        "region": "Delhi",
-        "festivals": ["College Fest", "Daily Wear"],
-        "weather": ["Monsoon", "Rainy", "Summer"],
-        "budget_bracket": "budget",
-        "style": "GenZ Streetwear",
-        "description": "Heavyweight 240 GSM cotton oversized t-shirt with graffiti print back. Drop shoulder fit, ideal for college campuses.",
-        "image_url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80",
-        "local_boutique": "Dilli Rebels Co.",
-        "rating": 4.3,
-        "reviews": [
-            "Super thick cotton, feels like an expensive streetwear brand.",
-            "Great fit, prints don't fade. Awesome styling with cargos."
-        ]
-    },
-    {
-        "id": "prod_6",
-        "name": "Utility Cargo Pants with Adjustable Straps",
-        "category": "Western Wear",
-        "sub_category": "Cargos",
-        "price": 1499,
-        "region": "Delhi",
-        "festivals": ["College Fest", "Daily Wear"],
-        "weather": ["Cool", "Dry", "Monsoon"],
-        "budget_bracket": "budget",
-        "style": "GenZ Streetwear",
-        "description": "Multi-pocket cargo pants in durable cotton-twill fabric. Features drawstrings at cuffs and relaxed tactical fit.",
-        "image_url": "https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&w=600&q=80",
-        "local_boutique": "Dilli Rebels Co.",
-        "rating": 4.4,
-        "reviews": [
-            "Lots of pockets! Durable fabric and looks very stylish.",
-            "A bit long but the drawstring at the bottom solved it. Perfect streetwear."
-        ]
-    },
-    # East India / traditional
-    {
-        "id": "prod_7",
-        "name": "Traditional Lal Paar Cotton Saree",
-        "category": "Ethnic Wear",
-        "sub_category": "Saree",
-        "price": 1150,
-        "region": "Patna",
-        "festivals": ["Durga Puja", "Chhath Puja", "Saraswati Puja"],
-        "weather": ["Summer", "Humid"],
-        "budget_bracket": "budget",
-        "style": "Traditional Iconic",
-        "description": "Authentic white cotton saree with a broad red border (Lal Paar). Classic Bengali / Bihari traditional drape for auspicious occasions.",
-        "image_url": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80",
-        "local_boutique": "Pataliputra Weaves",
-        "rating": 4.6,
-        "reviews": [
-            "Lightweight, perfect for Chhath Puja morning arghya.",
-            "True to description, soft cotton fabric."
-        ]
-    },
-    # Andhra/Telangana / Ethnic
-    {
-        "id": "prod_8",
-        "name": "Banarasi Silk Sharara Suit Set",
-        "category": "Ethnic Wear",
-        "sub_category": "Sharara",
+        "id": "top_002",
+        "name": "Corset",
+        "category": "Topwear",
         "price": 3200,
-        "region": "Vizag",
-        "festivals": ["Eid", "Diwali", "Weddings"],
-        "weather": ["Cool", "Dry"],
-        "budget_bracket": "premium",
-        "style": "Glamour Ethnic",
-        "description": "Royal Banarasi brocade short kurti paired with a flared sharara pants and net dupatta. Rich weaving details.",
-        "image_url": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
-        "local_boutique": "Vizag Ethnic Hub",
-        "rating": 4.7,
-        "reviews": [
-            "Flared sharara is huge, looks like a lehenga. Brocade shines beautifully.",
-            "Wore it to my friend's sangeet, everyone loved it."
-        ]
+        "occasions": ["Wedding"],
+        "colors": ["black", "navy", "wine"],
+        "aesthetic_tags": ["ethnic", "heavy", "royal"],
+        "image_url": "/catalog/top_002.jpg"
+    },
+    {
+        "id": "top_003",
+        "name": "Cotton Kurti",
+        "category": "Topwear",
+        "price": 1290,
+        "occasions": ["Festive", "Casual"],
+        "colors": ["white", "pastel", "mint"],
+        "aesthetic_tags": ["ethnic", "light", "elegant"],
+        "image_url": "/catalog/top_003.jpg"
+    },
+    {
+        "id": "top_004",
+        "name": "Peplum Kurti",
+        "category": "Topwear",
+        "price": 1450,
+        "occasions": ["Festive", "Party"],
+        "colors": ["red", "orange", "yellow"],
+        "aesthetic_tags": ["ethnic", "bright", "traditional"],
+        "image_url": "/catalog/top_004.jpg"
+    },
+    {
+        "id": "top_005",
+        "name": "Linen Wrap-top",
+        "category": "Topwear",
+        "price": 890,
+        "occasions": ["Casual", "Office"],
+        "colors": ["white", "blue", "beige"],
+        "aesthetic_tags": ["minimalist", "light", "clean"],
+        "image_url": "/catalog/top_005.jpg"
+    },
+    {
+        "id": "top_006",
+        "name": "LinenWrap-top",
+        "category": "Topwear",
+        "price": 590,
+        "occasions": ["Casual", "College Fest"],
+        "colors": ["black", "white", "grey"],
+        "aesthetic_tags": ["streetwear", "relaxed", "urban"],
+        "image_url": "/catalog/top_006.jpg"
+    },
+    {
+        "id": "top_007",
+        "name": "Woolen Cardigan",
+        "category": "Topwear",
+        "price": 1100,
+        "occasions": ["Casual"],
+        "colors": ["black", "navy", "olive"],
+        "aesthetic_tags": ["streetwear", "cozy", "minimalist"],
+        "image_url": "/catalog/top_007.jpg"
+    },
+    {
+        "id": "top_008",
+        "name": "Woolen Cardigan",
+        "category": "Topwear",
+        "price": 750,
+        "occasions": ["Casual", "Office"],
+        "colors": ["white", "navy", "burgundy"],
+        "aesthetic_tags": ["smart-casual", "sleek", "minimalist"],
+        "image_url": "/catalog/top_008.jpg"
+    },
+    {
+        "id": "top_009",
+        "name": "Casual Cotton Men's Shirt",
+        "category": "Topwear",
+        "price": 1650,
+        "occasions": ["Casual", "Party"],
+        "colors": ["blue", "black"],
+        "aesthetic_tags": ["streetwear", "vintage", "layered"],
+        "image_url": "/catalog/top_009.jpg"
+    },
+    {
+        "id": "top_010",
+        "name": "Knitted Men's Polo T-shirt",
+        "category": "Topwear",
+        "price": 2400,
+        "occasions": ["Formal", "Party"],
+        "colors": ["black", "gold", "burgundy"],
+        "aesthetic_tags": ["sleek", "heavy", "statement"],
+        "image_url": "/catalog/top_010.jpg"
+    },
+    {
+        "id": "top_011",
+        "name": "Striped Men's  CottonShirt",
+        "category": "Topwear",
+        "price": 1350,
+        "occasions": ["Party", "Date"],
+        "colors": ["black", "silver", "rose"],
+        "aesthetic_tags": ["sleek", "glam", "minimalist"],
+        "image_url": "/catalog/top_011.jpg"
+    },
+    {
+        "id": "top_012",
+        "name": "Men's Jacket",
+        "category": "Topwear",
+        "price": 980,
+        "occasions": ["Festive", "Casual"],
+        "colors": ["white", "black", "olive"],
+        "aesthetic_tags": ["ethnic", "relaxed", "traditional"],
+        "image_url": "/catalog/top_012.png"
+    },
+    {
+        "id": "top_013",
+        "name": "Men's black toggle jacket",
+        "category": "Topwear",
+        "price": 1750,
+        "occasions": ["Festive", "Formal"],
+        "colors": ["navy", "grey", "mustard"],
+        "aesthetic_tags": ["ethnic", "sleek", "structured"],
+        "image_url": "/catalog/top_013.jpg"
+    },
+    {
+        "id": "top_014",
+        "name": "Girls' Peter Pan collar peplum top",
+        "category": "Topwear",
+        "price": 450,
+        "occasions": ["Casual", "Party"],
+        "colors": ["black", "white", "pink"],
+        "aesthetic_tags": ["minimalist", "trendy", "casual"],
+        "image_url": "/catalog/top_014.jpg"
+    },
+    {
+        "id": "top_015",
+        "name": "Girls' striped bow-detail peplum top",
+        "category": "Topwear",
+        "price": 880,
+        "occasions": ["Party", "Date"],
+        "colors": ["red", "black", "peach"],
+        "aesthetic_tags": ["feminine", "glam", "statement"],
+        "image_url": "/catalog/top_015.jpg"
+    },
+
+    # --- BOTTOMWEAR (15) ---
+    {
+        "id": "bottom_001",
+        "name": "Silk Churidar Pyjama",
+        "category": "Bottomwear",
+        "price": 650,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["white", "cream", "gold"],
+        "aesthetic_tags": ["ethnic", "light", "traditional"],
+        "image_url": "/catalog/bot_001.jpg"
+    },
+    {
+        "id": "bottom_002",
+        "name": "Cotton Silk Dhoti Pants",
+        "category": "Bottomwear",
+        "price": 1100,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["white", "gold", "beige"],
+        "aesthetic_tags": ["ethnic", " airy", "traditional"],
+        "image_url": "/catalog/bot_002.jpg"
+    },
+    {
+        "id": "bottom_003",
+        "name": "Ivory Palazzo Silk Pants",
+        "category": "Bottomwear",
+        "price": 890,
+        "occasions": ["Festive", "Casual"],
+        "colors": ["ivory", "white", "gold"],
+        "aesthetic_tags": ["ethnic", "elegant", "flowy"],
+        "image_url": "/catalog/bot_003.jpg"
+    },
+    {
+        "id": "bottom_004",
+        "name": "Cotton Pyjama Bottoms",
+        "category": "Bottomwear",
+        "price": 480,
+        "occasions": ["Festive", "Casual"],
+        "colors": ["white", "black", "grey"],
+        "aesthetic_tags": ["ethnic", "comfort", "relaxed"],
+        "image_url": "/catalog/bot_004.jpg"
+    },
+    {
+        "id": "bottom_005",
+        "name": "Slim Fit Chinos",
+        "category": "Bottomwear",
+        "price": 990,
+        "occasions": ["Casual", "Office"],
+        "colors": ["beige", "khaki", "navy"],
+        "aesthetic_tags": ["minimalist", "sleek", "smart-casual"],
+        "image_url": "/catalog/bot_005.jpg"
+    },
+    {
+        "id": "bottom_006",
+        "name": "Multi-Pocket Cargo Pants",
+        "category": "Bottomwear",
+        "price": 1200,
+        "occasions": ["Casual", "College Fest"],
+        "colors": ["green", "black", "grey"],
+        "aesthetic_tags": ["streetwear", "utility", "trendy"],
+        "image_url": "/catalog/bot_006.jpg"
+    },
+    {
+        "id": "bottom_007",
+        "name": "Classic Straight Fit Jeans",
+        "category": "Bottomwear",
+        "price": 1400,
+        "occasions": ["Casual"],
+        "colors": ["blue", "black"],
+        "aesthetic_tags": ["minimalist", "classic", "versatile"],
+        "image_url": "/catalog/bot_007.jpg"
+    },
+    {
+        "id": "bottom_008",
+        "name": "Tapered Joggers",
+        "category": "Bottomwear",
+        "price": 650,
+        "occasions": ["Casual"],
+        "colors": ["black", "grey", "olive"],
+        "aesthetic_tags": ["streetwear", "comfort", "relaxed"],
+        "image_url": "/catalog/bot_008.jpg"
+    },
+    {
+        "id": "bottom_009",
+        "name": "Formal Flat Front Trousers",
+        "category": "Bottomwear",
+        "price": 1100,
+        "occasions": ["Formal", "Office"],
+        "colors": ["black", "charcoal", "navy"],
+        "aesthetic_tags": ["sleek", "structured", "minimalist"],
+        "image_url": "/catalog/bot_009.jpg"
+    },
+    {
+        "id": "bottom_010",
+        "name": "Dhoti Style Skirt",
+        "category": "Bottomwear",
+        "price": 950,
+        "occasions": ["Festive", "Casual"],
+        "colors": ["white", "gold", "red"],
+        "aesthetic_tags": ["ethnic", "flowy", "traditional"],
+        "image_url": "/catalog/bot_010.jpg"
+    },
+    {
+        "id": "bottom_011",
+        "name": "Sharara Flared Pants",
+        "category": "Bottomwear",
+        "price": 1600,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["gold", "pink", "green"],
+        "aesthetic_tags": ["ethnic", "heavy", "glam"],
+        "image_url": "/catalog/bot_011.jpg"
+    },
+    {
+        "id": "bottom_012",
+        "name": "Harem Style Pants",
+        "category": "Bottomwear",
+        "price": 780,
+        "occasions": ["Casual", "Festive"],
+        "colors": ["black", "maroon", "mustard"],
+        "aesthetic_tags": ["ethnic", "relaxed", "boho"],
+        "image_url": "/catalog/bot_012.jpg"
+    },
+    {
+        "id": "bottom_013",
+        "name": "Pencil Cut Skirt",
+        "category": "Bottomwear",
+        "price": 850,
+        "occasions": ["Formal", "Party"],
+        "colors": ["black", "navy", "burgundy"],
+        "aesthetic_tags": ["sleek", "structured", "elegant"],
+        "image_url": "/catalog/bot_013.jpg"
+    },
+    {
+        "id": "bottom_014",
+        "name": "Casual Cotton Shorts",
+        "category": "Bottomwear",
+        "price": 380,
+        "occasions": ["Casual"],
+        "colors": ["blue", "beige", "black"],
+        "aesthetic_tags": ["minimalist", "comfort", "summer"],
+        "image_url": "/catalog/bot_014.jpg"
+    },
+    {
+        "id": "bottom_015",
+        "name": "Side Stripe Track Pants",
+        "category": "Bottomwear",
+        "price": 720,
+        "occasions": ["Casual"],
+        "colors": ["black", "grey", "white"],
+        "aesthetic_tags": ["streetwear", "sporty", "relaxed"],
+        "image_url": "/catalog/bot_015.jpg"
+    },
+
+    # --- FOOTWEAR (10) ---
+    {
+        "id": "footwear_001",
+        "name": "Handcrafted Kolhapuri Juttis",
+        "category": "Footwear",
+        "price": 890,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["gold", "brown", "tan"],
+        "aesthetic_tags": ["ethnic", "handcrafted", "traditional"],
+        "image_url": "/catalog/foot_001.jpg"
+    },
+    {
+        "id": "footwear_002",
+        "name": "Royal Velvet Mojris",
+        "category": "Footwear",
+        "price": 1200,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["black", "maroon", "navy"],
+        "aesthetic_tags": ["ethnic", "heavy", "royal"],
+        "image_url": "/catalog/foot_002.jpg"
+    },
+    {
+        "id": "footwear_003",
+        "name": "Embellished Wedding Sandals",
+        "category": "Footwear",
+        "price": 750,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["gold", "silver", "pink"],
+        "aesthetic_tags": ["ethnic", "glam", "delicate"],
+        "image_url": "/catalog/foot_003.jpg"
+    },
+    {
+        "id": "footwear_004",
+        "name": "Leather Oxford Formal Shoes",
+        "category": "Footwear",
+        "price": 1800,
+        "occasions": ["Formal", "Office"],
+        "colors": ["black", "brown"],
+        "aesthetic_tags": ["sleek", "classic", "polished"],
+        "image_url": "/catalog/foot_004.jpg"
+    },
+    {
+        "id": "footwear_005",
+        "name": "Classic White Sneakers",
+        "category": "Footwear",
+        "price": 1100,
+        "occasions": ["Casual"],
+        "colors": ["white", "black"],
+        "aesthetic_tags": ["minimalist", "clean", "versatile"],
+        "image_url": "/catalog/foot_005.jpg"
+    },
+    {
+        "id": "footwear_006",
+        "name": "Chunky High-Top Sneakers",
+        "category": "Footwear",
+        "price": 1350,
+        "occasions": ["Casual", "College Fest"],
+        "colors": ["white", "blue", "pink"],
+        "aesthetic_tags": ["streetwear", "bold", "trendy"],
+        "image_url": "/catalog/foot_006.jpg"
+    },
+    {
+        "id": "footwear_007",
+        "name": "Casual Leather Loafers",
+        "category": "Footwear",
+        "price": 990,
+        "occasions": ["Casual", "Office"],
+        "colors": ["brown", "tan", "black"],
+        "aesthetic_tags": ["smart-casual", "sleek", "minimalist"],
+        "image_url": "/catalog/foot_007.jpg"
+    },
+    {
+        "id": "footwear_008",
+        "name": "Stiletto Heel Pumps",
+        "category": "Footwear",
+        "price": 1450,
+        "occasions": ["Party", "Date"],
+        "colors": ["black", "red", "nude"],
+        "aesthetic_tags": ["glam", "sleek", "statement"],
+        "image_url": "/catalog/foot_008.jpg"
+    },
+    {
+        "id": "footwear_009",
+        "name": "Beaded Kolhapuris",
+        "category": "Footwear",
+        "price": 680,
+        "occasions": ["Festive", "Casual"],
+        "colors": ["gold", "brown", "red"],
+        "aesthetic_tags": ["ethnic", "boho", "handcrafted"],
+        "image_url": "/catalog/foot_009.jpg"
+    },
+    {
+        "id": "footwear_010",
+        "name": "Ankle Length Boots",
+        "category": "Footwear",
+        "price": 1700,
+        "occasions": ["Casual", "Party"],
+        "colors": ["black", "brown"],
+        "aesthetic_tags": ["streetwear", "edgy", "versatile"],
+        "image_url": "/catalog/foot_010.jpg"
+    },
+
+    # --- ACCESSORY (10) ---
+    {
+        "id": "accessory_001",
+        "name": "Gold Plated Kundan Necklace",
+        "category": "Accessory",
+        "price": 1500,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["gold", "green", "red"],
+        "aesthetic_tags": ["ethnic", "heavy", "statement"],
+        "image_url": "/catalog/acc_001.jpg"
+    },
+    {
+        "id": "accessory_002",
+        "name": "Heritage Pearl Strand Necklace",
+        "category": "Accessory",
+        "price": 1100,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["white", "ivory", "gold"],
+        "aesthetic_tags": ["elegant", "classic", "ethnic"],
+        "image_url": "/catalog/acc_002.jpg"
+    },
+    {
+        "id": "accessory_003",
+        "name": "Chronograph Leather Watch",
+        "category": "Accessory",
+        "price": 680,
+        "occasions": ["Casual", "Office"],
+        "colors": ["brown", "black", "silver"],
+        "aesthetic_tags": ["minimalist", "sleek", "classic"],
+        "image_url": "/catalog/acc_003.jpg"
+    },
+    {
+        "id": "accessory_004",
+        "name": "Digital Sports Watch",
+        "category": "Accessory",
+        "price": 490,
+        "occasions": ["Casual"],
+        "colors": ["black", "blue", "grey"],
+        "aesthetic_tags": ["sporty", "minimalist", "functional"],
+        "image_url": "/catalog/acc_004.jpg"
+    },
+    {
+        "id": "accessory_005",
+        "name": "Aviator Sunglasses",
+        "category": "Accessory",
+        "price": 950,
+        "occasions": ["Casual", "Party"],
+        "colors": ["gold", "black", "green"],
+        "aesthetic_tags": ["classic", "sleek", "cool"],
+        "image_url": "/catalog/acc_005.jpg"
+    },
+    {
+        "id": "accessory_006",
+        "name": "Leather Formal Belt",
+        "category": "Accessory",
+        "price": 550,
+        "occasions": ["Formal", "Office"],
+        "colors": ["black", "brown"],
+        "aesthetic_tags": ["minimalist", "sleek", "essential"],
+        "image_url": "/catalog/acc_006.jpg"
+    },
+    {
+        "id": "accessory_007",
+        "name": "Silk Pocket Square",
+        "category": "Accessory",
+        "price": 350,
+        "occasions": ["Formal", "Party"],
+        "colors": ["blue", "red", "gold"],
+        "aesthetic_tags": ["sleek", "minimalist", "polished"],
+        "image_url": "/catalog/acc_007.jpg"
+    },
+    {
+        "id": "accessory_008",
+        "name": "Embroidered Dupatta",
+        "category": "Accessory",
+        "price": 780,
+        "occasions": ["Wedding", "Festive"],
+        "colors": ["red", "gold", "pink"],
+        "aesthetic_tags": ["ethnic", "heavy", "traditional"],
+        "image_url": "/catalog/acc_008.jpg"
+    },
+    {
+        "id": "accessory_009",
+        "name": "Evening Clutch Bag",
+        "category": "Accessory",
+        "price": 1200,
+        "occasions": ["Party", "Date"],
+        "colors": ["black", "gold", "silver"],
+        "aesthetic_tags": ["glam", "sleek", "statement"],
+        "image_url": "/catalog/acc_009.jpg"
+    },
+    {
+        "id": "accessory_010",
+        "name": "Layered Bracelet Set",
+        "category": "Accessory",
+        "price": 420,
+        "occasions": ["Casual", "Party"],
+        "colors": ["gold", "silver", "black"],
+        "aesthetic_tags": ["trendy", "minimalist", "layered"],
+        "image_url": "/catalog/acc_010.png"
     }
 ]
 
-LOCAL_BOUTIQUES = [
+
+# =============================================================================
+# LOCAL BOUTIQUES & OUTFIT CIRCLE (Preserved for downstream compatibility)
+# =============================================================================
+
+LOCAL_BOUTIQUES: List[Dict[str, Any]] = [
     {
         "id": "boutique_1",
         "name": "Avadh Weaves",
@@ -233,8 +670,7 @@ LOCAL_BOUTIQUES = [
     }
 ]
 
-# Outfit Circle Mock Groups
-OUTFIT_GROUPS = [
+OUTFIT_GROUPS: List[Dict[str, Any]] = [
     {
         "id": "group_1",
         "name": "Jaipur Wedding Prep",
@@ -243,21 +679,21 @@ OUTFIT_GROUPS = [
         "items": [
             {
                 "id": "item_1",
-                "product_id": "prod_2",
+                "product_id": "top_004",
                 "votes": 12,
                 "voted_by": ["Kuhu", "Aditi", "Rohan"],
                 "comments": [
-                    {"user": "Aditi", "text": "This pink bandhani suits the theme perfectly!"},
-                    {"user": "Rohan", "text": "Nice, matches the Jaipur vibe."}
+                    {"user": "Aditi", "text": "This bandhani print is perfect for the Jaipur theme!"},
+                    {"user": "Rohan", "text": "Love the festive vibe."}
                 ]
             },
             {
                 "id": "item_2",
-                "product_id": "prod_8",
+                "product_id": "bottom_011",
                 "votes": 5,
                 "voted_by": ["Kuhu", "Sneha"],
                 "comments": [
-                    {"user": "Sneha", "text": "Sharara is good but might be too heavy for noon events."}
+                    {"user": "Sneha", "text": "Sharara is gorgeous but may be too heavy for a noon event."}
                 ]
             }
         ]
@@ -270,7 +706,7 @@ OUTFIT_GROUPS = [
         "items": [
             {
                 "id": "item_3",
-                "product_id": "prod_5",
+                "product_id": "top_006",
                 "votes": 18,
                 "voted_by": ["Rohan", "Aditya", "Vikram", "Neha"],
                 "comments": [
@@ -282,16 +718,80 @@ OUTFIT_GROUPS = [
     }
 ]
 
-class MockDB:
-    @staticmethod
-    def get_products() -> List[Dict[str, Any]]:
-        return PRODUCTS
 
-    @staticmethod
-    def get_product(product_id: str) -> Optional[Dict[str, Any]]:
-        for p in PRODUCTS:
-            if p["id"] == product_id:
-                return p
+# =============================================================================
+# ABSTRACT REPOSITORY LAYER
+# =============================================================================
+
+class MockDB:
+    """
+    Production-abstracted in-memory data repository.
+    Designed to mirror the eventual MySQL adapter layer with minimal friction.
+    """
+    _table_cache: List[ProductEntity] = []
+    _lock: Lock = Lock()
+    _synced: bool = False
+
+    @classmethod
+    def connect_and_sync(cls) -> None:
+        """
+        Thread-safe initialization that validates the seed catalog through the
+        Pydantic ORM entity and populates the internal `_table_cache`.
+        Mirrors the behaviour of a real ORM session factory.
+        """
+        if cls._synced:
+            return
+        with cls._lock:
+            if cls._synced:
+                return
+            cls._table_cache = [ProductEntity(**product) for product in CATALOG]
+            cls._synced = True
+
+    @classmethod
+    def execute_select_all(cls) -> List[Dict[str, Any]]:
+        """
+        Database-adapter-style query that returns all validated rows as plain
+        dictionaries for downstream curation and filtering calculations.
+        """
+        cls.connect_and_sync()
+        return [entity.model_dump() for entity in cls._table_cache]
+
+    # -------------------------------------------------------------------------
+    # Compatibility interfaces used by other API modules
+    # -------------------------------------------------------------------------
+    @classmethod
+    def get_products(cls) -> List[Dict[str, Any]]:
+        return cls.execute_select_all()
+
+    @classmethod
+    def get_product(cls, product_id: str) -> Optional[Dict[str, Any]]:
+        for product in cls.execute_select_all():
+            if product["id"] == product_id:
+                return product
+        return None
+
+    @classmethod
+    def get_genie_products(cls) -> List[Dict[str, Any]]:
+        """
+        Returns the Module-2 catalog with categories mapped to the uppercase
+        slot identifiers expected by the curation engine (TOP, BOTTOM, FOOTWEAR, ACCESSORY).
+        """
+        category_map = {
+            "Topwear": "TOP",
+            "Bottomwear": "BOTTOM",
+            "Footwear": "FOOTWEAR",
+            "Accessory": "ACCESSORY"
+        }
+        return [
+            {**product, "category": category_map.get(product["category"], product["category"])}
+            for product in cls.execute_select_all()
+        ]
+
+    @classmethod
+    def get_genie_product(cls, product_id: str) -> Optional[Dict[str, Any]]:
+        for product in cls.get_genie_products():
+            if product["id"] == product_id:
+                return product
         return None
 
     @staticmethod
@@ -306,9 +806,9 @@ class MockDB:
 
     @staticmethod
     def get_outfit_group(group_id: str) -> Optional[Dict[str, Any]]:
-        for g in OUTFIT_GROUPS:
-            if g["id"] == group_id:
-                return g
+        for group in OUTFIT_GROUPS:
+            if group["id"] == group_id:
+                return group
         return None
 
     @staticmethod

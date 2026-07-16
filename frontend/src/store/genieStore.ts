@@ -8,6 +8,21 @@ export interface GenieItem {
   image: string;
 }
 
+export interface GenieParsedContext {
+  query: string;
+  detectedLanguage: string;
+  occasionRaw: string;
+  occasionCategory: string | null;
+  primaryColor: string | null;
+  excludedColors: string[];
+  aestheticTags: string[];
+  excludedTags: string[];
+  maxBudget: number | null;
+  isLocalPreferred: boolean;
+  confidence: "high" | "medium" | "low";
+  ambiguousFields: string[];
+}
+
 interface GenieState {
   canvasItems: Record<string, GenieItem>;
   lockedItems: Record<string, boolean>;
@@ -17,8 +32,17 @@ interface GenieState {
     weight: number;
     size: string;
     skinTone: string;
+    /** Biacromial breadth (cm) */
+    shoulderWidth: number;
+    /** Chest circumference (cm) */
+    bust: number;
+    /** Waist circumference (cm) */
+    waist: number;
+    /** Hip circumference (cm) */
+    hips: number;
   };
   activeSwapCategory: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY" | null;
+  parsedContext: GenieParsedContext | null;
   
   // Actions
   toggleLock: (category: string) => void;
@@ -26,6 +50,8 @@ interface GenieState {
   swapItem: (category: string, newItem: GenieItem) => void;
   updateDummy: (settings: Partial<GenieState["dummySettings"]>) => void;
   getUsedBudget: () => number;
+  setParsedContext: (context: GenieParsedContext | null) => void;
+  setMaxBudget: (budget: number) => void;
 }
 
 export const useGenieStore = create<GenieState>((set, get) => ({
@@ -71,8 +97,14 @@ export const useGenieStore = create<GenieState>((set, get) => ({
     weight: 58,
     size: "S",
     skinTone: "#E8C39E",
+    // BMI-seeded defaults for 162cm / 58kg
+    shoulderWidth: 40,
+    bust: 82,
+    waist: 66,
+    hips: 88,
   },
   activeSwapCategory: "FOOTWEAR", // Footwear is active for swap in the screenshot
+  parsedContext: null,
   
   toggleLock: (category) => set((state) => ({
     lockedItems: {
@@ -101,4 +133,7 @@ export const useGenieStore = create<GenieState>((set, get) => ({
     const items = get().canvasItems;
     return Object.values(items).reduce((sum, item) => sum + item.price, 0);
   },
+
+  setParsedContext: (context) => set({ parsedContext: context }),
+  setMaxBudget: (budget) => set({ maxBudget: budget }),
 }));

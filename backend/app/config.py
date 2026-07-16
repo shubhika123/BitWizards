@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
+    GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY", "")
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY", "")
     SUPABASE_URL: Optional[str] = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: Optional[str] = os.getenv("SUPABASE_KEY", "")
