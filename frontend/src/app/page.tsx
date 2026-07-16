@@ -126,7 +126,6 @@ export default function Home() {
 
                   <span className="text-[6.5px] font-black text-gray-500 uppercase tracking-widest leading-none">MADE IN</span>
                   <span className="text-[7.5px] font-black text-emerald-800 tracking-tighter leading-none mt-0.5">BHARAT</span>
-                  <span>Outfit Circle</span>
                   <span className="text-xs text-red-500 leading-none mt-1">❤</span>
                 </div>
               </div>
