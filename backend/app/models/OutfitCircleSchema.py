@@ -18,7 +18,9 @@ class BoardMember(SQLModel, table=True):
     board_id: int = Field(foreign_key="outfit_boards.board_id", nullable=False)
     user_id: int = Field(foreign_key="users.user_id", nullable=False)
     role: str = Field(default="member", max_length=20)  # "admin" / "member"
+    invite_status: str = Field(default="accepted", max_length=20)  # "accepted" / "pending"
     joined_at: datetime = Field(default_factory=datetime.utcnow)
+    accepted_at: Optional[datetime] = Field(default=None)
 
     __table_args__ = (
         UniqueConstraint("board_id", "user_id", name="uq_board_user"),

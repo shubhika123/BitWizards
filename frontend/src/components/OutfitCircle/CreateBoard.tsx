@@ -18,10 +18,17 @@ export default function CreateBoardModal({
   const handleCreate = async () => {
     if (!name.trim()) return;
     setLoading(true);
-    await createBoard(name, userId);
-    setLoading(false);
-    onCreated();
-    onClose();
+
+    try {
+      await createBoard(name, userId);
+      onCreated();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : "Unable to create board right now.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
