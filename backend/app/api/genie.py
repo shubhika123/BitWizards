@@ -1,5 +1,7 @@
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any, Optional
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
 from app.models.GenieSchema import (
     NLPParseRequest,
@@ -29,6 +31,7 @@ class GenieCurateResponse(BaseModel):
     swap_boxes: Optional[Dict[str, List[Dict[str, Any]]]] = None
     budget_exceeded: bool
     local_consent_prompt: Optional[str] = None
+    nlp_parsed_data: Optional[Dict[str, Any]] = None
 
 
 @router.post("/parse", response_model=NLPParseResponse)
@@ -56,7 +59,8 @@ def curate_genie_outfit(req: GenieCurateRequest):
         outfit=result["outfit"],
         swap_boxes=result.get("swap_boxes"),
         budget_exceeded=result["budget_exceeded"],
-        local_consent_prompt=result.get("local_consent_prompt")
+        local_consent_prompt=result.get("local_consent_prompt"),
+        nlp_parsed_data=req.model_dump() if hasattr(req, "model_dump") else req.dict()
     )
 
 

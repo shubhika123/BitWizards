@@ -593,7 +593,7 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
           </div>
         </>
       ) : (
-        <DigitalTwin onBack={() => setActiveTab("chat")} />
+        <div className="flex h-full items-center justify-center text-sm text-[#535766]">Digital Twin is temporarily disabled for testing.</div>
       )}
     </div>
   );

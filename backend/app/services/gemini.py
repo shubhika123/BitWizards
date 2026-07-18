@@ -10,48 +10,35 @@ from app.models.GenieSchema import NLPParseResponse
 logger = logging.getLogger("app.services.gemini")
 
 GENIE_PARSE_PROMPT = """
-You are a multilingual fashion query parser for an Indian e-commerce platform.
-You must understand queries in: English, Hindi, Hinglish (Hindi-English code-mixed),
-Bengali, Tamil, and Bhojpuri — in native script or transliterated form.
+You are a highly advanced multilingual fashion intelligence engine for an Indian e-commerce platform.
+Your task is to parse unstructured, conversational user queries into strict, normalized JSON data.
 
-Extract structured attributes as JSON. Follow these rules strictly:
+The queries will arrive in English, Hindi, Hinglish, Bengali, Tamil, or Bhojpuri. 
 
-1. detected_language: identify the actual language/script used. Must be one of:
-   "English", "Hindi", "Hinglish", "Bengali", "Tamil", "Bhojpuri", "Unknown".
-   Use "Unknown" if you cannot confidently identify it — do not guess.
+### Extraction & Normalization Rules:
 
-2. occasion_raw: capture the user's own described occasion/context in English translation,
-   even if unusual (e.g. "grandmother's 80th birthday puja", "college farewell").
+1. **detected_language**: Identify the predominant language/script. Choose EXACTLY from: ["English", "Hindi", "Hinglish", "Bengali", "Tamil", "Bhojpuri", "Unknown"].
+2. **occasion_raw**: The actual event the user is attending. 
+   - CRITICAL: Timeframes ("today", "tomorrow", "next week", "urgent") are NOT occasions. If no specific event (like wedding, party, office) is mentioned, set this to null.
+3. **occasion_category**: Map the occasion to EXACTLY one: ["Casual", "Formal", "Wedding", "Party", "Festive", "Date", "Work", "Religious", "Other"].
+4. **target_items**: Extract the base clothing item requested (e.g., ["saree"], ["sherwani"], ["kurta set"], ["lehenga"]). 
+   - Strip colors and adjectives out of the item name (e.g., "white kasavu saree" becomes ["kasavu saree"]).
+5. **primary_color**: The explicitly wanted color in English.
+6. **excluded_colors**: Colors explicitly rejected (e.g., "no black", "avoid red").
+7. **aesthetic_tags**: ONLY structural fashion styles (e.g., "traditional", "minimalist", "streetwear", "boho", "heavy"). 
+   - CRITICAL NEGATIVE RULE: You MUST leave this array empty [] rather than including subjective quality words ("beautiful", "best", "good", "accha") or pricing words ("affordable", "sasta", "cheap").
+8. **excluded_tags**: Style types rejected (e.g., "nothing too formal" -> ["formal"]).
+9. **max_budget**: Convert ANY budget mention into a clean integer in INR ("8k" -> 8000, "৫০০০" -> 5000). Set to null if missing.
+10. **is_local_preferred**: true ONLY if the user asks for physical/nearby stores ("local market", "nearby shop").
+11. **confidence**: Rate as "high", "medium", or "low".
 
-3. occasion_category: map occasion_raw to the closest fit from this list:
-   ["Casual", "Formal", "Wedding", "Party", "Festive", "Date", "Work", "Religious", "Other"]
-   Use "Other" if nothing fits well. Do NOT force an incorrect match.
+Return ONLY a valid, minified JSON object matching this schema. No markdown wrapping, no trailing text.
 
-4. primary_color / excluded_colors: extract explicitly mentioned colors.
-   CRITICAL: if a color is negated ("not red", "no red please", "avoid black"),
-   put it in excluded_colors, NEVER in primary_color.
-
-5. aesthetic_tags / excluded_tags: extract style descriptors (e.g. minimalist, streetwear,
-   smart-casual, ethnic, boho, formal-chic). Apply the same negation rule as colors —
-   negated style terms go into excluded_tags.
-
-6. max_budget: extract numeric budget if mentioned (assume INR unless stated otherwise).
-   Return null if not mentioned — do not guess a default.
-
-7. is_local_preferred: true only if the user expresses preference for local/nearby/
-   physical/boutique shopping (e.g. "nearby store", "local shop", "not online").
-   Default false if not mentioned.
-
-8. confidence: rate your own confidence as "high", "medium", or "low" based on how
-   clear and complete the query is. Vague, contradictory, or very short queries = "low".
-
-9. ambiguous_fields: list field names you were not confident about (e.g. ["occasion_category", "primary_color"]).
-
-Return ONLY valid JSON matching this exact structure, no markdown, no explanation:
 {
   "detected_language": "",
-  "occasion_raw": "",
+  "occasion_raw": null,
   "occasion_category": null,
+  "target_items": [],
   "primary_color": null,
   "excluded_colors": [],
   "aesthetic_tags": [],
@@ -63,30 +50,18 @@ Return ONLY valid JSON matching this exact structure, no markdown, no explanatio
 }
 
 ---
-Examples:
+### Input/Output Examples for Calibration:
 
-Query: "outfit for my grandmother's 80th birthday puja, budget 4000"
-Output: {"detected_language": "English", "occasion_raw": "grandmother's 80th birthday puja", "occasion_category": "Religious", "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": 4000, "is_local_preferred": false, "confidence": "medium", "ambiguous_fields": ["occasion_category"]}
+Query: "kal ke liye kuch sasta dikhao"
+Output: {"detected_language": "Hinglish", "occasion_raw": null, "occasion_category": null, "target_items": [], "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": null, "is_local_preferred": false, "confidence": "medium", "ambiguous_fields": ["target_items", "occasion_category"]}
 
-Query: "not red, nothing too formal, casual hangout with friends"
-Output: {"detected_language": "English", "occasion_raw": "casual hangout with friends", "occasion_category": "Casual", "primary_color": null, "excluded_colors": ["red"], "aesthetic_tags": ["casual"], "excluded_tags": ["formal"], "max_budget": null, "is_local_preferred": false, "confidence": "high", "ambiguous_fields": []}
+Query: "shaadi khatir ek accha sa, beautiful, and best outfit chahiye"
+Output: {"detected_language": "Bhojpuri", "occasion_raw": "wedding", "occasion_category": "Wedding", "target_items": ["outfit"], "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": null, "is_local_preferred": false, "confidence": "high", "ambiguous_fields": []}
 
-Query: "শাড়ি চাই বিয়ের জন্য, বাজেট ৫০০০ টাকা" (Bengali: "want a saree for wedding, budget 5000 rupees")
-Output: {"detected_language": "Bengali", "occasion_raw": "wedding", "occasion_category": "Wedding", "primary_color": null, "excluded_colors": [], "aesthetic_tags": ["saree", "traditional"], "excluded_tags": [], "max_budget": 5000, "is_local_preferred": false, "confidence": "high", "ambiguous_fields": []}
+Query: "bhaiya ek badhiya sa onam ke liye white kasavu saree dikhao under 3k"
+Output: {"detected_language": "Hinglish", "occasion_raw": "Onam", "occasion_category": "Festive", "target_items": ["kasavu saree"], "primary_color": "white", "excluded_colors": [], "aesthetic_tags": ["traditional"], "excluded_tags": [], "max_budget": 3000, "is_local_preferred": false, "confidence": "high", "ambiguous_fields": []}
 
-Query: "திருமணத்திற்கு ஒரு அழகான உடை வேண்டும், நீல நிறம்" (Tamil: "want a beautiful outfit for wedding, blue color")
-Output: {"detected_language": "Tamil", "occasion_raw": "wedding", "occasion_category": "Wedding", "primary_color": "blue", "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": null, "is_local_preferred": false, "confidence": "high", "ambiguous_fields": []}
-
-Query: "Mujhe ek shaadi ke liye outfit chahiye khatir 2000 rupees, local dukan se"
-Output: {"detected_language": "Hinglish", "occasion_raw": "wedding", "occasion_category": "Wedding", "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": 2000, "is_local_preferred": true, "confidence": "high", "ambiguous_fields": []}
-
-Query: "shaadi khatir ek accha sa outfit chahiye, battalu na ho"
-Output: {"detected_language": "Bhojpuri", "occasion_raw": "wedding", "occasion_category": "Wedding", "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": ["battalu"], "max_budget": null, "is_local_preferred": false, "confidence": "medium", "ambiguous_fields": ["excluded_tags"]}
-
-Query: "asdkfjaslkdfj outfit for the thing you know"
-Output: {"detected_language": "English", "occasion_raw": "unclear", "occasion_category": null, "primary_color": null, "excluded_colors": [], "aesthetic_tags": [], "excluded_tags": [], "max_budget": null, "is_local_preferred": false, "confidence": "low", "ambiguous_fields": ["occasion_category", "occasion_raw"]}
-
-Now parse this query:
+Now completely parse this specific user query:
 "{user_query}"
 """
 
@@ -179,29 +154,32 @@ class GeminiService:
 
     @classmethod
     def parse_genie_query(cls, query: str) -> Dict[str, Any]:
-        """
-        Parses raw Hinglish/Regional/English text to extract structured fields according to the new schema.
-        """
         if not settings.GROQ_API_KEY:
-            logger.info("Using rule-based fallback for Genie query parsing (Groq key missing).")
             return cls._fallback_parse_genie_query(query)
 
         prompt = GENIE_PARSE_PROMPT.replace("{user_query}", query)
         try:
-            res_text = cls.call_groq(prompt, temperature=0.2, json_mode=True)
-            # Clean up markdown block fences if returned
-            if res_text.startswith("```"):
+            res_text = cls.call_groq(prompt, temperature=0.1, json_mode=True)
+            
+            # Clean up raw markdown fences cleanly if they leak past json_mode
+            if "```" in res_text:
                 res_text = re.sub(r"^```(?:json)?\n|```$", "", res_text, flags=re.MULTILINE).strip()
-            # Fix duplicate closing braces if any
-            if res_text.count("{") == 1 and res_text.count("}") > 1:
-                res_text = res_text.rstrip("}\n\r\t ") + "}"
+            
             parsed = json.loads(res_text)
             
-            # Validate against schema to ensure correctness
-            validated = NLPParseResponse(query=query, **parsed)
+            # Dynamically ensure the incoming text context matches Pydantic expectations
+            if "query" not in parsed:
+                parsed["query"] = query
+                
+            print("\n==================== GROQ PARSED DATA ====================")
+            print(json.dumps(parsed, indent=2))
+            print("==========================================================\n")
+                
+            validated = NLPParseResponse(**parsed)
             return validated.dict()
+            
         except (json.JSONDecodeError, ValidationError, Exception) as e:
-            logger.error(f"Groq API parse_genie_query failed or validation failed: {e}. Using fallback.")
+            logger.error(f"Advanced parse execution failed: {e}. Falling back safely.")
             return cls._fallback_parse_genie_query(query)
 
     @classmethod

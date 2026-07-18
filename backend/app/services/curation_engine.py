@@ -103,6 +103,11 @@ class CurationEngine:
                 include_metadata=True,
                 filter=filter_dict
             )
+            
+            print(f"\n==================== PINECONE MATCHES FOR {slot} ====================")
+            for match in res.matches:
+                print(f"ID: {match.id} | Score: {match.score} | Name: {match.metadata.get('name')}")
+            print("=======================================================================\n")
 
             candidates = []
             for match in res.matches:
@@ -187,11 +192,16 @@ class CurationEngine:
                 "FOOTWEAR": slot_candidates["FOOTWEAR"][1:4],
                 "ACCESSORY": slot_candidates["ACCESSORY"][1:4]
             }
-            return {
+            result = {
                 "outfit": active_outfit,
                 "swap_boxes": swap_boxes,
                 "budget_exceeded": False
             }
+            print("\n==================== FINAL SELECTED OUTFIT ====================")
+            for item in result["outfit"]:
+                print(f"[{item['category']}] {item['name']} (ID: {item['id']}) - Score: {item['score']}")
+            print("===============================================================\n")
+            return result
 
         # Step 4: Combinatorial Fallback
         best_combo = None
@@ -227,11 +237,16 @@ class CurationEngine:
             "ACCESSORY": [c for c in slot_candidates["ACCESSORY"] if c["id"] != active_outfit[3]["id"]][:3]
         }
 
-        return {
+        result = {
             "outfit": active_outfit,
             "swap_boxes": swap_boxes,
             "budget_exceeded": budget_exceeded
         }
+        print("\n==================== FINAL SELECTED OUTFIT ====================")
+        for item in result["outfit"]:
+            print(f"[{item['category']}] {item['name']} (ID: {item['id']}) - Score: {item['score']}")
+        print("===============================================================\n")
+        return result
 
     @classmethod
     def get_slot_alternatives(cls, req: GenieAlternativesRequest) -> List[Dict[str, Any]]:
