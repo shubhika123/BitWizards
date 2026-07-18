@@ -4,10 +4,12 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SLIDES = [
-  { src: "/genie/modern-1.png", label: "modern" as const },
-  { src: "/genie/tradition-1.png", label: "tradition" as const },
-  { src: "/genie/modern-2.png", label: "modern" as const },
-  { src: "/genie/tradition-2.png", label: "tradition" as const },
+  { src: "/genie/a.jpg", label: "modern" as const },
+  { src: "/genie/b.jpg", label: "tradition" as const },
+  { src: "/genie/c.jpg", label: "modern" as const },
+  { src: "/genie/d.jpg", label: "tradition" as const },
+  { src: "/genie/e.jpg", label: "tradition" as const },
+  { src: "/genie/f.jpg", label: "tradition" as const }
 ];
 
 const CYCLE_MS = 10000;

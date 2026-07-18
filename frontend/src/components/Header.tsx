@@ -106,7 +106,7 @@ export default function Header() {
               </div>
               <input
                 type="text"
-                placeholder="Search for Rakhi, Sweets, Gifts & more..."
+                placeholder="Search for Rakhi, Gifts & more..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={`flex-1 min-w-0 bg-transparent text-[13px] pl-2 pr-3 py-2.5 rounded-md focus:outline-none ${inputTextColor}`}

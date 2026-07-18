@@ -282,6 +282,17 @@ class CurationEngine:
             if match.id in active_set:
                 continue
 
+            # Fetch full product to check gender since Pinecone metadata is missing it
+            full_product = MockDB.get_product(match.id)
+            if not full_product:
+                continue
+                
+            # Check gender match if user_gender is provided
+            if req.user_gender:
+                prod_gender = full_product.get("gender")
+                if prod_gender and prod_gender not in [req.user_gender, "Unisex"]:
+                    continue
+
             meta = match.metadata
             item_colors = [c.lower() for c in meta.get("colors", [])]
             if any(color.lower() in item_colors for color in req.excluded_colors):

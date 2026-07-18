@@ -1,6 +1,9 @@
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
+# pyrefly: ignore [missing-import]
 from sqlmodel import SQLModel, Field as SQLField
+# pyrefly: ignore [missing-import]
 from sqlalchemy import Column, JSON
 
 class NLPParseRequest(BaseModel):
@@ -55,6 +58,7 @@ class GenieAlternativesRequest(BaseModel):
     active_combination_ids: Optional[List[str]] = None
     current_outfit_ids: Optional[List[str]] = None
     
+    user_gender: Optional[str] = None
     max_budget: int
     occasion_category: Optional[str] = None
     aesthetic_tags: List[str] = Field(default_factory=list)
