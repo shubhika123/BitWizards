@@ -44,6 +44,7 @@ class User(SQLModel, table=True):
     password_hash: str = Field(max_length=255, nullable=False)
     email: Optional[str] = Field(default=None, max_length=150, unique=True)
     region: Optional[str] = Field(default=None, max_length=50)
+    city: Optional[str] = Field(default=None, max_length=100)
     latitude: Decimal = Field(max_digits=10, decimal_places=8, nullable=False)
     longitude: Decimal = Field(max_digits=11, decimal_places=8, nullable=False)
     address: Optional[str] = Field(default=None)
