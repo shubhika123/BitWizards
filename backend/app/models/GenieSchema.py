@@ -21,12 +21,19 @@ class NLPParseResponse(BaseModel):
     ambiguous_fields: List[str] = []
 
 class GenieCurateRequest(BaseModel):
+    query: Optional[str] = ""
+    detected_language: Optional[str] = "Unknown"
+    occasion_raw: Optional[str] = ""
     occasion_category: Optional[str] = None
+    user_gender: Optional[str] = None
     primary_color: Optional[str] = None
     excluded_colors: List[str] = Field(default_factory=list)
     aesthetic_tags: List[str] = Field(default_factory=list)
+    excluded_tags: List[str] = Field(default_factory=list)
     max_budget: Optional[int] = None
     is_local_preferred: bool = False
+    confidence: Optional[str] = "low"
+    ambiguous_fields: List[str] = Field(default_factory=list)
     locked_item_ids: List[str] = Field(default_factory=list)
 
     model_config = ConfigDict(extra="ignore")
@@ -38,6 +45,22 @@ class GenieSwapRequest(BaseModel):
     aesthetic_tags: List[str] = Field(default_factory=list)
     excluded_colors: List[str] = Field(default_factory=list)
 
+    model_config = ConfigDict(extra="ignore")
+
+
+class GenieAlternativesRequest(BaseModel):
+    category_to_refresh: Optional[str] = None
+    slot_category: Optional[str] = None
+    
+    active_combination_ids: Optional[List[str]] = None
+    current_outfit_ids: Optional[List[str]] = None
+    
+    max_budget: int
+    occasion_category: Optional[str] = None
+    aesthetic_tags: List[str] = Field(default_factory=list)
+    excluded_colors: List[str] = Field(default_factory=list)
+    page: int = 0
+    
     model_config = ConfigDict(extra="ignore")
 
 class GenieProduct(SQLModel, table=True):

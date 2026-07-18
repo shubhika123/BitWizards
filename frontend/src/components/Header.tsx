@@ -7,47 +7,36 @@ import {
   Search, 
   User, 
   Heart, 
-  ShoppingBag, 
-  Sparkles,
-  Menu,
-  X,
-  ChevronRight,
-  Percent,
   Bell
 } from "lucide-react";
+import { useGenieUiStore } from "../store/genieUiStore";
+import { GenieEntryButton } from "./genie/GenieEntryButton";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const isGenieRoute = pathname.startsWith("/genie");
-  
-  const [searchMode, setSearchMode] = useState<"normal" | "genie">(
-    isGenieRoute ? "genie" : "normal"
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  // Sync mode with route changes
-  useEffect(() => {
-    setSearchMode(isGenieRoute ? "genie" : "normal");
-  }, [pathname, isGenieRoute]);
+  const openGenie = useGenieUiStore((s) => s.openGenie);
+  const setGenieButtonActive = useGenieUiStore((s) => s.setGenieButtonActive);
 
-  const handleModeChange = (e: React.MouseEvent, mode: "normal" | "genie") => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    setGenieButtonActive(isGenieRoute);
+  }, [isGenieRoute, setGenieButtonActive]);
+
+  const handleGenieClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setSearchMode(mode);
-    if (mode === "genie") {
-      router.push("/genie");
-    } else {
-      router.push("/");
-    }
+    openGenie(searchQuery);
+    const params = new URLSearchParams({ enter: "1" });
+    if (searchQuery.trim()) params.set("q", searchQuery.trim());
+    router.push(`/genie?${params.toString()}`);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchMode === "genie") {
-      router.push(`/genie?q=${encodeURIComponent(searchQuery)}`);
-    } else {
-      alert(`Normal search for: "${searchQuery}"`);
-    }
+    alert(`Normal search for: "${searchQuery}"`);
   };
 
   // Dynamic Theme Classes
@@ -56,9 +45,6 @@ export default function Header() {
   const hoverBorderColor = "hover:border-[#ff3f6c]";
   const inputBg = "bg-[#f5f5f6] focus-within:bg-white focus-within:border-[#eaeaec]";
   const inputTextColor = "text-[#282c3f] placeholder-[#9496a2]";
-  const toggleBorder = "border-[#eaeaec]";
-  const toggleBg = "bg-white";
-
   return (
     <>
       {/* HEADER CONTAINER */}
@@ -111,54 +97,23 @@ export default function Header() {
           </div>
         </div>
 
-        {/* ROW 2: Search Bar with Genie Toggle */}
-        <div className="w-full">
-          <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
-            {/* Search Input Container */}
-            <div className={`relative flex-1 flex items-center border border-transparent rounded-md transition-all ${inputBg}`}>
+        {/* ROW 2: Search Bar + Genie entry */}
+        <div className="w-full flex items-center gap-2">
+          <form onSubmit={handleSearchSubmit} className="relative flex-1 flex items-center min-w-0">
+            <div className={`relative w-full flex items-center border border-transparent rounded-md transition-all ${inputBg}`}>
               <div className="pl-3 text-[#535766]">
                 <Search className="w-4 h-4" />
               </div>
               <input
                 type="text"
-                placeholder={
-                  searchMode === "genie"
-                    ? "Ask Genie: 'Sangeet outfit under 2500'..."
-                    : "Search for Rakhi, Sweets, Gifts & more..."
-                }
+                placeholder="Search for Rakhi, Sweets, Gifts & more..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`flex-1 min-w-0 bg-transparent text-[13px] pl-2 pr-4 py-2 rounded-md focus:outline-none ${inputTextColor}`}
+                className={`flex-1 min-w-0 bg-transparent text-[13px] pl-2 pr-3 py-2.5 rounded-md focus:outline-none ${inputTextColor}`}
               />
-
-              {/* Segmented Toggle inside Search Bar */}
-              <div className={`flex items-center border rounded-full p-0.5 mr-1.5 shadow-sm shrink-0 z-10 ${toggleBorder} ${toggleBg}`}>
-                <button
-                  type="button"
-                  onClick={(e) => handleModeChange(e, "normal")}
-                  className={`px-2 py-0.5 text-[9px] font-bold rounded-full transition-all text-center cursor-pointer ${
-                    searchMode === "normal"
-                      ? "bg-[#282c3f] text-white"
-                      : "text-[#535766] hover:text-[#282c3f]"
-                  }`}
-                >
-                  Normal
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => handleModeChange(e, "genie")}
-                  className={`px-2 py-0.5 text-[9px] font-bold rounded-full flex items-center gap-0.5 transition-all text-center cursor-pointer ${
-                    searchMode === "genie"
-                      ? "bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] text-white shadow-sm"
-                      : "text-[#ff3f6c] hover:bg-pink-50"
-                  }`}
-                >
-                  <Sparkles className="w-2.5 h-2.5 animate-pulse" />
-                  Genie
-                </button>
-              </div>
             </div>
           </form>
+          <GenieEntryButton active={isGenieRoute} onClick={handleGenieClick} />
         </div>
       </header>
 
