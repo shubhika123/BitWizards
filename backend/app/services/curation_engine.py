@@ -88,7 +88,8 @@ class CurationEngine:
             pinecone_cat = cls.map_frontend_category_to_pinecone(slot)
             
             # Generate representation query text
-            search_text = f"Category: {pinecone_cat}. Name: . Occasions: {req.occasion_category or ''}. Aesthetics: {', '.join(req.aesthetic_tags)}."
+            target_str = " ".join(req.target_items) if req.target_items else ""
+            search_text = f"Aesthetics: {', '.join(req.aesthetic_tags)}. Style: {req.occasion_category or 'casual'}. Category: {pinecone_cat}. Focus: {target_str}."
             query_vector = model.encode(search_text).tolist()
 
             # Pinecone filter dict
@@ -99,7 +100,7 @@ class CurationEngine:
             # Query index requesting top_k=4
             res = index.query(
                 vector=query_vector,
-                top_k=4,
+                top_k=20, 
                 include_metadata=True,
                 filter=filter_dict
             )
@@ -121,7 +122,7 @@ class CurationEngine:
                 # Check gender match if user_gender is provided
                 if req.user_gender:
                     prod_gender = full_product.get("gender")
-                    if prod_gender and prod_gender not in [req.user_gender, "Unisex"]:
+                    if prod_gender and prod_gender.lower() not in [req.user_gender.lower(), "unisex"]:
                         continue
                 
                 # Check hard color exclusions
@@ -150,7 +151,7 @@ class CurationEngine:
                     # Check gender match
                     if req.user_gender:
                         prod_gender = p.get("gender")
-                        if prod_gender and prod_gender not in [req.user_gender, "Unisex"]:
+                        if prod_gender and prod_gender.lower() not in [req.user_gender.lower(), "unisex"]:
                             continue
 
                     item_colors = [c.lower() for c in p.get("colors", [])]
@@ -174,6 +175,14 @@ class CurationEngine:
             slot_candidates[slot] = candidates
 
         max_budget_limit = req.max_budget if req.max_budget is not None else 5000
+
+        # Zero Result Protection Floor
+        if any(len(slot_candidates[slot]) == 0 for slot in slots):
+            return {
+                "outfit": [],
+                "swap_boxes": {},
+                "budget_exceeded": False
+            }
 
         # Step 3: check #1 highest-scoring combo
         top_combo = [
