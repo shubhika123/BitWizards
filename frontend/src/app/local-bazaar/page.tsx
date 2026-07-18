@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuthStore } from "../../store/authStore";
 import { 
   MapPin, 
   Search, 
@@ -63,11 +64,180 @@ interface Boutique {
   y: number; // percentage coordinate on mock map
 }
 
+// Dynamic local bazaar data generator mapping target cities to specialized clothing and accessories
+const getLocalBazaarData = (city: string) => {
+  const normCity = city.trim().toLowerCase();
+  
+  let theme = {
+    speciality: "Premium Fusion & Festive Silk",
+    clothing: ["Banarasi Silk Katan Kurta", "Chikankari Georgette Anarkali Saree", "Modern Silk Fusion Sherwani"],
+    accessories: ["Designer Zardozi Potli Bag", "Polki Kundan Choker Necklace", "Handcrafted Silk Juttis"],
+    boutiques: ["Bengaluru Silk Boutique", "Delhi Connaught Attires", "Metro Fusion Weaves"]
+  };
+
+  if (["warangal", "karimnagar", "nizamabad"].includes(normCity)) {
+    theme = {
+      speciality: "Bonalu Handlooms",
+      clothing: ["Traditional Telangana Saree", "Bonalu Festival Cotton Kurta", "Pochampally Ikat Dress"],
+      accessories: ["Oxidised Silver Jewellery Set", "Traditional Glass Bangles", "Hand-painted Bonalu Pot"],
+      boutiques: ["Kakatiya Textiles", "Telangana Weavers Co-op", "Bonalu Heritage Attire"]
+    };
+  } else if (["jaipur", "udaipur", "kota"].includes(normCity)) {
+    theme = {
+      speciality: "Rajasthani Bandhej & Teej",
+      clothing: ["Green Bandhani Teej Saree", "Gota Patti Lehenga Choli", "Rajasthani Angrakha Suit"],
+      accessories: ["Handcrafted Lac Bangles", "Traditional Rajasthani Mehendi Kit", "Mirror-work Bindis"],
+      boutiques: ["Mewar Royal Silks", "Jaipur Gota House", "Teej Festive Attire"]
+    };
+  } else if (["coimbatore", "madurai", "salem"].includes(normCity)) {
+    theme = {
+      speciality: "Kanchipuram & Aadi Weaves",
+      clothing: ["Pure Kanchipuram Silk Saree", "Coimbatore Cotton Saree", "South Indian Festive Veshti Kurta"],
+      accessories: ["Gold-plated Temple Haram", "Fresh Jasmine Flower Garland", "Traditional Brass Vilakku Decor"],
+      boutiques: ["Kovai Silk House", "Madurai Handlooms", "Aadi Heritage Silks"]
+    };
+  } else if (["vizag", "vijayawada", "belgaum", "mysuru"].includes(normCity)) {
+    theme = {
+      speciality: "Varalakshmi Vratam Silk",
+      clothing: ["Varalakshmi Silk Saree", "Kanchipuram Silk Pattu Pavadai", "Pure Silk Brocade Kurta"],
+      accessories: ["Antique Gold Lakshmi Necklace", "Pooja Kalasam Decor", "Brass Vratam Thali Set"],
+      boutiques: ["Mysore Silk Emporium", "Vizag Royal Pattu", "Belgaum Handloom Center"]
+    };
+  } else if (["kochi", "thrissur", "kozhikode"].includes(normCity)) {
+    theme = {
+      speciality: "Onam Kasavu Handloom",
+      clothing: ["Kerala Onam Kasavu Saree", "Traditional Kerala Mundu & Kurta", "Gold Zari Border Settu Mundu"],
+      accessories: ["Temple Jewellery Kasu Mala", "Nirapara Pooja Handicraft", "Onam Pookalam Decor Kit"],
+      boutiques: ["Kochi Kasavu Palace", "Thrissur Handlooms", "Keralam Heritage Attires"]
+    };
+  } else if (["sambalpur", "jharsuguda", "bargarh"].includes(normCity)) {
+    theme = {
+      speciality: "Sambalpuri Handlooms",
+      clothing: ["Original Sambalpuri Ikat Saree", "Sambalpuri Hand-woven Kurta", "Pasapalli Silk Saree"],
+      accessories: ["Handwoven Ikat Dupatta", "Tribal Dokra Silver Necklace", "Sambalpuri Silk Scarves"],
+      boutiques: ["Sambalpur Handloom Co-op", "Mahanadi Weaves", "Western Odisha Weaving Society"]
+    };
+  } else if (normCity === "patna") {
+    theme = {
+      speciality: "Madhubani & Bhagalpuri Art",
+      clothing: ["Madhubani Painted Tussar Saree", "Handwoven Bhagalpuri Silk Kurta", "Mithila Hand-loomed Kurti"],
+      accessories: ["Madhubani Hand-painted Stole", "Bhagalpuri Silk Dupatta", "Traditional Bihar Rakhis & Sweets"],
+      boutiques: ["Mithila Art Attires", "Patliputra Weaves", "Bhagalpur Silk House"]
+    };
+  } else if (normCity === "mathura") {
+    theme = {
+      speciality: "Krishna Janmashtami Traditional",
+      clothing: ["Krishna Janmashtami Pitambar Kurta", "Festive Bandhani Lehenga", "Peacock Feather Print Dupatta"],
+      accessories: ["Brass Flute & Jhula Decor", "Peacock Feather Mukut", "Janmashtami Festive Gift Hamper"],
+      boutiques: ["Braj Vrindavan Heritage", "Mathura Govinda Silks", "Janmashtami Attires"]
+    };
+  } else if (normCity === "kolhapur") {
+    theme = {
+      speciality: "Kolhapuri Heritage & Nag Panchami",
+      clothing: ["Kolhapuri Nauvari Saree", "Traditional Cotton Paithani Saree", "Dhangari Handloom Kurta"],
+      accessories: ["Original Kolhapuri Saaj Necklace", "Green Glass Bangles Set", "Nag Panchami Puja essentials"],
+      boutiques: ["Shahu Maharaj Handlooms", "Kolhapuri Saaj Attire", "Mahalaxmi Silks"]
+    };
+  } else if (["hubballi", "dharwad"].includes(normCity)) {
+    theme = {
+      speciality: "Shravana Mahotsava Weaves",
+      clothing: ["Mysore Silk Georgette Saree", "Dharwad Cotton Festive Kurta", "Ilkal Kasuti Embroidery Saree"],
+      accessories: ["Rudraksha Mala Gold Joint", "Temple Silver Bangles", "Kasuti Embroidered Clutch Bag"],
+      boutiques: ["Hubli Kasuti Center", "Dharwad Handloom Weavers", "Shravana Festive Attire"]
+    };
+  }
+
+  // Generate 6 boutiques based on theme
+  const generatedBoutiques: Boutique[] = [
+    { id: "b_1", name: theme.boutiques[0] || `${city} Weaves`, rating: 4.8, distance: 1.5, speciality: theme.speciality, verified: true, x: 38, y: 35 },
+    { id: "b_2", name: theme.boutiques[1] || `${city} Craft House`, rating: 4.6, distance: 2.8, speciality: theme.speciality, verified: true, x: 62, y: 28 },
+    { id: "b_3", name: theme.boutiques[2] || `${city} Heritage Emporium`, rating: 4.5, distance: 3.4, speciality: theme.speciality, verified: false, x: 25, y: 65 },
+    { id: "b_4", name: "Metro Craft Co.", rating: 4.4, distance: 4.1, speciality: "Festive Generalists", verified: true, x: 45, y: 48 },
+    { id: "b_5", name: "Heritage Attire House", rating: 4.7, distance: 4.9, speciality: "Premium Traditional", verified: true, x: 55, y: 60 },
+    { id: "b_6", name: "Weaves of India Co.", rating: 4.6, distance: 5.8, speciality: "Handloom Traditional", verified: true, x: 70, y: 55 }
+  ];
+
+  // Generate products using clothing & accessories
+  const generatedProducts: Product[] = [];
+  
+  // Add Clothing products
+  theme.clothing.forEach((clothingName, index) => {
+    generatedProducts.push({
+      id: `cloth_${index}`,
+      name: clothingName,
+      category: "Ethnic Wear",
+      price: 1200 + (index * 400),
+      originalPrice: 2000 + (index * 600),
+      image: index % 2 === 0 
+        ? "https://images.pexels.com/photos/25328651/pexels-photo-25328651.jpeg"
+        : "https://images.pexels.com/photos/36311379/pexels-photo-36311379.jpeg",
+      trustScore: 92 + (index * 2),
+      distance: 1.2 + (index * 0.9),
+      deliveryTime: index % 2 === 0 ? "2 Hours" : "3 Hours",
+      pickupTime: "25 mins",
+      boutique: generatedBoutiques[index % 3].name,
+      location: city,
+      rating: 4.6 + (index * 0.1),
+      onTimeDelivery: 96 + index,
+      returnRate: 4 - index,
+      yearsOnMyntra: 2 + index,
+      description: `Beautiful hand-crafted ${clothingName} designed for traditional and festive celebrations.`
+    });
+  });
+
+  // Add Accessories products
+  theme.accessories.forEach((accName, index) => {
+    generatedProducts.push({
+      id: `acc_${index}`,
+      name: accName,
+      category: "Accessories",
+      price: 499 + (index * 200),
+      originalPrice: 799 + (index * 300),
+      image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=250&q=80",
+      trustScore: 94 + index,
+      distance: 1.5 + (index * 1.2),
+      deliveryTime: "Same Day",
+      pickupTime: "15 mins",
+      boutique: generatedBoutiques[(index + 1) % 3].name,
+      location: city,
+      rating: 4.7,
+      onTimeDelivery: 98,
+      returnRate: 3,
+      yearsOnMyntra: 3,
+      description: `Elegant traditional ${accName} to pair beautifully with your festive outfits.`
+    });
+  });
+
+  // Add a default footwear product
+  generatedProducts.push({
+    id: "footwear_default",
+    name: "Handcrafted Leather Juttis",
+    category: "Footwear",
+    price: 899,
+    originalPrice: 1499,
+    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=250&q=80",
+    trustScore: 95,
+    distance: 2.2,
+    deliveryTime: "Same Day",
+    pickupTime: "20 mins",
+    boutique: generatedBoutiques[0].name,
+    location: city,
+    rating: 4.8,
+    onTimeDelivery: 99,
+    returnRate: 2,
+    yearsOnMyntra: 4,
+    description: "Extremely comfortable and stylized leather footwear decorated with golden zari work."
+  });
+
+  return { boutiques: generatedBoutiques, products: generatedProducts };
+};
+
 export default function LocalBazaar() {
+  const { user } = useAuthStore();
   const [step, setStep] = useState<number>(1); // 1 = Discover, 2 = Profile, 3 = Slider, 4 = Chat, 5 = Fulfillment, 6 = Success
   const [selectedRadius, setSelectedRadius] = useState<number>(5);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [activeCity, setActiveCity] = useState<string>("Lucknow");
+  const [activeCity, setActiveCity] = useState<string>("Bengaluru");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [hoveredBoutique, setHoveredBoutique] = useState<string | null>(null);
   
@@ -80,885 +250,22 @@ export default function LocalBazaar() {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [fulfillmentMode, setFulfillmentMode] = useState<"delivery" | "pickup">("delivery");
 
-  // Sync city selection with LocalStorage (set in AI Bharat Feed)
+  // Sync city selection with logged-in user or LocalStorage
   useEffect(() => {
-    const savedCity = localStorage.getItem("selectedCity");
-    if (savedCity) {
-      setActiveCity(savedCity);
+    if (user?.city) {
+      setActiveCity(user.city);
+    } else {
+      const savedCity = localStorage.getItem("selectedCity");
+      if (savedCity) {
+        setActiveCity(savedCity);
+      } else {
+        setActiveCity("Bengaluru");
+      }
     }
-  }, []);
+  }, [user]);
 
-  // Mock Boutiques for Map coordinates
-  const boutiques: Boutique[] = [
-    { id: "b_1", name: "Avadh Weaves", rating: 4.8, distance: 2.4, speciality: "Chikankari Handloom", verified: true, x: 38, y: 35 },
-    { id: "b_2", name: "Crafts of Lucknow", rating: 4.5, distance: 4.2, speciality: "Zardozi Embroidery", verified: true, x: 62, y: 28 },
-    { id: "b_3", name: "Trende Boutique", rating: 4.4, distance: 7.1, speciality: "Modern Ethnic", verified: false, x: 25, y: 65 },
-    { id: "b_4", name: "Dilli Rebels Co.", rating: 4.6, distance: 1.8, speciality: "Premium Streetwear", verified: true, x: 45, y: 48 },
-    { id: "b_5", name: "Rajputana Heritage", rating: 4.9, distance: 3.5, speciality: "Bandhani & Gota Patti", verified: true, x: 55, y: 60 },
-    { id: "b_6", name: "Nair Handlooms", rating: 4.7, distance: 4.9, speciality: "Traditional Kerala", verified: true, x: 70, y: 55 }
-  ];
-
-  // Mock Products Database matching boutiques
-  const allProducts: Product[] = [
-    {
-      id: "ethnic_01",
-      name: "White Chikankari Cotton Kurti",
-      category: "Ethnic Wear",
-      price: 1299,
-      originalPrice: 1999,
-      image: "https://images.pexels.com/photos/36311379/pexels-photo-36311379.jpeg",
-      trustScore: 92,
-      distance: 2.4,
-      deliveryTime: "3 Hours",
-      pickupTime: "30 mins",
-      boutique: "Avadh Weaves",
-      location: "Lucknow",
-      rating: 4.7,
-      onTimeDelivery: 98,
-      returnRate: 5,
-      yearsOnMyntra: 3,
-      description: "Pure cotton chikankari kurti with delicate hand embroidery and graceful silhouette.",
-    },
-    {
-      id: "ethnic_02",
-      name: "Floral Cotton Anarkali Kurta",
-      category: "Ethnic Wear",
-      price: 1499,
-      originalPrice: 2299,
-      image: "https://images.pexels.com/photos/25328651/pexels-photo-25328651.jpeg",
-      trustScore: 95,
-      distance: 0.8,
-      deliveryTime: "1 Hour",
-      pickupTime: "15 mins",
-      boutique: "Ethnic Roots",
-      location: "Lucknow",
-      rating: 4.8,
-      onTimeDelivery: 99,
-      returnRate: 3,
-      yearsOnMyntra: 5,
-      description: "Elegant floral Anarkali crafted from breathable cotton for everyday grace.",
-    },
-    {
-      id: "ethnic_03",
-      name: "Pastel Linen Co-ord Set",
-      category: "Ethnic Wear",
-      price: 1899,
-      originalPrice: 2799,
-      image: "https://images.pexels.com/photos/32181756/pexels-photo-32181756.jpeg",
-      trustScore: 90,
-      distance: 1.6,
-      deliveryTime: "90 mins",
-      pickupTime: "20 mins",
-      boutique: "Urban Loom",
-      location: "Lucknow",
-      rating: 4.6,
-      onTimeDelivery: 97,
-      returnRate: 4,
-      yearsOnMyntra: 2,
-      description: "Premium linen co-ord set designed for comfort with a fresh pastel minimal look.",
-    },
-    {
-      id: "ethnic_04",
-      name: "Beige Embroidered Palazzo Set",
-      category: "Ethnic Wear",
-      price: 2499,
-      originalPrice: 3499,
-      image: "https://images.pexels.com/photos/20516292/pexels-photo-20516292.jpeg",
-      trustScore: 91,
-      distance: 5.3,
-      deliveryTime: "Same Day",
-      pickupTime: "50 mins",
-      boutique: "Silk & Thread",
-      location: "Lucknow",
-      rating: 4.7,
-      onTimeDelivery: 98,
-      returnRate: 5,
-      yearsOnMyntra: 3,
-      description: "Festive beige embroidered palazzo set with soft structure and elegant drape.",
-    },
-    {
-      id: "ethnic_05",
-      name: "Maroon Banarasi Saree",
-      category: "Ethnic Wear",
-      price: 4999,
-      originalPrice: 6999,
-      image: "https://images.pexels.com/photos/7442282/pexels-photo-7442282.jpeg",
-      trustScore: 97,
-      distance: 14.8,
-      deliveryTime: "Next Day",
-      pickupTime: "2 Hours",
-      boutique: "Banaras Heritage",
-      location: "Lucknow",
-      rating: 4.9,
-      onTimeDelivery: 99,
-      returnRate: 2,
-      yearsOnMyntra: 8,
-      description: "Luxurious maroon Banarasi saree with zari work and regal bridal finish.",
-    },
-    {
-      id: "ethnic_06",
-      name: "Handloom Banarasi Saree",
-      category: "Ethnic Wear",
-      price: 1980,
-      originalPrice: 2999,
-      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80",
-      trustScore: 90,
-      distance: 4.2,
-      deliveryTime: "4 Hours",
-      pickupTime: "40 mins",
-      boutique: "Crafts of Lucknow",
-      location: "Lucknow",
-      rating: 4.5,
-      onTimeDelivery: 95,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "Handcrafted pure silk-blend saree woven by local artisans with elegant patterns.",
-    },
-    {
-      id: "ethnic_07",
-      name: "Embroidered Kurta Set",
-      category: "Ethnic Wear",
-      price: 1699,
-      originalPrice: 2499,
-      image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80",
-      trustScore: 88,
-      distance: 7.1,
-      deliveryTime: "5 Hours",
-      pickupTime: "45 mins",
-      boutique: "Trende Boutique",
-      location: "Lucknow",
-      rating: 4.4,
-      onTimeDelivery: 92,
-      returnRate: 7,
-      yearsOnMyntra: 1,
-      description: "Beautifully embroidered kurta set with matching pyjama and soft cotton feel.",
-    },
-    {
-      id: "ethnic_08",
-      name: "Jaipur Bandhani Suit Set",
-      category: "Ethnic Wear",
-      price: 2499,
-      originalPrice: 3499,
-      image: "https://images.pexels.com/photos/13584941/pexels-photo-13584941.jpeg",
-      trustScore: 96,
-      distance: 3.5,
-      deliveryTime: "3 Hours",
-      pickupTime: "25 mins",
-      boutique: "Rajputana Heritage",
-      location: "Jaipur",
-      rating: 4.9,
-      onTimeDelivery: 99,
-      returnRate: 3,
-      yearsOnMyntra: 5,
-      description: "Vibrant Jaipur Bandhani suit set featuring tie-dye artistry and festive flair.",
-    },
-    {
-      id: "ethnic_09",
-      name: "Classic Kerala Kasavu Saree",
-      category: "Ethnic Wear",
-      price: 1850,
-      originalPrice: 2699,
-      image: "https://images.pexels.com/photos/37550220/pexels-photo-37550220.jpeg",
-      trustScore: 95,
-      distance: 4.9,
-      deliveryTime: "4 Hours",
-      pickupTime: "30 mins",
-      boutique: "Nair Handlooms",
-      location: "Ghaziabad",
-      rating: 4.8,
-      onTimeDelivery: 97,
-      returnRate: 4,
-      yearsOnMyntra: 3,
-      description: "Authentic Kerala Kasavu handloom cotton saree with golden zari border.",
-    },
-    {
-      id: "ethnic_10",
-      name: "Royal Blue Sharara Set",
-      category: "Ethnic Wear",
-      price: 2699,
-      originalPrice: 3799,
-      image: "https://images.pexels.com/photos/2218405/pexels-photo-2218405.jpeg",
-      trustScore: 94,
-      distance: 6.2,
-      deliveryTime: "Same Day",
-      pickupTime: "40 mins",
-      boutique: "Rajasthan Charm",
-      location: "Jaipur",
-      rating: 4.8,
-      onTimeDelivery: 98,
-      returnRate: 5,
-      yearsOnMyntra: 4,
-      description: "Royal blue sharara set with rich festive embroidery and elegant volume.",
-    },
-    {
-      id: "ethnic_11",
-      name: "Navy Cotton Salwar Suit",
-      category: "Ethnic Wear",
-      price: 1599,
-      originalPrice: 2399,
-      image: "https://images.pexels.com/photos/35228836/pexels-photo-35228836.jpeg",
-      trustScore: 90,
-      distance: 3.9,
-      deliveryTime: "3 Hours",
-      pickupTime: "25 mins",
-      boutique: "Heritage Loom",
-      location: "Lucknow",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 6,
-      yearsOnMyntra: 3,
-      description: "Comfortable navy cotton salwar suit with polished tailoring and easy drape.",
-    },
-    {
-      id: "ethnic_12",
-      name: "Golden Zari Lehenga Choli",
-      category: "Ethnic Wear",
-      price: 3899,
-      originalPrice: 5499,
-      image: "https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg",
-      trustScore: 96,
-      distance: 8.1,
-      deliveryTime: "Next Day",
-      pickupTime: "1 Hour",
-      boutique: "Maharani Atelier",
-      location: "Jaipur",
-      rating: 4.9,
-      onTimeDelivery: 99,
-      returnRate: 3,
-      yearsOnMyntra: 6,
-      description: "Golden zari lehenga choli with festive shimmer and rich heritage finish.",
-    },
-    {
-      id: "accessory_01",
-      name: "Gold Jhumka Studs",
-      category: "Accessories",
-      price: 899,
-      originalPrice: 1299,
-      image: "https://images.pexels.com/photos/13595577/pexels-photo-13595577.jpeg",
-      trustScore: 92,
-      distance: 1.2,
-      deliveryTime: "1 Hour",
-      pickupTime: "15 mins",
-      boutique: "Jewels of Avadh",
-      location: "Lucknow",
-      rating: 4.6,
-      onTimeDelivery: 98,
-      returnRate: 4,
-      yearsOnMyntra: 3,
-      description: "Lightweight handmade gold-tone jhumka earrings with traditional charm.",
-    },
-    {
-      id: "accessory_02",
-      name: "Regal Potli Bag",
-      category: "Accessories",
-      price: 1399,
-      originalPrice: 1999,
-      image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80",
-      trustScore: 91,
-      distance: 2.1,
-      deliveryTime: "2 Hours",
-      pickupTime: "20 mins",
-      boutique: "Crafts of Lucknow",
-      location: "Lucknow",
-      rating: 4.7,
-      onTimeDelivery: 97,
-      returnRate: 5,
-      yearsOnMyntra: 4,
-      description: "Classic potli bag with rich embroidery and statement festive styling.",
-    },
-    {
-      id: "accessory_03",
-      name: "Brown Sandals",
-      category: "Footwear",
-      price: 1099,
-      originalPrice: 1599,
-      image: "https://images.pexels.com/photos/27100549/pexels-photo-27100549.jpeg",
-      trustScore: 90,
-      distance: 1.6,
-      deliveryTime: "90 mins",
-      pickupTime: "18 mins",
-      boutique: "Urban Loom",
-      location: "Lucknow",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "stylish brown sandals ",
-    },
-    {
-      id: "accessory_04",
-      name: "Bracelet",
-      category: "Accessories",
-      price: 799,
-      originalPrice: 1199,
-      image: "https://images.pexels.com/photos/28900500/pexels-photo-28900500.jpeg",
-      trustScore: 89,
-      distance: 3.4,
-      deliveryTime: "3 Hours",
-      pickupTime: "25 mins",
-      boutique: "Aabhar Jewels",
-      location: "Lucknow",
-      rating: 4.4,
-      onTimeDelivery: 95,
-      returnRate: 7,
-      yearsOnMyntra: 2,
-      description: "Set of handcrafted rosewood bangles with smooth polished finish.",
-    },
-    
-    
-    {
-      id: "accessory_08",
-      name: "Brass Temple Jewelry",
-      category: "Accessories",
-      price: 1499,
-      originalPrice: 2199,
-      image: "https://images.pexels.com/photos/38044388/pexels-photo-38044388.jpeg",
-      trustScore: 92,
-      distance: 3.9,
-      deliveryTime: "3 Hours",
-      pickupTime: "30 mins",
-      boutique: "Temple & Trinity",
-      location: "Lucknow",
-      rating: 4.6,
-      onTimeDelivery: 96,
-      returnRate: 5,
-      yearsOnMyntra: 3,
-      description: "Brass temple jewelry inspired by timeless traditional craftsmanship.",
-    },
-    {
-      id: "accessory_09",
-      name: "Statement Earrings",
-      category: "Accessories",
-      price: 999,
-      originalPrice: 1499,
-      image: "https://images.pexels.com/photos/10862118/pexels-photo-10862118.jpeg",
-      trustScore: 88,
-      distance: 2.2,
-      deliveryTime: "2 Hours",
-      pickupTime: "18 mins",
-      boutique: "Eternal Adorn",
-      location: "Lucknow",
-      rating: 4.4,
-      onTimeDelivery: 95,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "Bold statement earrings designed for a modern festive statement look.",
-    },
-    
-    {
-      id: "accessory_11",
-      name: "Pearl Hair Pins",
-      category: "Accessories",
-      price: 449,
-      originalPrice: 699,
-      image: "https://images.pexels.com/photos/36553497/pexels-photo-36553497.jpeg",
-      trustScore: 84,
-      distance: 1.3,
-      deliveryTime: "1 Hour",
-      pickupTime: "15 mins",
-      boutique: "Charm Studio",
-      location: "Lucknow",
-      rating: 4.1,
-      onTimeDelivery: 92,
-      returnRate: 9,
-      yearsOnMyntra: 1,
-      description: "Glossy pearl hair pins that add a delicate finishing touch to festive looks.",
-    },
-    {
-      id: "accessory_12",
-      name: "Metallic Waist Belt",
-      category: "Accessories",
-      price: 949,
-      originalPrice: 1399,
-      image: "https://images.pexels.com/photos/32360759/pexels-photo-32360759.jpeg",
-      trustScore: 88,
-      distance: 2.9,
-      deliveryTime: "2 Hours",
-      pickupTime: "20 mins",
-      boutique: "Style Atelier",
-      location: "Lucknow",
-      rating: 4.4,
-      onTimeDelivery: 95,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "Metallic waist belt crafted to define silhouettes and complete festive styling.",
-    },
-    {
-      id: "accessory_13",
-      name: "Cuff Set",
-      category: "Accessories",
-      price: 749,
-      originalPrice: 1099,
-      image: "https://images.pexels.com/photos/37018002/pexels-photo-37018002.jpeg",
-      trustScore: 87,
-      distance: 3.5,
-      deliveryTime: "3 Hours",
-      pickupTime: "25 mins",
-      boutique: "Jhumka House",
-      location: "Lucknow",
-      rating: 4.3,
-      onTimeDelivery: 94,
-      returnRate: 7,
-      yearsOnMyntra: 1,
-      description: "Mirror work cuff set designed to elevate festive and evening outfits.",
-    },
-    {
-      id: "accessory_14",
-      name: "Bamboo Tote Bag",
-      category: "Accessories",
-      price: 799,
-      originalPrice: 1299,
-      image: "https://images.pexels.com/photos/35264364/pexels-photo-35264364.jpeg",
-      trustScore: 88,
-      distance: 4.2,
-      deliveryTime: "4 Hours",
-      pickupTime: "30 mins",
-      boutique: "Earth & Thread",
-      location: "Lucknow",
-      rating: 4.4,
-      onTimeDelivery: 95,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "Eco-friendly bamboo tote that mixes utility with minimal artisan detailing.",
-    },
-    {
-      id: "accessory_15",
-      name: "Artisan Beaded Bracelet",
-      category: "Accessories",
-      price: 599,
-      originalPrice: 899,
-      image: "https://images.pexels.com/photos/11193417/pexels-photo-11193417.jpeg",
-      trustScore: 85,
-      distance: 3.1,
-      deliveryTime: "3 Hours",
-      pickupTime: "24 mins",
-      boutique: "Bead & Bloom",
-      location: "Lucknow",
-      rating: 4.2,
-      onTimeDelivery: 93,
-      returnRate: 8,
-      yearsOnMyntra: 1,
-      description: "Hand-beaded bracelet with vibrant colors and lightweight daily wear appeal.",
-    },
-    {
-      id: "accessory_16",
-      name: "Minimal Sunglasses",
-      category: "Accessories",
-      price: 1199,
-      originalPrice: 1699,
-      image: "https://images.pexels.com/photos/28923514/pexels-photo-28923514.png",
-      trustScore: 89,
-      distance: 2.1,
-      deliveryTime: "2 Hours",
-      pickupTime: "18 mins",
-      boutique: "Avenue Optics",
-      location: "Lucknow",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 5,
-      yearsOnMyntra: 2,
-      description: "Minimal framed sunglasses with polished finish for elevated everyday styling.",
-    },
-    {
-      id: "accessory_17",
-      name: "Leather Belt",
-      category: "Accessories",
-      price: 899,
-      originalPrice: 1399,
-      image: "https://images.pexels.com/photos/31367060/pexels-photo-31367060.png",
-      trustScore: 86,
-      distance: 1.8,
-      deliveryTime: "90 mins",
-      pickupTime: "15 mins",
-      boutique: "Leather Lane",
-      location: "Lucknow",
-      rating: 4.2,
-      onTimeDelivery: 94,
-      returnRate: 7,
-      yearsOnMyntra: 1,
-      description: "Premium stitched leather belt with polished hardware and sleek finish.",
-    },
-    {
-      id: "accessory_18",
-      name: "Choker",
-      category: "Accessories",
-      price: 1599,
-      originalPrice: 2299,
-      image: "https://images.pexels.com/photos/29579393/pexels-photo-29579393.jpeg",
-      trustScore: 93,
-      distance: 3.7,
-      deliveryTime: "3 Hours",
-      pickupTime: "25 mins",
-      boutique: "Rajasthan Charm",
-      location: "Lucknow",
-      rating: 4.7,
-      onTimeDelivery: 98,
-      returnRate: 4,
-      yearsOnMyntra: 4,
-      description: "Royal-inspired Rajasthani choker with layered design and heritage detailing.",
-    },
-    {
-      id: "accessory_19",
-      name: "Silk Dupatta",
-      category: "Accessories",
-      price: 1299,
-      originalPrice: 1899,
-      image: "https://images.pexels.com/photos/37574124/pexels-photo-37574124.jpeg",
-      trustScore: 91,
-      distance: 2.5,
-      deliveryTime: "2 Hours",
-      pickupTime: "20 mins",
-      boutique: "Weave Nook",
-      location: "Lucknow",
-      rating: 4.6,
-      onTimeDelivery: 97,
-      returnRate: 4,
-      yearsOnMyntra: 3,
-      description: "Soft silk dupatta with striking borders and premium hand-finished texture.",
-    },
-    {
-      id: "ethnic_13",
-      name: "Rose Pink Anarkali",
-      category: "Ethnic Wear",
-      price: 2399,
-      originalPrice: 3299,
-      image: "https://images.pexels.com/photos/18648039/pexels-photo-18648039.jpeg",
-      trustScore: 91,
-      distance: 3.1,
-      deliveryTime: "3 Hours",
-      pickupTime: "25 mins",
-      boutique: "Avadh Weaves",
-      location: "Lucknow",
-      rating: 4.6,
-      onTimeDelivery: 97,
-      returnRate: 5,
-      yearsOnMyntra: 3,
-      description: "Soft rose pink Anarkali with elegant drape and festive flow.",
-    },
-    {
-      id: "ethnic_14",
-      name: "Ivory Co-ord Set",
-      category: "Ethnic Wear",
-      price: 2099,
-      originalPrice: 2999,
-      image: "https://images.pexels.com/photos/38376929/pexels-photo-38376929.jpeg",
-      trustScore: 90,
-      distance: 2.6,
-      deliveryTime: "2 Hours",
-      pickupTime: "20 mins",
-      boutique: "Urban Loom",
-      location: "Lucknow",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "Minimal ivory co-ord set with a clean festive finish and premium comfort.",
-    },
-    {
-      id: "ethnic_15",
-      name: "Mustard Ruffle Kurta",
-      category: "Ethnic Wear",
-      price: 1799,
-      originalPrice: 2599,
-      image: "https://images.pexels.com/photos/31739979/pexels-photo-31739979.jpeg",
-      trustScore: 89,
-      distance: 3.7,
-      deliveryTime: "3 Hours",
-      pickupTime: "24 mins",
-      boutique: "Trende Boutique",
-      location: "Lucknow",
-      rating: 4.4,
-      onTimeDelivery: 95,
-      returnRate: 7,
-      yearsOnMyntra: 2,
-      description: "Mustard ruffle kurta with a bright festive look and breathable tailoring.",
-    },
-    {
-      id: "ethnic_16",
-      name: "Royal Gota Patti Dupatta",
-      category: "Ethnic Wear",
-      price: 1499,
-      originalPrice: 2199,
-      image: "https://images.pexels.com/photos/19956007/pexels-photo-19956007.jpeg",
-      trustScore: 92,
-      distance: 2.9,
-      deliveryTime: "2 Hours",
-      pickupTime: "20 mins",
-      boutique: "Crafts of Lucknow",
-      location: "Lucknow",
-      rating: 4.7,
-      onTimeDelivery: 98,
-      returnRate: 4,
-      yearsOnMyntra: 4,
-      description: "Royal gota patti dupatta with rich festive border detailing and soft drape.",
-    },
-    {
-      id: "ethnic_17",
-      name: "Green Threadwork Saree",
-      category: "Ethnic Wear",
-      price: 2799,
-      originalPrice: 3999,
-      image: "https://images.pexels.com/photos/19956021/pexels-photo-19956021.jpeg",
-      trustScore: 93,
-      distance: 5.4,
-      deliveryTime: "4 Hours",
-      pickupTime: "30 mins",
-      boutique: "Nair Handlooms",
-      location: "Ghaziabad",
-      rating: 4.8,
-      onTimeDelivery: 98,
-      returnRate: 4,
-      yearsOnMyntra: 4,
-      description: "Green threadwork saree with refined artistry and elegant bridal styling.",
-    },
-    {
-      id: "ethnic_18",
-      name: "Deep Teal Festive Kurta",
-      category: "Ethnic Wear",
-      price: 2199,
-      originalPrice: 3099,
-      image: "https://images.pexels.com/photos/33300902/pexels-photo-33300902.jpeg",
-      trustScore: 90,
-      distance: 4.3,
-      deliveryTime: "4 Hours",
-      pickupTime: "28 mins",
-      boutique: "Ethnic Roots",
-      location: "Lucknow",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "Deep teal festive kurta with a polished silhouette and celebratory finish.",
-    },
-    {
-      id: "footwear_01",
-      name: "Jaipur Mojari",
-      category: "Footwear",
-      price: 1499,
-      originalPrice: 2299,
-      image: "https://images.pexels.com/photos/37696560/pexels-photo-37696560.jpeg",
-      trustScore: 93,
-      distance: 2.6,
-      deliveryTime: "2 Hours",
-      pickupTime: "20 mins",
-      boutique: "Rajputana Heritage",
-      location: "Lucknow",
-      rating: 4.7,
-      onTimeDelivery: 98,
-      returnRate: 4,
-      yearsOnMyntra: 4,
-      description: "Traditional mojari flats with handcrafted embroidery and royal detailing.",
-    },
-    {
-      id: "footwear_02",
-      name: "Embroidery Flats",
-      category: "Footwear",
-      price: 1199,
-      originalPrice: 1699,
-      image: "https://images.pexels.com/photos/38150374/pexels-photo-38150374.jpeg",
-      trustScore: 89,
-      distance: 2.2,
-      deliveryTime: "2 Hours",
-      pickupTime: "18 mins",
-      boutique: "Avadh Weaves",
-      location: "Lucknow",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "Comfortable embroidered sandals with festive detailing and light cushioning.",
-    },
-    {
-      id: "footwear_03",
-      name: "Kolhapuri Chappals",
-      category: "Footwear",
-      price: 999,
-      originalPrice: 1499,
-      image: "https://images.pexels.com/photos/37644394/pexels-photo-37644394.jpeg",
-      trustScore: 88,
-      distance: 3.3,
-      deliveryTime: "3 Hours",
-      pickupTime: "22 mins",
-      boutique: "Leela Footwear",
-      location: "Lucknow",
-      rating: 4.4,
-      onTimeDelivery: 95,
-      returnRate: 7,
-      yearsOnMyntra: 2,
-      description: "Breathable Kolhapuri chappals that pair naturally with festive kurtis and sarees.",
-    },
-    {
-      id: "footwear_04",
-      name: "Beige Block Heel Sandals",
-      category: "Footwear",
-      price: 1799,
-      originalPrice: 2599,
-      image: "https://images.pexels.com/photos/26954365/pexels-photo-26954365.jpeg",
-      trustScore: 91,
-      distance: 4.1,
-      deliveryTime: "4 Hours",
-      pickupTime: "27 mins",
-      boutique: "Sole Story",
-      location: "Lucknow",
-      rating: 4.6,
-      onTimeDelivery: 97,
-      returnRate: 5,
-      yearsOnMyntra: 3,
-      description: "Elegant beige block heel sandals with a polished everyday festive edge.",
-    },
-    {
-      id: "footwear_05",
-      name: "Peach Flats",
-      category: "Footwear",
-      price: 1399,
-      originalPrice: 1999,
-      image: "https://images.pexels.com/photos/29761843/pexels-photo-29761843.jpeg",
-      trustScore: 90,
-      distance: 2.9,
-      deliveryTime: "2 Hours",
-      pickupTime: "20 mins",
-      boutique: "Jaipur Sole",
-      location: "Jaipur",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "Gold jutti flats with rich handwork and comfortable all-day wear.",
-    },
-    {
-      id: "footwear_06",
-      name: "Leather Loafers",
-      category: "Footwear",
-      price: 2099,
-      originalPrice: 3199,
-      image: "https://images.pexels.com/photos/14706989/pexels-photo-14706989.jpeg",
-      trustScore: 92,
-      distance: 3.8,
-      deliveryTime: "3 Hours",
-      pickupTime: "25 mins",
-      boutique: "Leather Lane",
-      location: "New Delhi",
-      rating: 4.7,
-      onTimeDelivery: 98,
-      returnRate: 4,
-      yearsOnMyntra: 4,
-      description: "Handmade leather loafers with refined finish and classic smart styling.",
-    },
-    {
-      id: "footwear_07",
-      name: "Olive Loafers",
-      category: "Footwear",
-      price: 1299,
-      originalPrice: 1899,
-      image: "https://images.pexels.com/photos/14706988/pexels-photo-14706988.jpeg",
-      trustScore: 87,
-      distance: 3.0,
-      deliveryTime: "2 Hours",
-      pickupTime: "21 mins",
-      boutique: "Sandal House",
-      location: "Lucknow",
-      rating: 4.4,
-      onTimeDelivery: 95,
-      returnRate: 7,
-      yearsOnMyntra: 2,
-      description: "Silver toe ring sandals with festive shine and lightweight comfort.",
-    },
-    {
-      id: "footwear_08",
-      name: "Women Shoe",
-      category: "Footwear",
-      price: 1999,
-      originalPrice: 2799,
-      image: "https://images.pexels.com/photos/36589770/pexels-photo-36589770.jpeg",
-      trustScore: 90,
-      distance: 5.6,
-      deliveryTime: "4 Hours",
-      pickupTime: "30 mins",
-      boutique: "Avenue Optics",
-      location: "Jaipur",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 5,
-      yearsOnMyntra: 3,
-      description: "Stylish brown leather women's shoes on wooden blocks with a white background.",
-    },
-    {
-      id: "footwear_09",
-      name: "Black Sandals",
-      category: "Footwear",
-      price: 1699,
-      originalPrice: 2399,
-      image: "https://images.pexels.com/photos/30471933/pexels-photo-30471933.jpeg",
-      trustScore: 89,
-      distance: 4.8,
-      deliveryTime: "4 Hours",
-      pickupTime: "28 mins",
-      boutique: "Sole Story",
-      location: "Lucknow",
-      rating: 4.5,
-      onTimeDelivery: 96,
-      returnRate: 6,
-      yearsOnMyntra: 2,
-      description: "stylish black heels with a gold chain accessory",
-    },
-    {
-      id: "footwear_10",
-      name: "Grey Sandals",
-      category: "Footwear",
-      price: 1599,
-      originalPrice: 2299,
-      image: "https://images.pexels.com/photos/31129829/pexels-photo-31129829.jpeg",
-      trustScore: 88,
-      distance: 3.4,
-      deliveryTime: "3 Hours",
-      pickupTime: "22 mins",
-      boutique: "Leather Lane",
-      location: "New Delhi",
-      rating: 4.4,
-      onTimeDelivery: 95,
-      returnRate: 7,
-      yearsOnMyntra: 2,
-      description: "Minimalist white sandals with buckles on a textured white fabric surface",
-    },
-    {
-      id: "footwear_11",
-      name: "Leapord print Heels",
-      category: "Footwear",
-      price: 999,
-      originalPrice: 1499,
-      image: "https://images.pexels.com/photos/31450992/pexels-photo-31450992.jpeg",
-      trustScore: 86,
-      distance: 2.8,
-      deliveryTime: "2 Hours",
-      pickupTime: "18 mins",
-      boutique: "Aaple Sandals",
-      location: "Lucknow",
-      rating: 4.3,
-      onTimeDelivery: 94,
-      returnRate: 7,
-      yearsOnMyntra: 1,
-      description: "Chic leopard print stiletto heel with transparent straps, perfect for fashion-forward looks.",
-    },
-    {
-      id: "footwear_12",
-      name: "Leapord Print Sandals",
-      category: "Footwear",
-      price: 1499,
-      originalPrice: 2199,
-      image: "https://images.pexels.com/photos/31450994/pexels-photo-31450994.jpeg",
-      trustScore: 91,
-      distance: 5.0,
-      deliveryTime: "4 Hours",
-      pickupTime: "30 mins",
-      boutique: "Stelatos",
-      location: "Jaipur",
-      rating: 4.6,
-      onTimeDelivery: 97,
-      returnRate: 5,
-      yearsOnMyntra: 3,
-      description: "Stylish leopard print sandal adorned with gold studs displayed on a wooden floor",
-    }
-  ];
+  // Dynamically load local bazaar boutiques and products matching selected city
+  const { boutiques, products: allProducts } = getLocalBazaarData(activeCity);
 
   const productCategories = ["All", "Ethnic Wear", "Accessories", "Footwear"];
 
@@ -1174,19 +481,47 @@ export default function LocalBazaar() {
               <span>Showing Sellers Near {activeCity}</span>
             </div>
             <div className="flex gap-2">
-              <select 
-                value={activeCity} 
-                onChange={(e) => {
-                  setActiveCity(e.target.value);
-                  localStorage.setItem("selectedCity", e.target.value);
-                }}
-                className="bg-white border border-orange-200 text-orange-800 text-[10px] rounded-lg px-2 py-0.5 outline-none font-bold"
-              >
-                <option value="Lucknow">Lucknow</option>
-                <option value="New Delhi">New Delhi</option>
-                <option value="Jaipur">Jaipur</option>
-                <option value="Ghaziabad">Ghaziabad</option>
-              </select>
+              {user?.city ? (
+                <span className="bg-orange-50 border border-orange-200 text-orange-800 text-[10px] rounded-lg px-2.5 py-0.5 font-extrabold uppercase tracking-wide">
+                  {user.city}
+                </span>
+              ) : (
+                <select 
+                  value={activeCity} 
+                  onChange={(e) => {
+                    setActiveCity(e.target.value);
+                    localStorage.setItem("selectedCity", e.target.value);
+                  }}
+                  className="bg-white border border-orange-200 text-orange-800 text-[10px] rounded-lg px-2 py-0.5 outline-none font-bold"
+                >
+                  <option value="Belgaum">Belgaum</option>
+                  <option value="Bengaluru">Bengaluru</option>
+                  <option value="Bargarh">Bargarh</option>
+                  <option value="Coimbatore">Coimbatore</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Dharwad">Dharwad</option>
+                  <option value="Hubballi">Hubballi</option>
+                  <option value="Jaipur">Jaipur</option>
+                  <option value="Jharsuguda">Jharsuguda</option>
+                  <option value="Karimnagar">Karimnagar</option>
+                  <option value="Kochi">Kochi</option>
+                  <option value="Kolhapur">Kolhapur</option>
+                  <option value="Kota">Kota</option>
+                  <option value="Kozhikode">Kozhikode</option>
+                  <option value="Madurai">Madurai</option>
+                  <option value="Mathura">Mathura</option>
+                  <option value="Mysuru">Mysuru</option>
+                  <option value="Nizamabad">Nizamabad</option>
+                  <option value="Patna">Patna</option>
+                  <option value="Salem">Salem</option>
+                  <option value="Sambalpur">Sambalpur</option>
+                  <option value="Thrissur">Thrissur</option>
+                  <option value="Udaipur">Udaipur</option>
+                  <option value="Vijayawada">Vijayawada</option>
+                  <option value="Vizag">Vizag</option>
+                  <option value="Warangal">Warangal</option>
+                </select>
+              )}
             </div>
           </div>
 
