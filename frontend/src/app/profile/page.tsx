@@ -20,15 +20,18 @@ import {
   Gift, 
   Sparkles 
 } from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
 
 export default function MyProfile() {
+  const { user, logout, initAuth } = useAuthStore();
   const [showPreferenceModal, setShowPreferenceModal] = useState(false);
   const [height, setHeight] = useState(162);
   const [weight, setWeight] = useState(58);
   const [size, setSize] = useState("S");
 
-  // Load preferences from localStorage on mount
+  // Initialize auth session and load settings
   useEffect(() => {
+    initAuth();
     const saved = localStorage.getItem("dummySettings");
     if (saved) {
       try {
@@ -88,11 +91,11 @@ export default function MyProfile() {
 
           {/* Avatar circle */}
           <div className="w-18 h-18 rounded-full bg-white shadow-md flex items-center justify-center relative z-10 border border-indigo-100">
-            <Sparkles className="w-8 h-8 text-[#ff3f6c] animate-pulse" />
+            <span className="text-xl font-black text-[#ff3f6c]">{(user?.name || "Shubhika").charAt(0).toUpperCase()}</span>
           </div>
 
           <h2 className="text-base font-extrabold text-gray-800 mt-3 relative z-10 tracking-wide">
-            Shubhika
+            {user?.name || "Shubhika"}
           </h2>
 
           {/* Glam Clan & Insider capsule buttons */}
@@ -120,16 +123,16 @@ export default function MyProfile() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 font-extrabold text-sm flex items-center justify-center select-none shadow-3xs">
-                S
+                {(user?.name || "Shubhika").charAt(0).toUpperCase()}
               </div>
               <div>
-                <h4 className="font-extrabold text-[#282c3f] text-sm">Shubhika</h4>
+                <h4 className="font-extrabold text-[#282c3f] text-sm">{user?.name || "Shubhika"}</h4>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-[9px] text-gray-400 font-semibold">{height}cm</span>
+                  <span className="text-[9px] text-gray-400 font-semibold">{user?.age || 23} Yrs</span>
                   <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                  <span className="text-[9px] text-gray-400 font-semibold">{weight}kg</span>
+                  <span className="text-[9px] text-gray-400 font-semibold">{user?.city || "Bengaluru"}</span>
                   <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                  <span className="text-[9px] text-gray-400 font-semibold">Size {size}</span>
+                  <span className="text-[9px] text-gray-400 font-semibold truncate max-w-[120px]">{user?.phone || "+91 9876543210"}</span>
                 </div>
               </div>
             </div>
@@ -269,7 +272,13 @@ export default function MyProfile() {
 
         {/* 8. Log out Button */}
         <div className="mx-3.5 mt-6 flex flex-col gap-2 shrink-0 select-none">
-          <button className="border border-rose-350 text-[#ff3f6c] hover:bg-rose-50 text-xs font-black py-3 rounded-lg text-center cursor-pointer tracking-wider uppercase transition-all shadow-3xs">
+          <button 
+            onClick={async () => {
+              await logout();
+              window.location.href = "/";
+            }}
+            className="border border-rose-350 text-[#ff3f6c] hover:bg-rose-50 text-xs font-black py-3 rounded-lg text-center cursor-pointer tracking-wider uppercase transition-all shadow-3xs"
+          >
             LOG OUT
           </button>
           <span className="text-[8px] font-bold text-gray-400 text-center tracking-wide uppercase">

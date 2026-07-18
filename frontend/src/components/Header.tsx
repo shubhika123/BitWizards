@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useGenieUiStore } from "../store/genieUiStore";
 import { GenieEntryButton } from "./genie/GenieEntryButton";
+import { useAuthStore } from "../store/authStore";
 
 export default function Header() {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ export default function Header() {
   const openGenie = useGenieUiStore((s) => s.openGenie);
   const setGenieButtonActive = useGenieUiStore((s) => s.setGenieButtonActive);
 
+  const { user } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -91,8 +93,13 @@ export default function Header() {
             </button>
 
             {/* Profile */}
-            <Link href="/profile" className="p-1 hover:text-[#ff3f6c] transition-colors cursor-pointer">
+            <Link href="/profile" className="p-1 hover:text-[#ff3f6c] transition-colors cursor-pointer flex items-center gap-1 shrink-0">
               <User className="w-4.5 h-4.5 stroke-[1.5]" />
+              {user && (
+                <span className="text-[10px] font-black max-w-[55px] truncate text-gray-700 hover:text-[#ff3f6c]">
+                  {user.name}
+                </span>
+              )}
             </Link>
           </div>
         </div>

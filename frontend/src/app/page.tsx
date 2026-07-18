@@ -5,8 +5,38 @@ import Link from "next/link";
 import Header from "../components/Header";
 import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck, Heart, Gem, Gift } from "lucide-react";
 import { categories } from "../lib/Categories";
+import { useAuthStore } from "../store/authStore";
+
+// State mapping lookup for major Indian cities
+const getCityState = (city: string) => {
+  if (!city) return "Bengaluru, Karnataka";
+  const c = city.trim().toLowerCase();
+  if (c.includes("bengaluru") || c.includes("bangalore")) return `${city}, Karnataka`;
+  if (c.includes("mumbai") || c.includes("pune") || c.includes("nagpur") || c.includes("thane")) return `${city}, Maharashtra`;
+  if (c.includes("delhi") || c.includes("new delhi") || c.includes("noida") || c.includes("gurgaon") || c.includes("gurugram")) return `${city}, Delhi NCR`;
+  if (c.includes("hyderabad") || c.includes("secunderabad")) return `${city}, Telangana`;
+  if (c.includes("chennai") || c.includes("coimbatore") || c.includes("madurai")) return `${city}, Tamil Nadu`;
+  if (c.includes("kolkata") || c.includes("howrah")) return `${city}, West Bengal`;
+  if (c.includes("ahmedabad") || c.includes("surat") || c.includes("vadodara") || c.includes("rajkot")) return `${city}, Gujarat`;
+  if (c.includes("jaipur") || c.includes("udaipur") || c.includes("jodhpur")) return `${city}, Rajasthan`;
+  if (c.includes("lucknow") || c.includes("kanpur") || c.includes("agra") || c.includes("varanasi") || c.includes("ghaziabad")) return `${city}, Uttar Pradesh`;
+  if (c.includes("patna")) return `${city}, Bihar`;
+  if (c.includes("bhopal") || c.includes("indore")) return `${city}, Madhya Pradesh`;
+  if (c.includes("chandigarh")) return `${city}, Punjab/Haryana`;
+  if (c.includes("kochi") || c.includes("trivandrum") || c.includes("thiruvananthapuram")) return `${city}, Kerala`;
+  if (c.includes("bhubaneswar")) return `${city}, Odisha`;
+  if (c.includes("guwahati")) return `${city}, Assam`;
+  if (c.includes("panaji") || c.includes("goa")) return `${city}, Goa`;
+  if (c.includes("dehradun")) return `${city}, Uttarakhand`;
+  if (c.includes("shimla")) return `${city}, Himachal Pradesh`;
+  if (c.includes("srinagar") || c.includes("jammu")) return `${city}, Jammu & Kashmir`;
+  if (c.includes("ranchi")) return `${city}, Jharkhand`;
+  if (c.includes("raipur")) return `${city}, Chhattisgarh`;
+  return `${city}, India`;
+};
 
 export default function Home() {  
+  const { user } = useAuthStore();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -28,7 +58,7 @@ export default function Home() {
         <div className="bg-gradient-to-r from-[#ffe4e6] to-[#fff1f2] px-3.5 py-2 flex items-center justify-between text-[10px] text-gray-700 font-bold border-b border-rose-100 select-none animate-fade-in">
           <div className="flex items-center gap-1.5 truncate">
             <MapPin className="w-3.5 h-3.5 text-[#ff3f6c] shrink-0" />
-            <span className="truncate">Deliver to Kadubeesanahalli, Bengaluru, Karnataka</span>
+            <span className="truncate">Delivering to {getCityState(user?.city || "Bengaluru")}</span>
           </div>
           <span className="text-gray-400 font-black shrink-0">∨</span>
         </div>
