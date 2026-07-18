@@ -5,6 +5,7 @@ from app.models.GenieSchema import (
     NLPParseRequest,
     NLPParseResponse,
     GenieCurateRequest,
+    GenieAlternativesRequest,
     GenieSwapRequest
 )
 from app.services.gemini import GeminiService
@@ -25,6 +26,7 @@ class GenieProductResponse(BaseModel):
 
 class GenieCurateResponse(BaseModel):
     outfit: List[Dict[str, Any]]
+    swap_boxes: Optional[Dict[str, List[Dict[str, Any]]]] = None
     budget_exceeded: bool
     local_consent_prompt: Optional[str] = None
 
@@ -52,22 +54,24 @@ def curate_genie_outfit(req: GenieCurateRequest):
     result = CurationEngine.generate_outfit(req)
     return GenieCurateResponse(
         outfit=result["outfit"],
+        swap_boxes=result.get("swap_boxes"),
         budget_exceeded=result["budget_exceeded"],
-        local_consent_prompt=result["local_consent_prompt"]
+        local_consent_prompt=result.get("local_consent_prompt")
     )
 
 
 @router.post("/curate/alternatives", response_model=List[Dict[str, Any]])
-def get_genie_alternatives(req: GenieSwapRequest):
+def get_genie_alternatives(req: GenieAlternativesRequest):
     """
     Returns exactly 3 ranked alternatives for a single outfit slot while
     respecting the remaining budget after accounting for the other 3 locked items.
     """
-    slot = req.slot_category.upper()
-    if slot not in CurationEngine.VALID_SLOTS:
+    # Use mapped category value
+    slot = (req.category_to_refresh or req.slot_category or "").upper()
+    if slot not in ["TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"]:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid slot_category. Must be one of {list(CurationEngine.VALID_SLOTS)}."
+            detail=f"Invalid slot_category. Must be one of ['TOP', 'BOTTOM', 'FOOTWEAR', 'ACCESSORY']."
         )
 
     alternatives = CurationEngine.get_slot_alternatives(req)
