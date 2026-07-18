@@ -48,7 +48,8 @@ interface GenieState {
   // Actions
   toggleLock: (category: string) => void;
   setSwapCategory: (category: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY" | null) => void;
-  swapItem: (category: string, newItem: GenieItem) => void;
+  swapItem: (category: string, newItem: GenieItem | null) => void;
+  removeItem: (category: string) => void;
   getUsedBudget: () => number;
   setParsedContext: (context: GenieParsedContext | null) => void;
   setMaxBudget: (budget: number) => void;
@@ -60,6 +61,8 @@ interface GenieState {
 
   userGender: "Men" | "Women" | null;
   setUserGender: (gender: "Men" | "Women") => void;
+  stylePreferences: string[];
+  setStylePreferences: (prefs: string[]) => void;
 }
 
 export const useGenieStore = create<GenieState>((set, get) => ({
@@ -103,6 +106,7 @@ export const useGenieStore = create<GenieState>((set, get) => ({
   activeSwapCategory: null,
   parsedContext: null,
   userGender: null,
+  stylePreferences: [],
   baseUserImage: null,
   displayImage: null,
   hasUploadedBaseImage: false,
@@ -126,15 +130,23 @@ export const useGenieStore = create<GenieState>((set, get) => ({
       },
     })),
 
+  removeItem: (category) =>
+    set((state) => {
+      const newItems = { ...state.canvasItems };
+      delete newItems[category];
+      return { canvasItems: newItems };
+    }),
+
   getUsedBudget: () => {
     const items = get().canvasItems;
-    return Object.values(items).reduce((sum, item) => sum + item.price, 0);
+    return Object.values(items).reduce((sum, item) => sum + (item?.price || 0), 0);
   },
 
   setParsedContext: (context) => set({ parsedContext: context }),
   setMaxBudget: (budget) => set({ maxBudget: budget }),
 
   setUserGender: (gender) => set({ userGender: gender }),
+  setStylePreferences: (prefs) => set({ stylePreferences: prefs }),
 
   setBaseUserImage: (image) => set({ baseUserImage: image, displayImage: image, hasUploadedBaseImage: true }),
   setDisplayImage: (image) => set({ displayImage: image }),

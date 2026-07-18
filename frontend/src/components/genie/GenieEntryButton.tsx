@@ -26,11 +26,7 @@ export function GenieEntryButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`shrink-0 font-bold rounded-full flex items-center transition-all cursor-pointer border ${sizeClasses} ${
-        active
-          ? "bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] text-white border-transparent shadow-sm"
-          : "bg-white text-[#ff3f6c] border-[#eaeaec] hover:bg-pink-50 hover:border-[#ff3f6c]/30"
-      } ${className}`}
+      className={`shrink-0 font-bold rounded-full flex items-center transition-all cursor-pointer border ${sizeClasses} bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] text-white border-transparent shadow-sm hover:opacity-95 ${className}`}
     >
       <Sparkles className={`${size === "md" ? "w-4 h-4" : "w-3 h-3"} ${active ? "animate-pulse" : ""}`} />
       <span>Genie</span>
