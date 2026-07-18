@@ -7,31 +7,44 @@ import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, 
 import { categories } from "../lib/Categories";
 import { useAuthStore } from "../store/authStore";
 
-// State mapping lookup for major Indian cities
+// State mapping lookup for target Indian cities
+const cityToStateMap: Record<string, string> = {
+  "warangal": "Telangana",
+  "karimnagar": "Telangana",
+  "nizamabad": "Telangana",
+  "jaipur": "Rajasthan",
+  "udaipur": "Rajasthan",
+  "kota": "Rajasthan",
+  "coimbatore": "Tamil Nadu",
+  "madurai": "Tamil Nadu",
+  "salem": "Tamil Nadu",
+  "vizag": "Andhra Pradesh",
+  "vijayawada": "Andhra Pradesh",
+  "belgaum": "Karnataka",
+  "mysuru": "Karnataka",
+  "kochi": "Kerala",
+  "thrissur": "Kerala",
+  "kozhikode": "Kerala",
+  "sambalpur": "Odisha",
+  "jharsuguda": "Odisha",
+  "bargarh": "Odisha",
+  "patna": "Bihar",
+  "mathura": "Uttar Pradesh",
+  "kolhapur": "Maharashtra",
+  "hubballi": "Karnataka",
+  "dharwad": "Karnataka",
+  "bengaluru": "Karnataka",
+  "bangalore": "Karnataka",
+  "delhi": "Delhi"
+};
+
 const getCityState = (city: string) => {
   if (!city) return "Bengaluru, Karnataka";
-  const c = city.trim().toLowerCase();
-  if (c.includes("bengaluru") || c.includes("bangalore")) return `${city}, Karnataka`;
-  if (c.includes("mumbai") || c.includes("pune") || c.includes("nagpur") || c.includes("thane")) return `${city}, Maharashtra`;
-  if (c.includes("delhi") || c.includes("new delhi") || c.includes("noida") || c.includes("gurgaon") || c.includes("gurugram")) return `${city}, Delhi NCR`;
-  if (c.includes("hyderabad") || c.includes("secunderabad")) return `${city}, Telangana`;
-  if (c.includes("chennai") || c.includes("coimbatore") || c.includes("madurai")) return `${city}, Tamil Nadu`;
-  if (c.includes("kolkata") || c.includes("howrah")) return `${city}, West Bengal`;
-  if (c.includes("ahmedabad") || c.includes("surat") || c.includes("vadodara") || c.includes("rajkot")) return `${city}, Gujarat`;
-  if (c.includes("jaipur") || c.includes("udaipur") || c.includes("jodhpur")) return `${city}, Rajasthan`;
-  if (c.includes("lucknow") || c.includes("kanpur") || c.includes("agra") || c.includes("varanasi") || c.includes("ghaziabad")) return `${city}, Uttar Pradesh`;
-  if (c.includes("patna")) return `${city}, Bihar`;
-  if (c.includes("bhopal") || c.includes("indore")) return `${city}, Madhya Pradesh`;
-  if (c.includes("chandigarh")) return `${city}, Punjab/Haryana`;
-  if (c.includes("kochi") || c.includes("trivandrum") || c.includes("thiruvananthapuram")) return `${city}, Kerala`;
-  if (c.includes("bhubaneswar")) return `${city}, Odisha`;
-  if (c.includes("guwahati")) return `${city}, Assam`;
-  if (c.includes("panaji") || c.includes("goa")) return `${city}, Goa`;
-  if (c.includes("dehradun")) return `${city}, Uttarakhand`;
-  if (c.includes("shimla")) return `${city}, Himachal Pradesh`;
-  if (c.includes("srinagar") || c.includes("jammu")) return `${city}, Jammu & Kashmir`;
-  if (c.includes("ranchi")) return `${city}, Jharkhand`;
-  if (c.includes("raipur")) return `${city}, Chhattisgarh`;
+  const normalized = city.trim().toLowerCase();
+  const state = cityToStateMap[normalized];
+  if (state) {
+    return `${city}, ${state}`;
+  }
   return `${city}, India`;
 };
 

@@ -218,10 +218,6 @@ export default function LoginScreen() {
                 </p>
               </div>
 
-              {/* Master Code Helper Alert */}
-              <div className="bg-amber-50 border border-amber-200 rounded-sm p-3 text-[10px] text-amber-700 font-bold text-left leading-normal">
-                💡 Demo Mode: Use OTP passcode <span className="underline select-all text-amber-900 font-black">123456</span> to complete authentication.
-              </div>
 
               {/* OTP Input box */}
               <div className="flex items-center border border-gray-200 focus-within:border-gray-400 rounded-sm p-3.5 gap-2.5 transition-colors">
@@ -258,40 +254,66 @@ export default function LoginScreen() {
                 <p className="text-gray-400 text-[10px] mt-0.5">Please provide registration details</p>
               </div>
 
-              <div className="flex flex-col text-left gap-1">
+              <div className="flex flex-col text-left gap-1.5 w-full">
                 <label className="text-[9.5px] text-gray-500 font-extrabold uppercase tracking-widest pl-0.5">Full Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Sharon"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
+                  className="w-full border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
                   disabled={loading}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3.5">
-                <div className="flex flex-col text-left gap-1">
+              <div className="grid grid-cols-2 gap-3.5 w-full">
+                <div className="flex flex-col text-left gap-1.5 w-full">
                   <label className="text-[9.5px] text-gray-500 font-extrabold uppercase tracking-widest pl-0.5">Age</label>
                   <input
                     type="number"
                     placeholder="23"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
+                    className="w-full border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
                     disabled={loading}
                   />
                 </div>
-                <div className="flex flex-col text-left gap-1">
+                <div className="flex flex-col text-left gap-1.5 w-full">
                   <label className="text-[9.5px] text-gray-500 font-extrabold uppercase tracking-widest pl-0.5">City</label>
-                  <input
-                    type="text"
-                    placeholder="Bengaluru"
+                  <select
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
+                    className="w-full border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 bg-white transition-colors rounded-sm font-semibold cursor-pointer h-[32px]"
                     disabled={loading}
-                  />
+                  >
+                    <option value="">Select City*</option>
+                    <option value="Belgaum">Belgaum</option>
+                    <option value="Bengaluru">Bengaluru</option>
+                    <option value="Bargarh">Bargarh</option>
+                    <option value="Coimbatore">Coimbatore</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Dharwad">Dharwad</option>
+                    <option value="Hubballi">Hubballi</option>
+                    <option value="Jaipur">Jaipur</option>
+                    <option value="Jharsuguda">Jharsuguda</option>
+                    <option value="Karimnagar">Karimnagar</option>
+                    <option value="Kochi">Kochi</option>
+                    <option value="Kolhapur">Kolhapur</option>
+                    <option value="Kota">Kota</option>
+                    <option value="Kozhikode">Kozhikode</option>
+                    <option value="Madurai">Madurai</option>
+                    <option value="Mathura">Mathura</option>
+                    <option value="Mysuru">Mysuru</option>
+                    <option value="Nizamabad">Nizamabad</option>
+                    <option value="Patna">Patna</option>
+                    <option value="Salem">Salem</option>
+                    <option value="Sambalpur">Sambalpur</option>
+                    <option value="Thrissur">Thrissur</option>
+                    <option value="Udaipur">Udaipur</option>
+                    <option value="Vijayawada">Vijayawada</option>
+                    <option value="Vizag">Vizag</option>
+                    <option value="Warangal">Warangal</option>
+                  </select>
                 </div>
               </div>
 
