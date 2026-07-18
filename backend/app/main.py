@@ -4,6 +4,9 @@ from app.config import settings
 from app.api import feed, search, bazaar, social, genie
 from app.api.OutfitCircle import router as outfit_circle_router
 
+
+
+
 app = FastAPI(
     title="Myntra Bharat Layer API",
     description="AI-powered Hyper-local Context and Discovery Layer for Tier 2/3 Markets.",

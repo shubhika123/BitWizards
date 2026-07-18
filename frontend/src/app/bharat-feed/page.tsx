@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
+import { useGenieUiStore } from "../../store/genieUiStore";
 import { 
   MapPin, 
   Sparkles, 
@@ -30,6 +31,7 @@ interface CityConfig {
 
 export default function BharatFeed() {
   const router = useRouter();
+  const openGenie = useGenieUiStore((s) => s.openGenie);
   const [selectedCity, setSelectedCity] = useState<string>("Ghaziabad");
 
   const cityData: Record<string, CityConfig> = {
@@ -77,7 +79,9 @@ export default function BharatFeed() {
   const currentConfig = cityData[selectedCity] || cityData["Ghaziabad"];
 
   const handleGenieBannerClick = () => {
-    router.push(`/genie?q=${encodeURIComponent(currentConfig.geniePrompt)}`);
+    openGenie(currentConfig.geniePrompt);
+    const params = new URLSearchParams({ enter: "1", q: currentConfig.geniePrompt });
+    router.push(`/genie?${params.toString()}`);
   };
 
   return (

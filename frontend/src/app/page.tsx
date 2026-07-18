@@ -110,7 +110,7 @@ export default function Home() {
             
             {/* Slide 1: Genie Stylist */}
             <Link 
-              href="/genie" 
+              href="/genie?enter=1" 
               className="w-full h-full shrink-0 relative block select-none"
             >
               <img 

@@ -27,31 +27,39 @@ interface GenieState {
   canvasItems: Record<string, GenieItem>;
   lockedItems: Record<string, boolean>;
   maxBudget: number;
-  dummySettings: {
-    height: number;
-    weight: number;
-    size: string;
-    skinTone: string;
-    /** Biacromial breadth (cm) */
-    shoulderWidth: number;
-    /** Chest circumference (cm) */
-    bust: number;
-    /** Waist circumference (cm) */
-    waist: number;
-    /** Hip circumference (cm) */
-    hips: number;
-  };
   activeSwapCategory: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY" | null;
   parsedContext: GenieParsedContext | null;
-  
+
+  /**
+   * Virtual Try-On state
+   *
+   * `baseUserImage`  — The original photo the user uploaded (local data-URL or
+   *                    hosted URL).  This is used as the "person" input for
+   *                    IDM-VTON and is never overwritten by AI results.
+   *
+   * `displayImage`   — The image currently shown in the try-on viewer.  Starts
+   *                    as a copy of `baseUserImage`; updated with each AI
+   *                    try-on result.
+   */
+  baseUserImage: string | null;
+  displayImage: string | null;
+  hasUploadedBaseImage: boolean;
+
   // Actions
   toggleLock: (category: string) => void;
   setSwapCategory: (category: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY" | null) => void;
   swapItem: (category: string, newItem: GenieItem) => void;
-  updateDummy: (settings: Partial<GenieState["dummySettings"]>) => void;
   getUsedBudget: () => number;
   setParsedContext: (context: GenieParsedContext | null) => void;
   setMaxBudget: (budget: number) => void;
+
+  setBaseUserImage: (image: string | null) => void;
+  /** Update the active displayed image (e.g. after a try-on API call). */
+  setDisplayImage: (image: string | null) => void;
+  setHasUploadedBaseImage: (val: boolean) => void;
+
+  userGender: "Men" | "Women" | null;
+  setUserGender: (gender: "Men" | "Women") => void;
 }
 
 export const useGenieStore = create<GenieState>((set, get) => ({
@@ -89,46 +97,35 @@ export const useGenieStore = create<GenieState>((set, get) => ({
     TOP: false,
     BOTTOM: false,
     FOOTWEAR: false,
-    ACCESSORY: true, // Accessory is locked/pinned in the screenshot
+    ACCESSORY: true,
   },
   maxBudget: 5000,
-  dummySettings: {
-    height: 162,
-    weight: 58,
-    size: "S",
-    skinTone: "#E8C39E",
-    // BMI-seeded defaults for 162cm / 58kg
-    shoulderWidth: 40,
-    bust: 82,
-    waist: 66,
-    hips: 88,
-  },
-  activeSwapCategory: "FOOTWEAR", // Footwear is active for swap in the screenshot
+  activeSwapCategory: null,
   parsedContext: null,
-  
-  toggleLock: (category) => set((state) => ({
-    lockedItems: {
-      ...state.lockedItems,
-      [category]: !state.lockedItems[category],
-    }
-  })),
-  
+  userGender: null,
+  baseUserImage: null,
+  displayImage: null,
+  hasUploadedBaseImage: false,
+
+  // Actions
+  toggleLock: (category) =>
+    set((state) => ({
+      lockedItems: {
+        ...state.lockedItems,
+        [category]: !state.lockedItems[category],
+      },
+    })),
+
   setSwapCategory: (category) => set({ activeSwapCategory: category }),
-  
-  swapItem: (category, newItem) => set((state) => ({
-    canvasItems: {
-      ...state.canvasItems,
-      [category]: newItem,
-    }
-  })),
-  
-  updateDummy: (settings) => set((state) => ({
-    dummySettings: {
-      ...state.dummySettings,
-      ...settings,
-    }
-  })),
-  
+
+  swapItem: (category, newItem) =>
+    set((state) => ({
+      canvasItems: {
+        ...state.canvasItems,
+        [category]: newItem,
+      },
+    })),
+
   getUsedBudget: () => {
     const items = get().canvasItems;
     return Object.values(items).reduce((sum, item) => sum + item.price, 0);
@@ -136,4 +133,10 @@ export const useGenieStore = create<GenieState>((set, get) => ({
 
   setParsedContext: (context) => set({ parsedContext: context }),
   setMaxBudget: (budget) => set({ maxBudget: budget }),
+
+  setUserGender: (gender) => set({ userGender: gender }),
+
+  setBaseUserImage: (image) => set({ baseUserImage: image, displayImage: image, hasUploadedBaseImage: true }),
+  setDisplayImage: (image) => set({ displayImage: image }),
+  setHasUploadedBaseImage: (val) => set({ hasUploadedBaseImage: val }),
 }));
