@@ -1,6 +1,6 @@
 "use client";
 import RakshaBandhanBanner from "../components/RakshaBandhanBanner";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
 import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck, Heart, Gem, Gift } from "lucide-react";
@@ -51,10 +51,17 @@ const getCityState = (city: string) => {
 export default function Home() {  
   const { user } = useAuthStore();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % 3);
+      setCurrentSlide(prev => {
+        const next = (prev + 1) % 3;
+        if (carouselRef.current) {
+          carouselRef.current.scrollTo({ left: next * carouselRef.current.clientWidth, behavior: 'smooth' });
+        }
+        return next;
+      });
     }, 4500);
     return () => clearInterval(timer);
   }, []);
@@ -125,7 +132,7 @@ export default function Home() {
         </div>
 
         {/* 3. Category Story Reels */}
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none px-3.5 py-4 bg-white border-b border-gray-50 select-none">
+        <div className="grid grid-cols-5 gap-3 px-3.5 py-4 bg-white border-b border-gray-50 select-none w-full">
           {[
             { label: "Fashion", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=150&q=80", bg: "bg-[#1c2536]", href: "/", active: true },
             { label: "Beauty", img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=150&q=80", bg: "bg-[#f5f5f7]", href: "/" },
@@ -133,9 +140,9 @@ export default function Home() {
             { label: "Homeliving", img: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=150&q=80", bg: "bg-[#ffffff]", href: "/" },
             { label: "Accessories", img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80", bg: "bg-[#3a4439]", href: "/" },
           ].map((story, i) => (
-            <Link key={i} href={story.href} className="flex flex-col items-center shrink-0 cursor-pointer snap-start">
-              <div className={`w-14 h-14 rounded-[22px] overflow-hidden ${story.bg} border border-gray-150 relative shadow-2xs hover:scale-95 transition-all duration-200 p-0.5`}>
-                <img src={story.img} alt={story.label} className="w-full h-full object-cover rounded-[20px]" />
+            <Link key={i} href={story.href} className="flex flex-col items-center cursor-pointer w-full">
+              <div className={`w-full aspect-square overflow-hidden ${story.bg} border border-gray-150 relative shadow-2xs hover:scale-95 transition-all duration-200 p-0.5`}>
+                <img src={story.img} alt={story.label} className="w-full h-full object-cover" />
               </div>
               <span className={`text-[9px] mt-1.5 tracking-tight font-black ${story.active ? "text-[#ff3f6c]" : "text-gray-500"}`}>
                 {story.label}
@@ -145,30 +152,38 @@ export default function Home() {
         </div>
 
         {/* HIGH-FIDELITY CAMPAIGN CAROUSEL (AUTO-PLAYING SLIDER) */}
-        <div className="relative mx-3.5 mt-3.5 mb-2.5 rounded-2xl overflow-hidden shadow-sm aspect-[4/3] max-h-[260px] border border-gray-100/50 bg-[#282c3f]">
+        <div className="relative mt-3.5 mb-2.5 overflow-hidden shadow-sm aspect-[4/3] max-h-[260px] border-y border-gray-100/50 bg-[#282c3f]">
           <div 
-            className="flex h-full transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            ref={carouselRef}
+            className="flex h-full overflow-x-auto snap-x snap-mandatory scrollbar-none"
+            onScroll={(e) => {
+              const scrollLeft = e.currentTarget.scrollLeft;
+              const width = e.currentTarget.clientWidth;
+              setCurrentSlide(Math.round(scrollLeft / width));
+            }}
           >
             
             {/* Slide 1: Genie Stylist */}
             <Link 
               href="/genie?enter=1" 
-              className="w-full h-full shrink-0 relative block select-none"
+              className="w-full h-full shrink-0 snap-center relative block select-none"
             >
               <img 
-                src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80" 
-                alt="Genie Stylist"
-                className="w-full h-full object-cover filter brightness-[0.82]"
+                src="/urban-winter.png" 
+                alt="Genie Stylist" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80";
+                }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left">
-                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-[#ff3f6c] self-start px-2 py-0.5 rounded-md uppercase">FRESH fwd</span>
-                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans">
-                  GENIE STYLIST
+              {/* Genie Stylist Text */}
+              <div className="absolute top-[12%] right-4 flex flex-col items-end text-right mt-2">
+                <h2 
+                  className="text-black text-xl font-extrabold pr-1"
+                  style={{ fontFamily: 'cursive', fontStyle: 'italic' }}
+                >
+                  Genie Stylist
                 </h2>
-                <h3 className="text-amber-300 text-[11px] font-extrabold mt-1.5 uppercase tracking-wide">
-                  YOUR VIRTUAL STYLING TWIN
-                </h3>
               </div>
               {/* Yellow Bottom Strip */}
               <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#ffd166] flex items-center justify-between px-4">
@@ -182,19 +197,23 @@ export default function Home() {
             {/* Slide 2: Bharat Festive Feed */}
             <Link 
               href="/bharat-feed" 
-              className="w-full h-full shrink-0 relative block select-none"
+              className="w-full h-full shrink-0 snap-center relative block select-none"
             >
               <img 
-                src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80" 
+                src="/genie/bharatfeed.png" 
                 alt="Festive Feed"
-                className="w-full h-full object-cover filter brightness-[0.82]"
+                className="w-full h-full object-contain bg-[#fff9f3]"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80";
+                  e.currentTarget.className = "w-full h-full object-cover filter brightness-[0.82]";
+                }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left">
-                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-[#ff3f6c] self-start px-2 py-0.5 rounded-md uppercase">FESTIVE BOOST</span>
-                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left pointer-events-none">
+                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-[#ff3f6c] self-start px-2 py-0.5 rounded-md uppercase shadow-sm">FESTIVE BOOST</span>
+                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans drop-shadow-md">
                   BHARAT FEED
                 </h2>
-                <h3 className="text-amber-300 text-[11px] font-extrabold mt-1.5 uppercase tracking-wide">
+                <h3 className="text-[#ffd700] text-[11px] font-extrabold mt-1.5 uppercase tracking-wide drop-shadow-md">
                   REGIONAL TRADITIONS UNDER ₹999
                 </h3>
               </div>
@@ -209,22 +228,16 @@ export default function Home() {
             {/* Slide 3: Apna Bazaar */}
             <Link 
               href="/local-bazaar" 
-              className="w-full h-full shrink-0 relative block select-none"
+              className="w-full h-full shrink-0 snap-center relative block select-none"
             >
               <img 
-                src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80" 
+                src="/apnabazar.png" 
                 alt="Apna Bazaar"
-                className="w-full h-full object-cover filter brightness-[0.82]"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80";
+                }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left">
-                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-emerald-600 self-start px-2 py-0.5 rounded-md uppercase">HYPERLOCAL</span>
-                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans">
-                  APNA BAZAAR
-                </h2>
-                <h3 className="text-amber-300 text-[11px] font-extrabold mt-1.5 uppercase tracking-wide">
-                  BARGAIN DIRECT WITH WEAVERS
-                </h3>
-              </div>
               <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#ffd166] flex items-center justify-between px-4">
                 <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider">SUPPORT LOCAL BOUTIQUES!</span>
                 <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1">
@@ -249,7 +262,7 @@ export default function Home() {
         <RakshaBandhanBanner />
 
         {/* 4. Main Campaign Banner */}
-        <div className="mx-3.5 mt-4 bg-[#fff9f3] rounded-2xl border border-orange-100 overflow-hidden shadow-xs flex items-center justify-between relative">
+        <div className="mt-4 bg-[#fff9f3] border-y border-orange-100 overflow-hidden shadow-xs flex items-center justify-between relative">
           {/* Left Gym Image */}
           <div className="w-1/2 h-44 bg-gray-50 overflow-hidden relative">
             <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80" alt="Fitness Campaign" className="w-full h-full object-cover" />
@@ -297,7 +310,7 @@ export default function Home() {
         </div>
 
         {/* 6. Subcategory Capsules Reel */}
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none px-3.5 py-2 bg-white mb-6 select-none">
+        <div className="grid grid-cols-5 gap-2.5 px-3.5 py-2 bg-white mb-6 select-none w-full">
           {[
             { label: "Shirt", img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=100&q=80", href: "/shirts" },
             { label: "Kurta Sets", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=100&q=80", href: "/" },
@@ -305,8 +318,8 @@ export default function Home() {
             { label: "Jeans", img: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&w=100&q=80", href: "/" },
             { label: "T-Shirt", img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=100&q=80", href: "/shirts" },
           ].map((capsule, i) => (
-            <Link key={i} href={capsule.href} className="flex flex-col items-center shrink-0 cursor-pointer snap-start">
-              <div className="w-13 h-17 rounded-2xl border border-gray-150 overflow-hidden bg-gray-50 shadow-3xs relative group hover:scale-95 transition-transform duration-200">
+            <Link key={i} href={capsule.href} className="flex flex-col items-center cursor-pointer w-full">
+              <div className="w-full aspect-[3/4] border border-gray-150 overflow-hidden bg-gray-50 shadow-3xs relative group hover:scale-95 transition-transform duration-200">
                 <img src={capsule.img} alt={capsule.label} className="w-full h-full object-cover" />
               </div>
               <span className="text-[9px] font-black text-gray-500 mt-1">{capsule.label}</span>

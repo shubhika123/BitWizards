@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Plus, Check } from "lucide-react";
 import { getUserBoards, pinProduct, createBoard } from "../../lib/OutfitCircleApi";
 
@@ -15,9 +16,11 @@ interface ProductToPin {
 
 export default function PinToBoardModal({
   product,
+  products,
   onClose,
 }: {
-  product: ProductToPin;
+  product?: ProductToPin;
+  products?: ProductToPin[];
   onClose: () => void;
 }) {
   const [boards, setBoards] = useState<any[]>([]);
@@ -37,7 +40,15 @@ export default function PinToBoardModal({
   }, []);
 
   const handlePin = async (boardId: number) => {
-    await pinProduct({ board_id: boardId, pinned_by: CURRENT_USER_ID, ...product });
+    const itemsToPin = products || (product ? [product] : []);
+    if (itemsToPin.length === 0) return;
+
+    await Promise.all(
+      itemsToPin.map((item) =>
+        pinProduct({ board_id: boardId, pinned_by: CURRENT_USER_ID, ...item })
+      )
+    );
+    
     setPinnedBoardId(boardId);
     setTimeout(onClose, 700); // brief confirmation, then close
   };
@@ -48,8 +59,8 @@ export default function PinToBoardModal({
     await handlePin(board.board_id);
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
+  const modalContent = (
+    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-[9999]">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl p-4 w-full sm:max-w-sm max-h-[70vh] overflow-y-auto relative">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-black text-sm text-[#282c3f]">Pin to Board</h3>
@@ -111,4 +122,9 @@ export default function PinToBoardModal({
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined") {
+    return createPortal(modalContent, document.body);
+  }
+  return null;
 }

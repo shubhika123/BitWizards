@@ -1,48 +1,5 @@
 """
 Module 2 Data Repository — Target Production Schema
-
-This module acts as an in-memory abstraction of the production MySQL relational
-schema used by the Core Curation Engine (Module 2). The target schema is
-normalized into four tables to support flexible many-to-many tag matching.
-
-Target MySQL Relational Schema:
-
-1. Table `products` (
-       id          VARCHAR(64) PRIMARY KEY,
-       name        VARCHAR(150) NOT NULL,
-       category    ENUM('Topwear', 'Bottomwear', 'Footwear', 'Accessory') NOT NULL,
-       price       INT NOT NULL,
-       image_url   VARCHAR(255) NOT NULL
-   )
-
-2. Table `product_occasions` (
-       product_id  VARCHAR(64) NOT NULL,
-       occasion    VARCHAR(64) NOT NULL,
-       FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-       PRIMARY KEY (product_id, occasion)
-   )
-   -> Many-to-Many relationship linking products to occasions such as Wedding,
-      Festive, Formal, Casual, Party, Date.
-
-3. Table `product_colors` (
-       product_id  VARCHAR(64) NOT NULL,
-       color       VARCHAR(64) NOT NULL,
-       FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-       PRIMARY KEY (product_id, color)
-   )
-   -> Many-to-Many relationship linking products to extractable colors.
-
-4. Table `product_aesthetics` (
-       product_id  VARCHAR(64) NOT NULL,
-       tag         VARCHAR(64) NOT NULL,
-       FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-       PRIMARY KEY (product_id, tag)
-   )
-   -> Many-to-Many relationship linking products to style/aesthetic tags such as
-      ethnic, minimalist, heavy, sleek, streetwear.
-
-The in-memory `MockDB` class below mirrors this abstraction using a validated
-Pydantic ORM entity (`ProductEntity`) and a thread-safe cache (`_table_cache`).
 """
 
 from typing import List, Dict, Any, Optional
@@ -51,648 +8,590 @@ from threading import Lock
 from pydantic import BaseModel, Field, ConfigDict
 
 
-# =============================================================================
-# PYDANTIC ORM ENTITY
-# =============================================================================
-
 class ProductEntity(BaseModel):
-    """
-    Pydantic model mirroring the production `products` row plus its related
-    many-to-many tag tables (occasions, colors, aesthetics).
-    """
     id: str
     name: str
-    category: str = Field(
-        ...,
-        pattern="^(Topwear|Bottomwear|Footwear|Accessory)$",
-        description="Production ENUM value from the products table"
-    )
-    price: int = Field(..., ge=300, le=4000, description="Price in INR")
-    occasions: List[str] = Field(
-        default_factory=list,
-        description="Values that would live in the product_occasions join table"
-    )
-    colors: List[str] = Field(
-        default_factory=list,
-        description="Values that would live in the product_colors join table"
-    )
-    aesthetic_tags: List[str] = Field(
-        default_factory=list,
-        description="Values that would live in the product_aesthetics join table"
-    )
-    image_url: str = Field(
-        ...,
-        description="Local transparent mannequin asset path: /catalog/{id}.png"
-    )
-    gender: str = Field(
-        default="Unisex",
-        description="Gender of the product"
-    )
+    category: str = Field(..., pattern="^(Topwear|Bottomwear|Footwear|Accessory)$")
+    price: int = Field(..., ge=300, le=4000)
+    occasions: List[str] = Field(default_factory=list)
+    colors: List[str] = Field(default_factory=list)
+    aesthetic_tags: List[str] = Field(default_factory=list)
+    image_url: str = Field(...)
+    gender: str = Field(default="Unisex")
 
     model_config = ConfigDict(extra="ignore")
 
 
-# =============================================================================
-# HIGH-FIDELITY IN-LINE SEED CATALOG (50 PRODUCTS)
-# Distribution: 15 Topwear, 15 Bottomwear, 10 Footwear, 10 Accessory
-# =============================================================================
-
 CATALOG: List[Dict[str, Any]] = [
-    {
-        "id": "top_prompt1",
-        "name": "Haldi Yellow Kurta",
-        "category": "Topwear",
-        "price": 1800,
-        "occasions": ["Festive"],
-        "colors": ["yellow"],
-        "aesthetic_tags": ["ethnic", "heavy", "traditional"],
-        "gender": "Women",
-        "image_url": "/catalog/prompt1_top_wear.png"
-    },
-    {
-        "id": "bottom_prompt1",
-        "name": "Red Ethnic Skirt",
-        "category": "Bottomwear",
-        "price": 1200,
-        "occasions": ["Festive"],
-        "colors": ["red"],
-        "aesthetic_tags": ["ethnic", "traditional"],
-        "gender": "Women",
-        "image_url": "/catalog/prompt1_bottom_wear.png"
-    },
-    {
-        "id": "accessory_prompt1",
-        "name": "Yellow Ethnic Bangles",
-        "category": "Accessory",
-        "price": 450,
-        "occasions": ["Festive"],
-        "colors": ["yellow"],
-        "aesthetic_tags": ["ethnic", "traditional"],
-        "gender": "Women",
-        "image_url": "/catalog/promtp1_accesories.png"
-    },
-    # --- TOPWEAR (15) ---
+    # -------------------------------------------------------------------------
+    # TOPWEAR (16 Items)
+    # -------------------------------------------------------------------------
     {
         "id": "top_001",
-        "name": "Peplum Kurti",
+        "name": "oversized 'syntax error' graphic tee",
         "category": "Topwear",
-        "price": 1890,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["gold", "maroon", "cream"],
-        "aesthetic_tags": ["ethnic", "heavy", "traditional"],
-        "gender": "Women",
-        "image_url": "/catalog/top_001.jpg"
+        "price": 699,
+        "occasions": ["casual", "college fest"],
+        "colors": ["black", "neon green"],
+        "aesthetic_tags": ["streetwear", "tech-core", "baggy", "dark"],
+        "gender": "unisex",
+        "image_url": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_002",
-        "name": "Corset",
+        "name": "drop-shoulder flannel overshirt",
         "category": "Topwear",
-        "price": 3200,
-        "occasions": ["Wedding"],
-        "colors": ["black", "navy", "wine"],
-        "aesthetic_tags": ["ethnic", "heavy", "royal"],
-        "gender": "Women",
-        "image_url": "/catalog/top_002.jpg"
+        "price": 1199,
+        "occasions": ["casual", "party", "date"],
+        "colors": ["red", "black", "grey"],
+        "aesthetic_tags": ["streetwear", "layering", "grunge", "winter"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_003",
-        "name": "Cotton Kurti",
+        "name": "heavyweight boxy hoodie",
         "category": "Topwear",
-        "price": 1290,
-        "occasions": ["Festive", "Casual"],
-        "colors": ["white", "pastel", "mint"],
-        "aesthetic_tags": ["ethnic", "light", "elegant"],
-        "gender": "Women",
-        "image_url": "/catalog/top_003.jpg"
+        "price": 1499,
+        "occasions": ["casual", "college fest"],
+        "colors": ["olive", "dark green"],
+        "aesthetic_tags": ["streetwear", "minimalist", "cozy", "winter"],
+        "gender": "unisex",
+        "image_url": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_004",
-        "name": "Peplum Kurti",
+        "name": "vintage washed denim jacket",
         "category": "Topwear",
-        "price": 1450,
-        "occasions": ["Festive", "Party"],
-        "colors": ["red", "orange", "yellow"],
-        "aesthetic_tags": ["ethnic", "bright", "traditional"],
-        "gender": "Women",
-        "image_url": "/catalog/top_004.jpg"
+        "price": 1899,
+        "occasions": ["casual", "party"],
+        "colors": ["blue", "faded blue"],
+        "aesthetic_tags": ["vintage", "layering", "classic", "rugged"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1495105787522-5334e3ffa0efa?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_005",
-        "name": "Linen Wrap-top",
+        "name": "lucknowi chikankari short kurta",
         "category": "Topwear",
-        "price": 890,
-        "occasions": ["Casual", "Office"],
-        "colors": ["white", "blue", "beige"],
-        "aesthetic_tags": ["minimalist", "light", "clean"],
-        "gender": "Unisex",
-        "image_url": "/catalog/top_005.jpg"
+        "price": 1250,
+        "occasions": ["festive", "wedding","formal"],
+        "colors": ["mint", "pastel green", "white"],
+        "aesthetic_tags": ["ethnic", "elegant", "light", "fusion","modern", "trendy"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1597983073493-88cd35cf93b0?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_006",
-        "name": "LinenWrap-top",
+        "name": "asymmetric silk blend kurta",
         "category": "Topwear",
-        "price": 590,
-        "occasions": ["Casual", "College Fest"],
-        "colors": ["black", "white", "grey"],
-        "aesthetic_tags": ["streetwear", "relaxed", "urban"],
-        "gender": "Unisex",
-        "image_url": "/catalog/top_006.jpg"
+        "price": 1599,
+        "occasions": ["festive", "wedding", "party"],
+        "colors": ["mustard", "yellow", "gold"],
+        "aesthetic_tags": ["ethnic", "modern", "vibrant", "haldi"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1583391733959-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_007",
-        "name": "Woolen Cardigan",
+        "name": "textured bandhgala nehru jacket",
         "category": "Topwear",
-        "price": 1100,
-        "occasions": ["Casual"],
-        "colors": ["black", "navy", "olive"],
-        "aesthetic_tags": ["streetwear", "cozy", "minimalist"],
-        "gender": "Unisex",
-        "image_url": "/catalog/top_007.jpg"
+        "price": 2100,
+        "occasions": ["wedding", "formal"],
+        "colors": ["navy", "black"],
+        "aesthetic_tags": ["ethnic", "royal", "structured", "layering"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_008",
-        "name": "Woolen Cardigan",
+        "name": "ribbed halter crop top",
         "category": "Topwear",
-        "price": 750,
-        "occasions": ["Casual", "Office"],
-        "colors": ["white", "navy", "burgundy"],
-        "aesthetic_tags": ["smart-casual", "sleek", "minimalist"],
-        "gender": "Unisex",
-        "image_url": "/catalog/top_008.jpg"
+        "price": 499,
+        "occasions": ["casual", "college fest", "party"],
+        "colors": ["black", "white"],
+        "aesthetic_tags": ["minimalist", "y2k", "sleek", "summer"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_009",
-        "name": "Casual Cotton Men's Shirt",
+        "name": "crochet boxy cardigan",
         "category": "Topwear",
-        "price": 1650,
-        "occasions": ["Casual", "Party"],
-        "colors": ["blue", "black"],
-        "aesthetic_tags": ["streetwear", "vintage", "layered"],
-        "gender": "Men",
-        "image_url": "/catalog/top_009.jpg"
+        "price": 999,
+        "occasions": ["casual", "date"],
+        "colors": ["cream", "beige"],
+        "aesthetic_tags": ["boho", "vintage", "textured", "cozy"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1434389678369-e8412675d0f6?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_010",
-        "name": "Knitted Men's Polo T-shirt",
+        "name": "oversized graphic anime tee",
         "category": "Topwear",
-        "price": 2400,
-        "occasions": ["Formal", "Party"],
-        "colors": ["black", "gold", "burgundy"],
-        "aesthetic_tags": ["sleek", "heavy", "statement"],
-        "gender": "Men",
-        "image_url": "/catalog/top_010.jpg"
+        "price": 699,
+        "occasions": ["casual", "college fest"],
+        "colors": ["white", "pink", "purple"],
+        "aesthetic_tags": ["streetwear", "baggy", "gen-z", "kawaii"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_011",
-        "name": "Striped Men's  CottonShirt",
+        "name": "faux leather corset top",
         "category": "Topwear",
-        "price": 1350,
-        "occasions": ["Party", "Date"],
-        "colors": ["black", "silver", "rose"],
-        "aesthetic_tags": ["sleek", "glam", "minimalist"],
-        "gender": "Men",
-        "image_url": "/catalog/top_011.jpg"
+        "price": 1199,
+        "occasions": ["party", "date"],
+        "colors": ["black", "maroon"],
+        "aesthetic_tags": ["edgy", "glam", "statement", "night-out"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1550614000-4b95dd2475a3?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_012",
-        "name": "Men's Jacket",
+        "name": "mirror work peplum kurti",
         "category": "Topwear",
-        "price": 980,
-        "occasions": ["Festive", "Casual"],
-        "colors": ["white", "black", "olive"],
-        "aesthetic_tags": ["ethnic", "relaxed", "traditional"],
-        "gender": "Men",
-        "image_url": "/catalog/top_012.png"
+        "price": 1499,
+        "occasions": ["festive", "wedding"],
+        "colors": ["hot pink", "magenta", "silver"],
+        "aesthetic_tags": ["ethnic", "glam", "vibrant", "heavy"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_013",
-        "name": "Men's black toggle jacket",
+        "name": "bandhani print angrakha",
         "category": "Topwear",
-        "price": 1750,
-        "occasions": ["Festive", "Formal"],
-        "colors": ["navy", "grey", "mustard"],
-        "aesthetic_tags": ["ethnic", "sleek", "structured"],
-        "gender": "Men",
-        "image_url": "/catalog/top_013.jpg"
+        "price": 1299,
+        "occasions": ["festive", "casual"],
+        "colors": ["red", "orange"],
+        "aesthetic_tags": ["ethnic", "traditional", "flowy", "bright"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_014",
-        "name": "Girls' Peter Pan collar peplum top",
+        "name": "foil print strappy blouse",
         "category": "Topwear",
-        "price": 450,
-        "occasions": ["Casual", "Party"],
-        "colors": ["black", "white", "pink"],
-        "aesthetic_tags": ["minimalist", "trendy", "casual"],
-        "gender": "Women",
-        "image_url": "/catalog/top_014.jpg"
+        "price": 899,
+        "occasions": ["wedding", "party"],
+        "colors": ["gold", "cream"],
+        "aesthetic_tags": ["ethnic", "fusion", "glam", "sleek"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
     },
     {
         "id": "top_015",
-        "name": "Girls' striped bow-detail peplum top",
+        "name": "cotton anarkali kurta",
         "category": "Topwear",
-        "price": 880,
-        "occasions": ["Party", "Date"],
-        "colors": ["red", "black", "peach"],
-        "aesthetic_tags": ["feminine", "glam", "statement"],
-        "gender": "Women",
-        "image_url": "/catalog/top_015.jpg"
+        "price": 1100,
+        "occasions": ["festive", "office"],
+        "colors": ["yellow", "mustard"],
+        "aesthetic_tags": ["ethnic", "elegant", "haldi", "flowy"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1617260537877-cd5f4ccda364?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_016",
+        "name": "solid satin shirt",
+        "category": "Topwear",
+        "price": 999,
+        "occasions": ["formal", "party", "date"],
+        "colors": ["emerald green", "navy"],
+        "aesthetic_tags": ["sleek", "elegant", "minimalist", "premium"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1598554747436-c9293d6a588f?auto=format&fit=crop&w=400&q=80"
     },
 
-    # --- BOTTOMWEAR (15) ---
+    # -------------------------------------------------------------------------
+    # BOTTOMWEAR (14 Items)
+    # -------------------------------------------------------------------------
     {
-        "id": "bottom_001",
-        "name": "Silk Churidar Pyjama",
+        "id": "bot_001",
+        "name": "tech-wear multi-pocket cargos",
         "category": "Bottomwear",
-        "price": 650,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["white", "cream", "gold"],
-        "aesthetic_tags": ["ethnic", "light", "traditional"],
-        "gender": "Men",
-        "image_url": "/catalog/bot_001.jpg"
+        "price": 1499,
+        "occasions": ["casual", "college fest"],
+        "colors": ["black", "charcoal"],
+        "aesthetic_tags": ["streetwear", "tech-core", "utility", "baggy"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_002",
-        "name": "Cotton Silk Dhoti Pants",
+        "id": "bot_002",
+        "name": "baggy nylon parachute pants",
         "category": "Bottomwear",
-        "price": 1100,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["white", "gold", "beige"],
-        "aesthetic_tags": ["ethnic", " airy", "traditional"],
-        "gender": "Men",
-        "image_url": "/catalog/bot_002.jpg"
+        "price": 1299,
+        "occasions": ["casual", "party"],
+        "colors": ["beige", "tan", "khaki"],
+        "aesthetic_tags": ["streetwear", "y2k", "relaxed", "trendy"],
+        "gender": "unisex",
+        "image_url": "https://images.unsplash.com/photo-1549037173-e3b710c541d6?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_003",
-        "name": "Ivory Palazzo Silk Pants",
+        "id": "bot_003",
+        "name": "washed wide-leg denim",
         "category": "Bottomwear",
-        "price": 890,
-        "occasions": ["Festive", "Casual"],
-        "colors": ["ivory", "white", "gold"],
-        "aesthetic_tags": ["ethnic", "elegant", "flowy"],
-        "gender": "Women",
-        "image_url": "/catalog/bot_003.jpg"
+        "price": 1699,
+        "occasions": ["casual", "date"],
+        "colors": ["blue", "light blue"],
+        "aesthetic_tags": ["streetwear", "vintage", "baggy", "casual"],
+        "gender": "unisex",
+        "image_url": "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_004",
-        "name": "Cotton Pyjama Bottoms",
+        "id": "bot_004",
+        "name": "premium slim fit chinos",
         "category": "Bottomwear",
-        "price": 480,
-        "occasions": ["Festive", "Casual"],
-        "colors": ["white", "black", "grey"],
-        "aesthetic_tags": ["ethnic", "comfort", "relaxed"],
-        "gender": "Unisex",
-        "image_url": "/catalog/bot_004.jpg"
+        "price": 1199,
+        "occasions": ["formal", "office", "date"],
+        "colors": ["navy", "black", "olive"],
+        "aesthetic_tags": ["minimalist", "smart-casual", "sleek", "tailored"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_005",
-        "name": "Slim Fit Chinos",
+        "id": "bot_005",
+        "name": "cotton blend aligarh pyjama",
         "category": "Bottomwear",
-        "price": 990,
-        "occasions": ["Casual", "Office"],
-        "colors": ["beige", "khaki", "navy"],
-        "aesthetic_tags": ["minimalist", "sleek", "smart-casual"],
-        "gender": "Men",
-        "image_url": "/catalog/bot_005.jpg"
+        "price": 699,
+        "occasions": ["festive", "wedding"],
+        "colors": ["white", "cream", "off-white"],
+        "aesthetic_tags": ["ethnic", "traditional", "comfort", "light"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_006",
-        "name": "Multi-Pocket Cargo Pants",
+        "id": "bot_006",
+        "name": "pleated silk dhoti pants",
         "category": "Bottomwear",
         "price": 1200,
-        "occasions": ["Casual", "College Fest"],
-        "colors": ["green", "black", "grey"],
-        "aesthetic_tags": ["streetwear", "utility", "trendy"],
-        "gender": "Unisex",
-        "image_url": "/catalog/bot_006.jpg"
+        "occasions": ["wedding", "festive"],
+        "colors": ["gold", "beige"],
+        "aesthetic_tags": ["ethnic", "royal", "flowy", "traditional"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1596489370005-cb6d860d5dd7?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_007",
-        "name": "Classic Straight Fit Jeans",
+        "id": "bot_007",
+        "name": "high-waist flared cargo pants",
         "category": "Bottomwear",
-        "price": 1400,
-        "occasions": ["Casual"],
-        "colors": ["blue", "black"],
-        "aesthetic_tags": ["minimalist", "classic", "versatile"],
-        "gender": "Unisex",
-        "image_url": "/catalog/bot_007.jpg"
+        "price": 1399,
+        "occasions": ["casual", "college fest", "party"],
+        "colors": ["olive", "khaki", "brown"],
+        "aesthetic_tags": ["streetwear", "y2k", "utility", "trendy"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_008",
-        "name": "Tapered Joggers",
+        "id": "bot_008",
+        "name": "distressed mom jeans",
         "category": "Bottomwear",
-        "price": 650,
-        "occasions": ["Casual"],
-        "colors": ["black", "grey", "olive"],
-        "aesthetic_tags": ["streetwear", "comfort", "relaxed"],
-        "gender": "Unisex",
-        "image_url": "/catalog/bot_008.jpg"
+        "price": 1499,
+        "occasions": ["casual", "date"],
+        "colors": ["grey", "washed black"],
+        "aesthetic_tags": ["vintage", "grunge", "relaxed", "casual"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_009",
-        "name": "Formal Flat Front Trousers",
+        "id": "bot_009",
+        "name": "pleated tennis skirt",
         "category": "Bottomwear",
-        "price": 1100,
-        "occasions": ["Formal", "Office"],
-        "colors": ["black", "charcoal", "navy"],
-        "aesthetic_tags": ["sleek", "structured", "minimalist"],
-        "gender": "Men",
-        "image_url": "/catalog/bot_009.jpg"
+        "price": 799,
+        "occasions": ["casual", "party"],
+        "colors": ["white", "plaid", "black"],
+        "aesthetic_tags": ["y2k", "preppy", "summer", "kawaii"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1582142407894-ec85a1260a46?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_010",
-        "name": "Dhoti Style Skirt",
+        "id": "bot_010",
+        "name": "flared crepe trousers",
         "category": "Bottomwear",
-        "price": 950,
-        "occasions": ["Festive", "Casual"],
-        "colors": ["white", "gold", "red"],
-        "aesthetic_tags": ["ethnic", "flowy", "traditional"],
-        "gender": "Women",
-        "image_url": "/catalog/bot_010.jpg"
+        "price": 1099,
+        "occasions": ["formal", "office", "party"],
+        "colors": ["black", "navy", "maroon"],
+        "aesthetic_tags": ["sleek", "elegant", "minimalist", "tailored"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1509631179647-0c708bd226ee?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_011",
-        "name": "Sharara Flared Pants",
+        "id": "bot_011",
+        "name": "gotta patti sharara pants",
         "category": "Bottomwear",
-        "price": 1600,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["gold", "pink", "green"],
-        "aesthetic_tags": ["ethnic", "heavy", "glam"],
-        "gender": "Women",
-        "image_url": "/catalog/bot_011.jpg"
+        "price": 1799,
+        "occasions": ["wedding", "festive"],
+        "colors": ["pink", "magenta", "gold"],
+        "aesthetic_tags": ["ethnic", "glam", "heavy", "flowy"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_012",
-        "name": "Harem Style Pants",
+        "id": "bot_012",
+        "name": "printed cotton flared palazzo",
         "category": "Bottomwear",
-        "price": 780,
-        "occasions": ["Casual", "Festive"],
-        "colors": ["black", "maroon", "mustard"],
-        "aesthetic_tags": ["ethnic", "relaxed", "boho"],
-        "gender": "Women",
-        "image_url": "/catalog/bot_012.jpg"
+        "price": 899,
+        "occasions": ["festive", "casual"],
+        "colors": ["yellow", "white", "mustard"],
+        "aesthetic_tags": ["ethnic", "comfort", "vibrant", "boho"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "bottom_013",
-        "name": "Pencil Cut Skirt",
+        "id": "bot_013",
+        "name": "brocade silk straight pants",
         "category": "Bottomwear",
-        "price": 850,
-        "occasions": ["Formal", "Party"],
-        "colors": ["black", "navy", "burgundy"],
-        "aesthetic_tags": ["sleek", "structured", "elegant"],
-        "gender": "Women",
-        "image_url": "/catalog/bot_013.jpg"
-    },
-    {
-        "id": "bottom_014",
-        "name": "Casual Cotton Shorts",
-        "category": "Bottomwear",
-        "price": 380,
-        "occasions": ["Casual"],
-        "colors": ["blue", "beige", "black"],
-        "aesthetic_tags": ["minimalist", "comfort", "summer"],
-        "gender": "Men",
-        "image_url": "/catalog/bot_014.jpg"
-    },
-    {
-        "id": "bottom_015",
-        "name": "Side Stripe Track Pants",
-        "category": "Bottomwear",
-        "price": 720,
-        "occasions": ["Casual"],
-        "colors": ["black", "grey", "white"],
-        "aesthetic_tags": ["streetwear", "sporty", "relaxed"],
-        "gender": "Unisex",
-        "image_url": "/catalog/bot_015.jpg"
+        "price": 1299,
+        "occasions": ["wedding", "festive", "party"],
+        "colors": ["gold", "cream"],
+        "aesthetic_tags": ["ethnic", "fusion", "sleek", "premium"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
     },
 
-    # --- FOOTWEAR (10) ---
+    # -------------------------------------------------------------------------
+    # FOOTWEAR (12 Items)
+    # -------------------------------------------------------------------------
     {
-        "id": "footwear_001",
-        "name": "Handcrafted Kolhapuri Juttis",
+        "id": "foot_001",
+        "name": "chunky cyber sneakers",
         "category": "Footwear",
-        "price": 890,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["gold", "brown", "tan"],
-        "aesthetic_tags": ["ethnic", "handcrafted", "traditional"],
-        "gender": "Unisex",
-        "image_url": "/catalog/foot_001.jpg"
+        "price": 1899,
+        "occasions": ["casual", "college fest"],
+        "colors": ["black", "neon green", "grey"],
+        "aesthetic_tags": ["streetwear", "tech-core", "chunky", "statement"],
+        "gender": "unisex",
+        "image_url": "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "footwear_002",
-        "name": "Royal Velvet Mojris",
+        "id": "foot_002",
+        "name": "classic white platform sneakers",
         "category": "Footwear",
-        "price": 1200,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["black", "maroon", "navy"],
-        "aesthetic_tags": ["ethnic", "heavy", "royal"],
-        "gender": "Men",
-        "image_url": "/catalog/foot_002.jpg"
+        "price": 1299,
+        "occasions": ["casual", "date", "party"],
+        "colors": ["white", "off-white"],
+        "aesthetic_tags": ["minimalist", "clean", "versatile", "streetwear"],
+        "gender": "unisex",
+        "image_url": "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "footwear_003",
-        "name": "Embellished Wedding Sandals",
+        "id": "foot_003",
+        "name": "suede chelsea boots",
         "category": "Footwear",
-        "price": 750,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["gold", "silver", "pink"],
-        "aesthetic_tags": ["ethnic", "glam", "delicate"],
-        "gender": "Women",
-        "image_url": "/catalog/foot_003.jpg"
-    },
-    {
-        "id": "footwear_004",
-        "name": "Leather Oxford Formal Shoes",
-        "category": "Footwear",
-        "price": 1800,
-        "occasions": ["Formal", "Office"],
-        "colors": ["black", "brown"],
-        "aesthetic_tags": ["sleek", "classic", "polished"],
-        "gender": "Men",
-        "image_url": "/catalog/foot_004.jpg"
-    },
-    {
-        "id": "footwear_005",
-        "name": "Classic White Sneakers",
-        "category": "Footwear",
-        "price": 1100,
-        "occasions": ["Casual"],
-        "colors": ["white", "black"],
-        "aesthetic_tags": ["minimalist", "clean", "versatile"],
-        "gender": "Unisex",
-        "image_url": "/catalog/foot_005.jpg"
-    },
-    {
-        "id": "footwear_006",
-        "name": "Chunky High-Top Sneakers",
-        "category": "Footwear",
-        "price": 1350,
-        "occasions": ["Casual", "College Fest"],
-        "colors": ["white", "blue", "pink"],
-        "aesthetic_tags": ["streetwear", "bold", "trendy"],
-        "gender": "Unisex",
-        "image_url": "/catalog/foot_006.jpg"
-    },
-    {
-        "id": "footwear_007",
-        "name": "Casual Leather Loafers",
-        "category": "Footwear",
-        "price": 990,
-        "occasions": ["Casual", "Office"],
+        "price": 2100,
+        "occasions": ["formal", "party", "date"],
         "colors": ["brown", "tan", "black"],
-        "aesthetic_tags": ["smart-casual", "sleek", "minimalist"],
-        "gender": "Men",
-        "image_url": "/catalog/foot_007.jpg"
+        "aesthetic_tags": ["smart-casual", "sleek", "classic", "winter"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "footwear_008",
-        "name": "Stiletto Heel Pumps",
+        "id": "foot_004",
+        "name": "handcrafted kolhapuri sandals",
+        "category": "Footwear",
+        "price": 899,
+        "occasions": ["festive", "wedding", "casual"],
+        "colors": ["tan", "brown"],
+        "aesthetic_tags": ["ethnic", "traditional", "rugged", "comfort"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_005",
+        "name": "velvet embroidered mojris",
         "category": "Footwear",
         "price": 1450,
-        "occasions": ["Party", "Date"],
-        "colors": ["black", "red", "nude"],
-        "aesthetic_tags": ["glam", "sleek", "statement"],
-        "gender": "Women",
-        "image_url": "/catalog/foot_008.jpg"
+        "occasions": ["wedding", "festive"],
+        "colors": ["navy", "black", "gold"],
+        "aesthetic_tags": ["ethnic", "royal", "heavy", "statement"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "footwear_009",
-        "name": "Beaded Kolhapuris",
+        "id": "foot_006",
+        "name": "pastel colorblock sneakers",
         "category": "Footwear",
-        "price": 680,
-        "occasions": ["Festive", "Casual"],
-        "colors": ["gold", "brown", "red"],
-        "aesthetic_tags": ["ethnic", "boho", "handcrafted"],
-        "gender": "Women",
-        "image_url": "/catalog/foot_009.jpg"
+        "price": 1499,
+        "occasions": ["casual", "college fest"],
+        "colors": ["pink", "mint", "white"],
+        "aesthetic_tags": ["streetwear", "kawaii", "vibrant", "y2k"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "footwear_010",
-        "name": "Ankle Length Boots",
+        "id": "foot_007",
+        "name": "strappy stiletto heels",
         "category": "Footwear",
-        "price": 1700,
-        "occasions": ["Casual", "Party"],
-        "colors": ["black", "brown"],
-        "aesthetic_tags": ["streetwear", "edgy", "versatile"],
-        "gender": "Unisex",
-        "image_url": "/catalog/foot_010.jpg"
+        "price": 1699,
+        "occasions": ["party", "date", "wedding"],
+        "colors": ["black", "silver", "red"],
+        "aesthetic_tags": ["glam", "sleek", "night-out", "elegant"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_008",
+        "name": "woven faux leather mules",
+        "category": "Footwear",
+        "price": 999,
+        "occasions": ["casual", "office", "date"],
+        "colors": ["beige", "tan", "cream"],
+        "aesthetic_tags": ["minimalist", "smart-casual", "boho", "comfort"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1535043934128-d8f99333a921?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_009",
+        "name": "embellished wedge sandals",
+        "category": "Footwear",
+        "price": 1299,
+        "occasions": ["wedding", "festive"],
+        "colors": ["gold", "rose gold"],
+        "aesthetic_tags": ["ethnic", "glam", "heavy", "traditional"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1562183241-b937e95585b6?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_010",
+        "name": "beaded flat juttis",
+        "category": "Footwear",
+        "price": 799,
+        "occasions": ["festive", "casual"],
+        "colors": ["yellow", "mustard", "multicolor"],
+        "aesthetic_tags": ["ethnic", "vibrant", "handcrafted", "haldi"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
     },
 
-    # --- ACCESSORY (10) ---
+    # -------------------------------------------------------------------------
+    # ACCESSORIES (12 Items)
+    # -------------------------------------------------------------------------
     {
-        "id": "accessory_001",
-        "name": "Gold Plated Kundan Necklace",
+        "id": "acc_001",
+        "name": "matte black metal chain pendant",
         "category": "Accessory",
-        "price": 1500,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["gold", "green", "red"],
-        "aesthetic_tags": ["ethnic", "heavy", "statement"],
-        "gender": "Women",
-        "image_url": "/catalog/acc_001.jpg"
+        "price": 349,
+        "occasions": ["casual", "college fest", "party"],
+        "colors": ["black", "dark grey"],
+        "aesthetic_tags": ["streetwear", "edgy", "minimalist", "tech-core"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "accessory_002",
-        "name": "Heritage Pearl Strand Necklace",
+        "id": "acc_002",
+        "name": "nylon tech crossbody bag",
         "category": "Accessory",
-        "price": 1100,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["white", "ivory", "gold"],
-        "aesthetic_tags": ["elegant", "classic", "ethnic"],
-        "gender": "Women",
-        "image_url": "/catalog/acc_002.jpg"
+        "price": 699,
+        "occasions": ["casual", "college fest"],
+        "colors": ["olive", "black", "neon"],
+        "aesthetic_tags": ["streetwear", "utility", "baggy", "functional"],
+        "gender": "unisex",
+        "image_url": "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "accessory_003",
-        "name": "Chronograph Leather Watch",
+        "id": "acc_003",
+        "name": "digital retro chronograph watch",
         "category": "Accessory",
-        "price": 680,
-        "occasions": ["Casual", "Office"],
-        "colors": ["brown", "black", "silver"],
-        "aesthetic_tags": ["minimalist", "sleek", "classic"],
-        "gender": "Men",
-        "image_url": "/catalog/acc_003.jpg"
+        "price": 899,
+        "occasions": ["casual", "office", "date"],
+        "colors": ["silver", "black"],
+        "aesthetic_tags": ["minimalist", "vintage", "classic", "geek"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "accessory_004",
-        "name": "Digital Sports Watch",
+        "id": "acc_004",
+        "name": "tinted aviator sunglasses",
         "category": "Accessory",
-        "price": 490,
-        "occasions": ["Casual"],
-        "colors": ["black", "blue", "grey"],
-        "aesthetic_tags": ["sporty", "minimalist", "functional"],
-        "gender": "Unisex",
-        "image_url": "/catalog/acc_004.jpg"
+        "price": 599,
+        "occasions": ["casual", "party"],
+        "colors": ["gold", "green", "brown"],
+        "aesthetic_tags": ["classic", "vintage", "statement"],
+        "gender": "unisex",
+        "image_url": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "accessory_005",
-        "name": "Aviator Sunglasses",
+        "id": "acc_005",
+        "name": "silk pocket square & brooch set",
         "category": "Accessory",
-        "price": 950,
-        "occasions": ["Casual", "Party"],
-        "colors": ["gold", "black", "green"],
-        "aesthetic_tags": ["classic", "sleek", "cool"],
-        "gender": "Unisex",
-        "image_url": "/catalog/acc_005.jpg"
+        "price": 450,
+        "occasions": ["wedding", "formal"],
+        "colors": ["maroon", "gold", "navy"],
+        "aesthetic_tags": ["ethnic", "royal", "sleek", "premium"],
+        "gender": "men",
+        "image_url": "https://images.unsplash.com/photo-1613588718956-c2e8f29ea156?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "accessory_006",
-        "name": "Leather Formal Belt",
+        "id": "acc_006",
+        "name": "oxidised silver jhumkas",
         "category": "Accessory",
-        "price": 550,
-        "occasions": ["Formal", "Office"],
-        "colors": ["black", "brown"],
-        "aesthetic_tags": ["minimalist", "sleek", "essential"],
-        "gender": "Men",
-        "image_url": "/catalog/acc_006.jpg"
+        "price": 399,
+        "occasions": ["festive", "wedding", "college fest"],
+        "colors": ["silver", "oxidised"],
+        "aesthetic_tags": ["ethnic", "boho", "heavy", "traditional"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80"
     },
     {
-        "id": "accessory_007",
-        "name": "Silk Pocket Square",
+        "id": "acc_007",
+        "name": "kundan & pearl choker set",
+        "category": "Accessory",
+        "price": 1299,
+        "occasions": ["wedding", "festive"],
+        "colors": ["gold", "white", "pink"],
+        "aesthetic_tags": ["ethnic", "royal", "glam", "heavy"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1599643478524-fb524b0b14c1?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_008",
+        "name": "embroidered silk potli bag",
+        "category": "Accessory",
+        "price": 599,
+        "occasions": ["wedding", "festive"],
+        "colors": ["magenta", "gold", "yellow"],
+        "aesthetic_tags": ["ethnic", "traditional", "vibrant", "haldi"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_009",
+        "name": "y2k mini shoulder bag",
+        "category": "Accessory",
+        "price": 799,
+        "occasions": ["casual", "party", "date"],
+        "colors": ["black", "silver"],
+        "aesthetic_tags": ["y2k", "streetwear", "minimalist", "trendy"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_010",
+        "name": "layered gold chain necklace",
+        "category": "Accessory",
+        "price": 499,
+        "occasions": ["casual", "party", "office"],
+        "colors": ["gold"],
+        "aesthetic_tags": ["minimalist", "sleek", "elegant", "everyday"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_011",
+        "name": "floral hair gajra accessory",
         "category": "Accessory",
         "price": 350,
-        "occasions": ["Formal", "Party"],
-        "colors": ["blue", "red", "gold"],
-        "aesthetic_tags": ["sleek", "minimalist", "polished"],
-        "gender": "Men",
-        "image_url": "/catalog/acc_007.jpg"
-    },
-    {
-        "id": "accessory_008",
-        "name": "Embroidered Dupatta",
-        "category": "Accessory",
-        "price": 780,
-        "occasions": ["Wedding", "Festive"],
-        "colors": ["red", "gold", "pink"],
-        "aesthetic_tags": ["ethnic", "heavy", "traditional"],
-        "gender": "Women",
-        "image_url": "/catalog/acc_008.jpg"
-    },
-    {
-        "id": "accessory_009",
-        "name": "Evening Clutch Bag",
-        "category": "Accessory",
-        "price": 1200,
-        "occasions": ["Party", "Date"],
-        "colors": ["black", "gold", "silver"],
-        "aesthetic_tags": ["glam", "sleek", "statement"],
-        "gender": "Women",
-        "image_url": "/catalog/acc_009.jpg"
-    },
-    {
-        "id": "accessory_010",
-        "name": "Layered Bracelet Set",
-        "category": "Accessory",
-        "price": 420,
-        "occasions": ["Casual", "Party"],
-        "colors": ["gold", "silver", "black"],
-        "aesthetic_tags": ["trendy", "minimalist", "layered"],
-        "gender": "Women",
-        "image_url": "/catalog/acc_010.png"
+        "occasions": ["wedding", "festive"],
+        "colors": ["white", "yellow", "orange"],
+        "aesthetic_tags": ["ethnic", "traditional", "vibrant", "floral"],
+        "gender": "women",
+        "image_url": "https://images.unsplash.com/photo-1588616140502-3c1a84f3eb3c?auto=format&fit=crop&w=400&q=80"
     }
 ]
 
-
 # =============================================================================
-# LOCAL BOUTIQUES & OUTFIT CIRCLE (Preserved for downstream compatibility)
+# LOCAL BOUTIQUES & OUTFIT CIRCLE 
 # =============================================================================
 
 LOCAL_BOUTIQUES: List[Dict[str, Any]] = [
@@ -708,103 +607,17 @@ LOCAL_BOUTIQUES: List[Dict[str, Any]] = [
     },
     {
         "id": "boutique_2",
-        "name": "Rajputana Heritage Boutique",
-        "city": "Jaipur",
-        "rating": 4.9,
-        "verified": True,
-        "distance_km": 1.8,
-        "speciality": "Bandhani & Gotta Patti",
-        "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80"
-    },
-    {
-        "id": "boutique_3",
-        "name": "Nair Handlooms",
-        "city": "Kochi",
-        "rating": 4.7,
-        "verified": True,
-        "distance_km": 3.1,
-        "speciality": "Traditional Kerala Handlooms",
-        "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80"
-    },
-    {
-        "id": "boutique_4",
-        "name": "Coimbatore Silk House",
-        "city": "Coimbatore",
-        "rating": 4.9,
-        "verified": True,
-        "distance_km": 1.2,
-        "speciality": "Kanjeevaram & Cotton Silks",
-        "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
-    },
-    {
-        "id": "boutique_5",
         "name": "Dilli Rebels Co.",
         "city": "Delhi",
         "rating": 4.5,
         "verified": True,
         "distance_km": 4.0,
-        "speciality": "Monsoon Streetwear & Over-sized Apparel",
+        "speciality": "Streetwear & Over-sized Apparel",
         "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80"
-    },
-    {
-        "id": "boutique_6",
-        "name": "Pataliputra Weaves",
-        "city": "Patna",
-        "rating": 4.6,
-        "verified": True,
-        "distance_km": 2.9,
-        "speciality": "Traditional Cotton & Tussar Sarees",
-        "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80"
     }
 ]
 
-OUTFIT_GROUPS: List[Dict[str, Any]] = [
-    {
-        "id": "group_1",
-        "name": "Jaipur Wedding Prep",
-        "members_count": 4,
-        "creator": "Kuhu",
-        "items": [
-            {
-                "id": "item_1",
-                "product_id": "top_004",
-                "votes": 12,
-                "voted_by": ["Kuhu", "Aditi", "Rohan"],
-                "comments": [
-                    {"user": "Aditi", "text": "This bandhani print is perfect for the Jaipur theme!"},
-                    {"user": "Rohan", "text": "Love the festive vibe."}
-                ]
-            },
-            {
-                "id": "item_2",
-                "product_id": "bottom_011",
-                "votes": 5,
-                "voted_by": ["Kuhu", "Sneha"],
-                "comments": [
-                    {"user": "Sneha", "text": "Sharara is gorgeous but may be too heavy for a noon event."}
-                ]
-            }
-        ]
-    },
-    {
-        "id": "group_2",
-        "name": "College Fest Streetwear",
-        "members_count": 5,
-        "creator": "Rohan",
-        "items": [
-            {
-                "id": "item_3",
-                "product_id": "top_006",
-                "votes": 18,
-                "voted_by": ["Rohan", "Aditya", "Vikram", "Neha"],
-                "comments": [
-                    {"user": "Aditya", "text": "Insta-cop. Oversized fit is fire."},
-                    {"user": "Neha", "text": "Are you planning to wear cargos with this?"}
-                ]
-            }
-        ]
-    }
-]
+OUTFIT_GROUPS: List[Dict[str, Any]] = []
 
 
 # =============================================================================
@@ -812,21 +625,12 @@ OUTFIT_GROUPS: List[Dict[str, Any]] = [
 # =============================================================================
 
 class MockDB:
-    """
-    Production-abstracted in-memory data repository.
-    Designed to mirror the eventual MySQL adapter layer with minimal friction.
-    """
     _table_cache: List[ProductEntity] = []
     _lock: Lock = Lock()
     _synced: bool = False
 
     @classmethod
     def connect_and_sync(cls) -> None:
-        """
-        Thread-safe initialization that validates the seed catalog through the
-        Pydantic ORM entity and populates the internal `_table_cache`.
-        Mirrors the behaviour of a real ORM session factory.
-        """
         if cls._synced:
             return
         with cls._lock:
@@ -837,16 +641,9 @@ class MockDB:
 
     @classmethod
     def execute_select_all(cls) -> List[Dict[str, Any]]:
-        """
-        Database-adapter-style query that returns all validated rows as plain
-        dictionaries for downstream curation and filtering calculations.
-        """
         cls.connect_and_sync()
         return [entity.model_dump() for entity in cls._table_cache]
 
-    # -------------------------------------------------------------------------
-    # Compatibility interfaces used by other API modules
-    # -------------------------------------------------------------------------
     @classmethod
     def get_products(cls) -> List[Dict[str, Any]]:
         return cls.execute_select_all()
@@ -860,10 +657,6 @@ class MockDB:
 
     @classmethod
     def get_genie_products(cls) -> List[Dict[str, Any]]:
-        """
-        Returns the Module-2 catalog with categories mapped to the uppercase
-        slot identifiers expected by the curation engine (TOP, BOTTOM, FOOTWEAR, ACCESSORY).
-        """
         category_map = {
             "Topwear": "TOP",
             "Bottomwear": "BOTTOM",
@@ -880,49 +673,4 @@ class MockDB:
         for product in cls.get_genie_products():
             if product["id"] == product_id:
                 return product
-        return None
-
-    @staticmethod
-    def get_boutiques(city: Optional[str] = None) -> List[Dict[str, Any]]:
-        if city:
-            return [b for b in LOCAL_BOUTIQUES if b["city"].lower() == city.lower()]
-        return LOCAL_BOUTIQUES
-
-    @staticmethod
-    def get_outfit_groups() -> List[Dict[str, Any]]:
-        return OUTFIT_GROUPS
-
-    @staticmethod
-    def get_outfit_group(group_id: str) -> Optional[Dict[str, Any]]:
-        for group in OUTFIT_GROUPS:
-            if group["id"] == group_id:
-                return group
-        return None
-
-    @staticmethod
-    def vote_item(group_id: str, item_id: str, user: str) -> Optional[Dict[str, Any]]:
-        group = MockDB.get_outfit_group(group_id)
-        if not group:
-            return None
-        for item in group["items"]:
-            if item["id"] == item_id:
-                if user in item["voted_by"]:
-                    item["voted_by"].remove(user)
-                    item["votes"] -= 1
-                else:
-                    item["voted_by"].append(user)
-                    item["votes"] += 1
-                return item
-        return None
-
-    @staticmethod
-    def add_comment(group_id: str, item_id: str, user: str, text: str) -> Optional[Dict[str, Any]]:
-        group = MockDB.get_outfit_group(group_id)
-        if not group:
-            return None
-        for item in group["items"]:
-            if item["id"] == item_id:
-                comment = {"user": user, "text": text}
-                item["comments"].append(comment)
-                return item
         return None
