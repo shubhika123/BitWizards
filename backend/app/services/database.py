@@ -47,6 +47,7 @@ Pydantic ORM entity (`ProductEntity`) and a thread-safe cache (`_table_cache`).
 
 from typing import List, Dict, Any, Optional
 from threading import Lock
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -83,6 +84,10 @@ class ProductEntity(BaseModel):
         ...,
         description="Local transparent mannequin asset path: /catalog/{id}.png"
     )
+    gender: str = Field(
+        default="Unisex",
+        description="Gender of the product"
+    )
 
     model_config = ConfigDict(extra="ignore")
 
@@ -93,6 +98,39 @@ class ProductEntity(BaseModel):
 # =============================================================================
 
 CATALOG: List[Dict[str, Any]] = [
+    {
+        "id": "top_prompt1",
+        "name": "Haldi Yellow Kurta",
+        "category": "Topwear",
+        "price": 1800,
+        "occasions": ["Festive"],
+        "colors": ["yellow"],
+        "aesthetic_tags": ["ethnic", "heavy", "traditional"],
+        "gender": "Women",
+        "image_url": "/catalog/prompt1_top_wear.png"
+    },
+    {
+        "id": "bottom_prompt1",
+        "name": "Red Ethnic Skirt",
+        "category": "Bottomwear",
+        "price": 1200,
+        "occasions": ["Festive"],
+        "colors": ["red"],
+        "aesthetic_tags": ["ethnic", "traditional"],
+        "gender": "Women",
+        "image_url": "/catalog/prompt1_bottom_wear.png"
+    },
+    {
+        "id": "accessory_prompt1",
+        "name": "Yellow Ethnic Bangles",
+        "category": "Accessory",
+        "price": 450,
+        "occasions": ["Festive"],
+        "colors": ["yellow"],
+        "aesthetic_tags": ["ethnic", "traditional"],
+        "gender": "Women",
+        "image_url": "/catalog/promtp1_accesories.png"
+    },
     # --- TOPWEAR (15) ---
     {
         "id": "top_001",
@@ -102,6 +140,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "maroon", "cream"],
         "aesthetic_tags": ["ethnic", "heavy", "traditional"],
+        "gender": "Women",
         "image_url": "/catalog/top_001.jpg"
     },
     {
@@ -112,6 +151,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding"],
         "colors": ["black", "navy", "wine"],
         "aesthetic_tags": ["ethnic", "heavy", "royal"],
+        "gender": "Women",
         "image_url": "/catalog/top_002.jpg"
     },
     {
@@ -122,6 +162,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["white", "pastel", "mint"],
         "aesthetic_tags": ["ethnic", "light", "elegant"],
+        "gender": "Women",
         "image_url": "/catalog/top_003.jpg"
     },
     {
@@ -132,6 +173,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Party"],
         "colors": ["red", "orange", "yellow"],
         "aesthetic_tags": ["ethnic", "bright", "traditional"],
+        "gender": "Women",
         "image_url": "/catalog/top_004.jpg"
     },
     {
@@ -142,6 +184,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Office"],
         "colors": ["white", "blue", "beige"],
         "aesthetic_tags": ["minimalist", "light", "clean"],
+        "gender": "Unisex",
         "image_url": "/catalog/top_005.jpg"
     },
     {
@@ -152,6 +195,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "College Fest"],
         "colors": ["black", "white", "grey"],
         "aesthetic_tags": ["streetwear", "relaxed", "urban"],
+        "gender": "Unisex",
         "image_url": "/catalog/top_006.jpg"
     },
     {
@@ -162,6 +206,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["black", "navy", "olive"],
         "aesthetic_tags": ["streetwear", "cozy", "minimalist"],
+        "gender": "Unisex",
         "image_url": "/catalog/top_007.jpg"
     },
     {
@@ -172,6 +217,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Office"],
         "colors": ["white", "navy", "burgundy"],
         "aesthetic_tags": ["smart-casual", "sleek", "minimalist"],
+        "gender": "Unisex",
         "image_url": "/catalog/top_008.jpg"
     },
     {
@@ -182,6 +228,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Party"],
         "colors": ["blue", "black"],
         "aesthetic_tags": ["streetwear", "vintage", "layered"],
+        "gender": "Men",
         "image_url": "/catalog/top_009.jpg"
     },
     {
@@ -192,6 +239,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Party"],
         "colors": ["black", "gold", "burgundy"],
         "aesthetic_tags": ["sleek", "heavy", "statement"],
+        "gender": "Men",
         "image_url": "/catalog/top_010.jpg"
     },
     {
@@ -202,6 +250,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Party", "Date"],
         "colors": ["black", "silver", "rose"],
         "aesthetic_tags": ["sleek", "glam", "minimalist"],
+        "gender": "Men",
         "image_url": "/catalog/top_011.jpg"
     },
     {
@@ -212,6 +261,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["white", "black", "olive"],
         "aesthetic_tags": ["ethnic", "relaxed", "traditional"],
+        "gender": "Men",
         "image_url": "/catalog/top_012.png"
     },
     {
@@ -222,6 +272,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Formal"],
         "colors": ["navy", "grey", "mustard"],
         "aesthetic_tags": ["ethnic", "sleek", "structured"],
+        "gender": "Men",
         "image_url": "/catalog/top_013.jpg"
     },
     {
@@ -232,6 +283,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Party"],
         "colors": ["black", "white", "pink"],
         "aesthetic_tags": ["minimalist", "trendy", "casual"],
+        "gender": "Women",
         "image_url": "/catalog/top_014.jpg"
     },
     {
@@ -242,6 +294,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Party", "Date"],
         "colors": ["red", "black", "peach"],
         "aesthetic_tags": ["feminine", "glam", "statement"],
+        "gender": "Women",
         "image_url": "/catalog/top_015.jpg"
     },
 
@@ -254,6 +307,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["white", "cream", "gold"],
         "aesthetic_tags": ["ethnic", "light", "traditional"],
+        "gender": "Men",
         "image_url": "/catalog/bot_001.jpg"
     },
     {
@@ -264,6 +318,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["white", "gold", "beige"],
         "aesthetic_tags": ["ethnic", " airy", "traditional"],
+        "gender": "Men",
         "image_url": "/catalog/bot_002.jpg"
     },
     {
@@ -274,6 +329,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["ivory", "white", "gold"],
         "aesthetic_tags": ["ethnic", "elegant", "flowy"],
+        "gender": "Women",
         "image_url": "/catalog/bot_003.jpg"
     },
     {
@@ -284,6 +340,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["white", "black", "grey"],
         "aesthetic_tags": ["ethnic", "comfort", "relaxed"],
+        "gender": "Unisex",
         "image_url": "/catalog/bot_004.jpg"
     },
     {
@@ -294,6 +351,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Office"],
         "colors": ["beige", "khaki", "navy"],
         "aesthetic_tags": ["minimalist", "sleek", "smart-casual"],
+        "gender": "Men",
         "image_url": "/catalog/bot_005.jpg"
     },
     {
@@ -304,6 +362,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "College Fest"],
         "colors": ["green", "black", "grey"],
         "aesthetic_tags": ["streetwear", "utility", "trendy"],
+        "gender": "Unisex",
         "image_url": "/catalog/bot_006.jpg"
     },
     {
@@ -314,6 +373,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["blue", "black"],
         "aesthetic_tags": ["minimalist", "classic", "versatile"],
+        "gender": "Unisex",
         "image_url": "/catalog/bot_007.jpg"
     },
     {
@@ -324,6 +384,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["black", "grey", "olive"],
         "aesthetic_tags": ["streetwear", "comfort", "relaxed"],
+        "gender": "Unisex",
         "image_url": "/catalog/bot_008.jpg"
     },
     {
@@ -334,6 +395,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Office"],
         "colors": ["black", "charcoal", "navy"],
         "aesthetic_tags": ["sleek", "structured", "minimalist"],
+        "gender": "Men",
         "image_url": "/catalog/bot_009.jpg"
     },
     {
@@ -344,6 +406,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["white", "gold", "red"],
         "aesthetic_tags": ["ethnic", "flowy", "traditional"],
+        "gender": "Women",
         "image_url": "/catalog/bot_010.jpg"
     },
     {
@@ -354,6 +417,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "pink", "green"],
         "aesthetic_tags": ["ethnic", "heavy", "glam"],
+        "gender": "Women",
         "image_url": "/catalog/bot_011.jpg"
     },
     {
@@ -364,6 +428,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Festive"],
         "colors": ["black", "maroon", "mustard"],
         "aesthetic_tags": ["ethnic", "relaxed", "boho"],
+        "gender": "Women",
         "image_url": "/catalog/bot_012.jpg"
     },
     {
@@ -374,6 +439,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Party"],
         "colors": ["black", "navy", "burgundy"],
         "aesthetic_tags": ["sleek", "structured", "elegant"],
+        "gender": "Women",
         "image_url": "/catalog/bot_013.jpg"
     },
     {
@@ -384,6 +450,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["blue", "beige", "black"],
         "aesthetic_tags": ["minimalist", "comfort", "summer"],
+        "gender": "Men",
         "image_url": "/catalog/bot_014.jpg"
     },
     {
@@ -394,6 +461,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["black", "grey", "white"],
         "aesthetic_tags": ["streetwear", "sporty", "relaxed"],
+        "gender": "Unisex",
         "image_url": "/catalog/bot_015.jpg"
     },
 
@@ -406,6 +474,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "brown", "tan"],
         "aesthetic_tags": ["ethnic", "handcrafted", "traditional"],
+        "gender": "Unisex",
         "image_url": "/catalog/foot_001.jpg"
     },
     {
@@ -416,6 +485,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["black", "maroon", "navy"],
         "aesthetic_tags": ["ethnic", "heavy", "royal"],
+        "gender": "Men",
         "image_url": "/catalog/foot_002.jpg"
     },
     {
@@ -426,6 +496,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "silver", "pink"],
         "aesthetic_tags": ["ethnic", "glam", "delicate"],
+        "gender": "Women",
         "image_url": "/catalog/foot_003.jpg"
     },
     {
@@ -436,6 +507,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Office"],
         "colors": ["black", "brown"],
         "aesthetic_tags": ["sleek", "classic", "polished"],
+        "gender": "Men",
         "image_url": "/catalog/foot_004.jpg"
     },
     {
@@ -446,6 +518,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["white", "black"],
         "aesthetic_tags": ["minimalist", "clean", "versatile"],
+        "gender": "Unisex",
         "image_url": "/catalog/foot_005.jpg"
     },
     {
@@ -456,6 +529,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "College Fest"],
         "colors": ["white", "blue", "pink"],
         "aesthetic_tags": ["streetwear", "bold", "trendy"],
+        "gender": "Unisex",
         "image_url": "/catalog/foot_006.jpg"
     },
     {
@@ -466,6 +540,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Office"],
         "colors": ["brown", "tan", "black"],
         "aesthetic_tags": ["smart-casual", "sleek", "minimalist"],
+        "gender": "Men",
         "image_url": "/catalog/foot_007.jpg"
     },
     {
@@ -476,6 +551,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Party", "Date"],
         "colors": ["black", "red", "nude"],
         "aesthetic_tags": ["glam", "sleek", "statement"],
+        "gender": "Women",
         "image_url": "/catalog/foot_008.jpg"
     },
     {
@@ -486,6 +562,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Festive", "Casual"],
         "colors": ["gold", "brown", "red"],
         "aesthetic_tags": ["ethnic", "boho", "handcrafted"],
+        "gender": "Women",
         "image_url": "/catalog/foot_009.jpg"
     },
     {
@@ -496,6 +573,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Party"],
         "colors": ["black", "brown"],
         "aesthetic_tags": ["streetwear", "edgy", "versatile"],
+        "gender": "Unisex",
         "image_url": "/catalog/foot_010.jpg"
     },
 
@@ -508,6 +586,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["gold", "green", "red"],
         "aesthetic_tags": ["ethnic", "heavy", "statement"],
+        "gender": "Women",
         "image_url": "/catalog/acc_001.jpg"
     },
     {
@@ -518,6 +597,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["white", "ivory", "gold"],
         "aesthetic_tags": ["elegant", "classic", "ethnic"],
+        "gender": "Women",
         "image_url": "/catalog/acc_002.jpg"
     },
     {
@@ -528,6 +608,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Office"],
         "colors": ["brown", "black", "silver"],
         "aesthetic_tags": ["minimalist", "sleek", "classic"],
+        "gender": "Men",
         "image_url": "/catalog/acc_003.jpg"
     },
     {
@@ -538,6 +619,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual"],
         "colors": ["black", "blue", "grey"],
         "aesthetic_tags": ["sporty", "minimalist", "functional"],
+        "gender": "Unisex",
         "image_url": "/catalog/acc_004.jpg"
     },
     {
@@ -548,6 +630,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Party"],
         "colors": ["gold", "black", "green"],
         "aesthetic_tags": ["classic", "sleek", "cool"],
+        "gender": "Unisex",
         "image_url": "/catalog/acc_005.jpg"
     },
     {
@@ -558,6 +641,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Office"],
         "colors": ["black", "brown"],
         "aesthetic_tags": ["minimalist", "sleek", "essential"],
+        "gender": "Men",
         "image_url": "/catalog/acc_006.jpg"
     },
     {
@@ -568,6 +652,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Formal", "Party"],
         "colors": ["blue", "red", "gold"],
         "aesthetic_tags": ["sleek", "minimalist", "polished"],
+        "gender": "Men",
         "image_url": "/catalog/acc_007.jpg"
     },
     {
@@ -578,6 +663,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Wedding", "Festive"],
         "colors": ["red", "gold", "pink"],
         "aesthetic_tags": ["ethnic", "heavy", "traditional"],
+        "gender": "Women",
         "image_url": "/catalog/acc_008.jpg"
     },
     {
@@ -588,6 +674,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Party", "Date"],
         "colors": ["black", "gold", "silver"],
         "aesthetic_tags": ["glam", "sleek", "statement"],
+        "gender": "Women",
         "image_url": "/catalog/acc_009.jpg"
     },
     {
@@ -598,6 +685,7 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["Casual", "Party"],
         "colors": ["gold", "silver", "black"],
         "aesthetic_tags": ["trendy", "minimalist", "layered"],
+        "gender": "Women",
         "image_url": "/catalog/acc_010.png"
     }
 ]
