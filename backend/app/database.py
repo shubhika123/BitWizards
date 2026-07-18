@@ -1,6 +1,7 @@
 import os
 from urllib.parse import quote_plus
-# pyrefly: ignore [missing-import]
+from sqlalchemy import inspect
+
 from sqlmodel import create_engine, Session, SQLModel, select
 
 password = quote_plus("jiya@123")
@@ -24,6 +25,52 @@ import app.models.LocalBazaarSchema
 
 # Create tables
 SQLModel.metadata.create_all(engine)
+
+
+def ensure_board_member_invite_columns():
+    try:
+        inspector = inspect(engine)
+        if inspector.has_table("board_members"):
+            columns = {col["name"] for col in inspector.get_columns("board_members")}
+
+            with engine.begin() as conn:
+                if "invite_status" not in columns:
+                    conn.exec_driver_sql(
+                        'ALTER TABLE board_members ADD COLUMN invite_status VARCHAR(20) NOT NULL DEFAULT "accepted"'
+                    )
+                if "accepted_at" not in columns:
+                    conn.exec_driver_sql(
+                        'ALTER TABLE board_members ADD COLUMN accepted_at DATETIME NULL'
+                    )
+
+                conn.exec_driver_sql(
+                    'UPDATE board_members SET invite_status = "accepted" WHERE invite_status IS NULL'
+                )
+    except Exception as exc:
+        print(f"⚠️ Board member invite-column migration skipped: {exc}")
+
+
+def ensure_user_city_column():
+    try:
+        inspector = inspect(engine)
+        if inspector.has_table("users"):
+            columns = {col["name"] for col in inspector.get_columns("users")}
+
+            with engine.begin() as conn:
+                if "city" not in columns:
+                    conn.exec_driver_sql(
+                        'ALTER TABLE users ADD COLUMN city VARCHAR(100) NULL'
+                    )
+
+                conn.exec_driver_sql(
+                    'UPDATE users SET city = "Delhi" WHERE city IS NULL AND username = "testuser"'
+                )
+    except Exception as exc:
+        print(f"⚠️ User city-column migration skipped: {exc}")
+
+
+ensure_board_member_invite_columns()
+ensure_user_city_column()
 
 # Seed database if empty
 def seed_database():

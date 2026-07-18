@@ -11,9 +11,17 @@ interface CategoryBoost {
   boost: number;
 }
 
+const FALLBACK_CATEGORIES: CategoryBoost[] = [
+  { category_id: 1, category_name: "Men Ethnic Wear", boost: 0.3 },
+  { category_id: 2, category_name: "Women Ethnic Wear", boost: 0.4 },
+  { category_id: 3, category_name: "Rakhi", boost: 0.5 },
+  { category_id: 4, category_name: "Jewellery", boost: 0.25 },
+  { category_id: 5, category_name: "Gifts", boost: 0.35 },
+];
+
 // fallback images per category — extend as new categories come from backend
 const CATEGORY_IMAGES: Record<string, string> = {
-  "Men Ethnic Wear": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80",
+  "Men Ethnic Wear": "https://images.pexels.com/photos/24012944/pexels-photo-24012944.jpeg",
   "Women Ethnic Wear": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=300&q=80",
   "Rakhi": "https://images.pexels.com/photos/12992568/pexels-photo-12992568.jpeg",
   "Jewellery": "https://images.pexels.com/photos/7700270/pexels-photo-7700270.jpeg",
@@ -21,18 +29,24 @@ const CATEGORY_IMAGES: Record<string, string> = {
 };
 
 export default function RakshaBandhanBanner() {
-  const [categories, setCategories] = useState<CategoryBoost[]>([]);
+  const [categories, setCategories] = useState<CategoryBoost[]>(FALLBACK_CATEGORIES);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/fetch-feed")
       .then((res) => res.json())
-      .then((data: CategoryBoost[]) => setCategories(data))
-      .catch(() => setCategories([]))
+      .then((data: CategoryBoost[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+        } else {
+          setCategories(FALLBACK_CATEGORIES);
+        }
+      })
+      .catch(() => setCategories(FALLBACK_CATEGORIES))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading || categories.length === 0) return null;
+  if (loading) return null;
 
   return (
     <div className="mx-3.5 mt-3 mb-4 rounded-[28px] overflow-hidden bg-[#fff0f2]/75 border border-rose-100/60 relative select-none shadow-sm p-4.5 flex flex-col gap-4">

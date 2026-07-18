@@ -1,9 +1,10 @@
 # routers/outfit_circle.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlmodel import Session, select
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
+from decimal import Decimal
 
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -58,10 +59,28 @@ def create_board(payload: CreateBoardRequest, session: Session = Depends(get_ses
     session.commit()
     session.refresh(board)
 
-    # add creator as admin
-    session.add(BoardMember(board_id=board.board_id, user_id=payload.created_by, role="admin"))
+    # creator is always the board owner and is active immediately
+    session.add(
+        BoardMember(
+            board_id=board.board_id,
+            user_id=payload.created_by,
+            role="admin",
+            invite_status="accepted",
+            accepted_at=datetime.utcnow(),
+        )
+    )
+
+    # invite other members first; they must accept later
     for uid in payload.member_ids:
-        session.add(BoardMember(board_id=board.board_id, user_id=uid, role="member"))
+        session.add(
+            BoardMember(
+                board_id=board.board_id,
+                user_id=uid,
+                role="member",
+                invite_status="pending",
+                accepted_at=None,
+            )
+        )
     session.commit()
 
     return board
@@ -82,7 +101,16 @@ def get_board(board_id: int, session: Session = Depends(get_session)):
     )
     rows = session.exec(statement).all()
     members = [
-        {"user_id": m.user_id, "role": m.role, "name": name, "username": username}
+        {
+            "user_id": m.user_id,
+            "role": m.role,
+            "name": name,
+            "username": username,
+            "city": getattr(m, "city", None),
+            "invite_status": m.invite_status,
+            "joined_at": m.joined_at,
+            "accepted_at": m.accepted_at,
+        }
         for m, name, username in rows
     ]
 
@@ -109,11 +137,48 @@ def add_member(board_id: int, user_id: int, session: Session = Depends(get_sessi
     if existing:
         raise HTTPException(status_code=400, detail="User already in board")
 
-    member = BoardMember(board_id=board_id, user_id=user_id)
+    member = BoardMember(
+        board_id=board_id,
+        user_id=user_id,
+        role="member",
+        invite_status="pending",
+        accepted_at=None,
+    )
     session.add(member)
     session.commit()
     session.refresh(member)
     return member
+
+
+@router.post("/boards/{board_id}/members/{user_id}/accept")
+def accept_member_invite(
+    board_id: int,
+    user_id: int,
+    session: Session = Depends(get_session),
+    x_user_username: Optional[str] = Header(default=None, alias="X-User-Username"),
+):
+    member = session.exec(
+        select(BoardMember).where(BoardMember.board_id == board_id, BoardMember.user_id == user_id)
+    ).first()
+    if not member:
+        raise HTTPException(status_code=404, detail="Invite not found")
+
+    invited_user = session.get(User, user_id)
+    if not invited_user:
+        raise HTTPException(status_code=404, detail="Invited user not found")
+
+    if not x_user_username or invited_user.username != x_user_username.strip():
+        raise HTTPException(status_code=403, detail="Only the invited user can accept this invite")
+
+    if member.invite_status == "accepted":
+        return {"detail": "Invite already accepted", "member": member}
+
+    member.invite_status = "accepted"
+    member.accepted_at = datetime.utcnow()
+    session.add(member)
+    session.commit()
+    session.refresh(member)
+    return {"detail": "Invite accepted", "member": member}
 
 
 # ---------- Pins ----------
@@ -205,17 +270,40 @@ def cast_vote(payload: VoteRequest, session: Session = Depends(get_session)):
 
 @router.post("/boards/{board_id}/members/by-username/{username}")
 def add_member_by_username(board_id: int, username: str, session: Session = Depends(get_session)):
-    user = session.exec(select(User).where(User.username == username)).first()
+    normalized_username = username.strip()
+    if not normalized_username:
+        raise HTTPException(status_code=400, detail="Username is required")
+
+    user = session.exec(select(User).where(User.username == normalized_username)).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        user = User(
+            name=normalized_username,
+            username=normalized_username,
+            password_hash="invite_pending_user",
+            latitude=Decimal("0.00000000"),
+            longitude=Decimal("0.00000000"),
+            address=None,
+            pincode=None,
+            muted_festivals=None,
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
 
     existing = session.exec(
         select(BoardMember).where(BoardMember.board_id == board_id, BoardMember.user_id == user.user_id)
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="User already in board")
+        raise HTTPException(status_code=400, detail="User already invited or already in board")
 
-    member = BoardMember(board_id=board_id, user_id=user.user_id)
+    member = BoardMember(
+        board_id=board_id,
+        user_id=user.user_id,
+        role="member",
+        invite_status="pending",
+        accepted_at=None,
+    )
     session.add(member)
     session.commit()
-    return {"detail": "member added", "name": user.name}
+    session.refresh(member)
+    return {"detail": "Invite sent", "member": member, "user": user}
