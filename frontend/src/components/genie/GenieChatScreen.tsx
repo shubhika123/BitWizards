@@ -14,7 +14,9 @@ import {
   ShoppingBag,
   Shirt,
   Camera,
+  BookmarkPlus,
 } from "lucide-react";
+import PinToBoardModal from "../OutfitCircle/PinToBoardModal";
 // Removed GenieAmbientBackground as we are using a custom CSS gradient
 import { useGenieStore, GenieParsedContext } from "../../store/genieStore";
 import { buildGenieReplyText, useGenieNlpSubmit } from "../../hooks/useGenieNlpSubmit";
@@ -78,12 +80,27 @@ function InlineOutfitPreview({ onTryOnTwin }: { onTryOnTwin: () => void }) {
     return acc;
   }, 0);
 
+  const [showPinModal, setShowPinModal] = useState(false);
+
+  // Map canvas items to ProductToPin format
+  const productsToPin = slots
+    .filter((slot) => stylePreferences.includes(slot) && canvasItems[slot])
+    .map((slot) => {
+      const item = canvasItems[slot]!;
+      return {
+        product_id: item.id,
+        product_name: item.name,
+        product_image_url: item.image,
+        product_price: item.price,
+      };
+    });
+
   const handleTryOnAll = () => {
     onTryOnTwin();
   };
 
   return (
-    <div className="mt-3 pt-3 border-t border-[#eaeaec]/80 flex flex-col gap-2 bg-white/95 rounded-xl p-3 shadow-sm border border-[#eaeaec]">
+    <div className="mt-3 pt-3 border-t border-[#eaeaec]/80 flex flex-col gap-2 -mx-4 -mb-3 px-4 pb-3">
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-bold text-[#9496a2] uppercase tracking-wider">
           Curated Outfit
@@ -92,7 +109,7 @@ function InlineOutfitPreview({ onTryOnTwin }: { onTryOnTwin: () => void }) {
           Budget Spent: ₹{totalBudgetSpent.toLocaleString()}
         </span>
       </div>
-      <div className="grid grid-cols-4 gap-1.5 mt-1">
+      <div className="grid grid-cols-2 gap-3 mt-2">
         {slots.map((slot) => {
           // If the user didn't ask for this slot, don't show it!
           if (!stylePreferences.includes(slot)) return null;
@@ -100,27 +117,43 @@ function InlineOutfitPreview({ onTryOnTwin }: { onTryOnTwin: () => void }) {
           const item = canvasItems[slot];
           if (!item) return null;
           return (
-            <div key={slot} className="flex flex-col items-center text-center">
-              <div className="w-10 h-10 bg-[#f5f5f6] border border-[#eaeaec] rounded-lg overflow-hidden shrink-0">
+            <div key={slot} className="flex flex-col items-center text-center bg-[#f5f5f6]/50 rounded-xl p-1.5 border border-[#eaeaec]/50">
+              <div className="w-[70px] h-[70px] bg-white border border-[#eaeaec] rounded-lg overflow-hidden shrink-0 shadow-sm">
                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
               </div>
-              <span className="text-[8px] font-bold text-[#282c3f] truncate w-full mt-1">
+              <span className="text-[9px] font-bold text-[#282c3f] truncate w-full mt-1.5 px-1">
                 {item.name}
               </span>
-              <span className="text-[8px] text-[#ff3f6c] font-semibold mt-0.5">
+              <span className="text-[9px] text-[#ff3f6c] font-semibold mt-0.5">
                 ₹{item.price}
               </span>
             </div>
           );
         })}
       </div>
-      <button
-        onClick={handleTryOnAll}
-        className="w-full mt-2 bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] hover:from-[#ff3f6c]/90 hover:to-[#ff6b8b]/90 text-white text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1 shadow-xs active:scale-95 transition-all cursor-pointer"
-      >
-        <Sparkles size={12} className="animate-pulse text-white" />
-        Try it on you
-      </button>
+      <div className="flex gap-2 mt-2">
+        <button
+          onClick={() => setShowPinModal(true)}
+          className="flex-1 bg-white border border-[#eaeaec] hover:bg-gray-50 text-[#282c3f] text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer"
+        >
+          <BookmarkPlus size={12} className="text-[#282c3f]" />
+          Add to Board
+        </button>
+        <button
+          onClick={handleTryOnAll}
+          className="flex-1 bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] hover:from-[#ff3f6c]/90 hover:to-[#ff6b8b]/90 text-white text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1 shadow-xs active:scale-95 transition-all cursor-pointer"
+        >
+          <Sparkles size={12} className="animate-pulse text-white" />
+          Try it on you
+        </button>
+      </div>
+
+      {showPinModal && (
+        <PinToBoardModal
+          products={productsToPin}
+          onClose={() => setShowPinModal(false)}
+        />
+      )}
     </div>
   );
 }
@@ -593,7 +626,7 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
           </div>
         </>
       ) : (
-        <DigitalTwin onBack={() => setActiveTab("chat")} />
+        <div className="flex h-full items-center justify-center text-sm text-[#535766]">Digital Twin is temporarily disabled for testing.</div>
       )}
     </div>
   );
