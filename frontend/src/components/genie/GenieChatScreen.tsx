@@ -10,8 +10,12 @@ import {
   Tag,
   Globe,
   RefreshCw,
+  ChevronLeft,
+  ShoppingBag,
+  Shirt,
+  Camera,
 } from "lucide-react";
-import { GenieAmbientBackground } from "./GenieAmbientBackground";
+// Removed GenieAmbientBackground as we are using a custom CSS gradient
 import { useGenieStore, GenieParsedContext } from "../../store/genieStore";
 import { buildGenieReplyText, useGenieNlpSubmit } from "../../hooks/useGenieNlpSubmit";
 import { DigitalTwin } from "../DigitalTwin";
@@ -63,16 +67,36 @@ function IntentChips({ context }: { context: GenieParsedContext }) {
 }
 
 function InlineOutfitPreview({ onTryOnTwin }: { onTryOnTwin: () => void }) {
-  const { canvasItems } = useGenieStore();
+  const { canvasItems, stylePreferences, setDisplayImage } = useGenieStore();
   const slots = ["TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"] as const;
 
+  const totalBudgetSpent = slots.reduce((acc, slot) => {
+    // Only calculate if the slot is in stylePreferences
+    if (stylePreferences.includes(slot) && canvasItems[slot]) {
+      return acc + (canvasItems[slot]?.price || 0);
+    }
+    return acc;
+  }, 0);
+
+  const handleTryOnAll = () => {
+    onTryOnTwin();
+  };
+
   return (
-    <div className="mt-3 pt-3 border-t border-[#eaeaec]/80 flex flex-col gap-2 bg-white rounded-xl p-2.5 shadow-sm border border-[#eaeaec]">
-      <p className="text-[9px] font-bold text-[#9496a2] uppercase tracking-wider">
-        Curated Outfit
-      </p>
-      <div className="grid grid-cols-4 gap-1.5">
+    <div className="mt-3 pt-3 border-t border-[#eaeaec]/80 flex flex-col gap-2 bg-white/95 rounded-xl p-3 shadow-sm border border-[#eaeaec]">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold text-[#9496a2] uppercase tracking-wider">
+          Curated Outfit
+        </p>
+        <span className="text-[10px] font-bold bg-[#ff3f6c]/10 text-[#ff3f6c] px-2 py-0.5 rounded-full">
+          Budget Spent: ₹{totalBudgetSpent.toLocaleString()}
+        </span>
+      </div>
+      <div className="grid grid-cols-4 gap-1.5 mt-1">
         {slots.map((slot) => {
+          // If the user didn't ask for this slot, don't show it!
+          if (!stylePreferences.includes(slot)) return null;
+
           const item = canvasItems[slot];
           if (!item) return null;
           return (
@@ -91,11 +115,11 @@ function InlineOutfitPreview({ onTryOnTwin }: { onTryOnTwin: () => void }) {
         })}
       </div>
       <button
-        onClick={onTryOnTwin}
-        className="w-full mt-1.5 bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] hover:from-[#ff3f6c]/90 hover:to-[#ff6b8b]/90 text-white text-[10px] font-bold py-1.5 rounded-lg flex items-center justify-center gap-1 shadow-xs active:scale-95 transition-all cursor-pointer"
+        onClick={handleTryOnAll}
+        className="w-full mt-2 bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] hover:from-[#ff3f6c]/90 hover:to-[#ff6b8b]/90 text-white text-[11px] font-bold py-2 rounded-xl flex items-center justify-center gap-1 shadow-xs active:scale-95 transition-all cursor-pointer"
       >
-        <Sparkles size={11} className="animate-pulse text-white" />
-        Try on Twin
+        <Sparkles size={12} className="animate-pulse text-white" />
+        Try it on you
       </button>
     </div>
   );
@@ -107,16 +131,24 @@ type GenieChatScreenProps = {
 
 export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenProps) {
   const { submitQuery, isParsing } = useGenieNlpSubmit();
-  const { userGender, setUserGender } = useGenieStore();
+  const { userGender, setUserGender, stylePreferences, setStylePreferences, removeItem, canvasItems, setDisplayImage, baseUserImage, setBaseUserImage } = useGenieStore();
   const [composer, setComposer] = useState(initialComposerValue);
   const [activeTab, setActiveTab] = useState<"chat" | "twin">("chat");
+  const [tempPrefs, setTempPrefs] = useState<string[]>(stylePreferences);
+  const [preferencesConfirmed, setPreferencesConfirmed] = useState(stylePreferences.length > 0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Custom mock loading states
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const [isTryOnLoading, setIsTryOnLoading] = useState(false);
+
   const [messages, setMessages] = useState<ChatMessage[]>(
     userGender 
       ? [
           {
             id: "welcome",
             role: "genie",
-            text: "Hi, I'm Genie — your AI stylist. Tell me the occasion, vibe, and budget. Try Hinglish or your regional language.",
+            text: "Hi Shuchi, I'm Genie — your AI stylist. Tell me the occasion, vibe, and budget. Try Hinglish or your regional language.",
             time: "",
           }
         ] 
@@ -124,7 +156,7 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
           {
             id: "welcome-gender",
             role: "genie",
-            text: "Hi, I'm Genie — your AI stylist. Before we begin, are you shopping for Men or Women?",
+            text: "Hi Shuchi, I'm Genie — your AI stylist. Before we begin, are you shopping for Men or Women?",
             time: "",
           }
         ]
@@ -156,7 +188,7 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
 
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || isParsing) return;
+    if (!trimmed || isParsing || isDemoLoading) return;
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -167,7 +199,14 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
     setMessages((m) => [...m, userMsg]);
     setComposer("");
 
+    setIsDemoLoading(true);
+
     const context = await submitQuery(trimmed);
+    
+    // Artificial delay to mimic "magic" loading
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    setIsDemoLoading(false);
+
     if (context) {
       const genieMsg: ChatMessage = {
         id: `g-${Date.now()}`,
@@ -198,93 +237,155 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
     const genieMsg: ChatMessage = {
       id: `g-${Date.now()}`,
       role: "genie",
-      text: "Great! Tell me the occasion, vibe, and budget. Try Hinglish or your regional language.",
+      text: "Got it! 🌟 What parts of your outfit are we styling today? Feel free to pick as many as you like!",
       time: formatTime(),
     };
     
     setMessages((m) => [...m, userMsg, genieMsg]);
   };
 
+  const toggleTempPref = (pref: string) => {
+    setTempPrefs((prev) =>
+      prev.includes(pref) ? prev.filter((p) => p !== pref) : [...prev, pref]
+    );
+  };
+
+  const handleConfirmPreferences = () => {
+    if (tempPrefs.length === 0) return;
+    setStylePreferences(tempPrefs);
+    setPreferencesConfirmed(true);
+
+    // Clear any canvas item that is NOT in the selected preferences list!
+    const categories: ("TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY")[] = ["TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"];
+    categories.forEach(cat => {
+      if (!tempPrefs.includes(cat)) {
+        removeItem(cat);
+      }
+    });
+
+    const labelsMap: Record<string, string> = {
+      TOP: "Topwear 👕",
+      BOTTOM: "Bottomwear 👖",
+      FOOTWEAR: "Footwear 👟",
+      ACCESSORY: "Accessories 💍"
+    };
+
+    const selectedLabels = tempPrefs.map(p => labelsMap[p] || p).join(", ");
+
+    const userMsg: ChatMessage = {
+      id: `u-pref-${Date.now()}`,
+      role: "user",
+      text: `Looking for: ${selectedLabels}`,
+      time: formatTime(),
+    };
+
+    const genieMsg: ChatMessage = {
+      id: `g-pref-${Date.now()}`,
+      role: "genie",
+      text: "Perfect! Now tell me the occasion, vibe, and budget. E.g. 'Sangeet outfit under 2500' or 'Winter office look'.",
+      time: formatTime(),
+    };
+
+    setMessages((m) => [...m, userMsg, genieMsg]);
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setBaseUserImage(reader.result);
+        
+        // After upload, just open the Twin without triggering the try-on result yet
+        setIsTryOnLoading(false);
+        setActiveTab("twin");
+      }
+      e.target.value = "";
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
-    <div className="relative h-[100dvh] flex flex-col overflow-hidden text-[#282c3f]">
-      {activeTab === "chat" && <GenieAmbientBackground />}
+    <div className="relative h-[100dvh] flex flex-col overflow-hidden text-[#282c3f] bg-white">
+      {/* Background Gradients */}
+      {activeTab === "chat" && (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#ff3f6c]/30 via-[#ff3f6c]/5 to-[#fff2ed] pointer-events-none" />
+          {/* Subtle flower petal pattern below gradient using radial gradients as a premium CSS approach */}
+          <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-20 pointer-events-none"
+               style={{
+                 backgroundImage: "radial-gradient(ellipse at 50% 50%, #ff6b8b 0%, transparent 70%), radial-gradient(ellipse at 20% 80%, #ff3f6c 0%, transparent 70%)",
+               }}
+          />
+        </>
+      )}
 
-      <header className="relative z-20 shrink-0 bg-white/90 backdrop-blur-sm border-b border-[#eaeaec] flex flex-col">
-        <div className="px-3 py-2 flex items-center gap-3 w-full">
-          <Link
-            href="/"
-            className="min-w-11 min-h-11 flex items-center justify-center -ml-1 rounded-full hover:bg-[#f5f5f6] transition-colors"
-            aria-label="Back to home"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex flex-col flex-1 min-w-0">
-            <span className="text-sm font-bold tracking-tight flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#ff3f6c]" />
-              Genie Stylist
-            </span>
-            <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Ready to style
-            </span>
-          </div>
-        </div>
+      {/* Hidden file input for overlay photo upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handlePhotoUpload}
+        className="hidden"
+        id="chat-screen-photo-upload"
+      />
 
-        {/* Tab switcher */}
-        <div className="flex items-center justify-center border-t border-[#eaeaec]/50 py-2 bg-white/95 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="flex bg-[#f5f5f6] p-0.5 rounded-full border border-[#eaeaec] text-xs">
-            <button
-              onClick={() => setActiveTab("chat")}
-              className={`px-5 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
-                activeTab === "chat"
-                  ? "bg-white text-[#ff3f6c] shadow-sm"
-                  : "text-[#535766] hover:text-[#282c3f]"
-              }`}
+      {/* Header (conditionally rendered) */}
+      {activeTab === "chat" ? (
+        <header className="relative z-20 shrink-0 bg-transparent flex flex-col pt-3 pb-1">
+          <div className="px-3 py-2 flex items-center justify-between w-full">
+            <Link
+              href="/"
+              className="w-10 h-10 bg-white/50 backdrop-blur-md flex items-center justify-center rounded-full hover:bg-white/80 transition-colors shadow-sm"
+              aria-label="Back to home"
             >
-              Chat
-            </button>
-            <button
-              onClick={() => setActiveTab("twin")}
-              className={`px-5 py-1.5 rounded-full font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                activeTab === "twin"
-                  ? "bg-white text-[#ff3f6c] shadow-sm"
-                  : "text-[#535766] hover:text-[#282c3f]"
-              }`}
-            >
-              <Sparkles className="w-3 h-3 text-[#ff3f6c]" />
-              Fitting Room
-            </button>
+              <ChevronLeft className="w-6 h-6 text-[#282c3f]" />
+            </Link>
+            
+            <div className="flex-1 flex justify-center">
+              <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] italic tracking-tight drop-shadow-sm px-4" style={{ fontFamily: "cursive" }}>
+                Genie
+              </h1>
+            </div>
+            
+            <div className="w-10 h-10" /> {/* Spacer for centering */}
           </div>
-        </div>
-      </header>
+        </header>
+      ) : null}
 
       {activeTab === "chat" ? (
         <>
           <main
             ref={scrollRef}
-            className="relative z-10 flex-1 min-h-0 overflow-y-auto px-3 py-4 flex flex-col gap-3"
+            className="relative z-10 flex-1 min-h-0 overflow-y-auto px-3 py-2 flex flex-col gap-4"
           >
-            <p className="text-[9px] text-[#9496a2] font-bold text-center uppercase tracking-widest select-none py-1">
-              Your styling session
-            </p>
-
             {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex max-w-[88%] ${msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"}`}
-              >
+              <div key={msg.id} className={`flex flex-col max-w-[88%] ${msg.role === "user" ? "ml-auto" : "mr-auto"}`}>
                 <div
-                  className={`p-3 rounded-2xl text-[12px] leading-relaxed font-medium shadow-xs ${
+                  className={`px-4 py-3 shadow-sm ${
                     msg.role === "user"
-                      ? "bg-[#ff3f6c] text-white rounded-br-md"
-                      : "bg-white/95 border border-[#eaeaec] text-[#282c3f] rounded-bl-md"
+                      ? "bg-[#ff3f6c] text-white rounded-2xl rounded-br-md"
+                      : "bg-white/95 border border-[#eaeaec] rounded-2xl rounded-bl-md"
                   }`}
                 >
                   {msg.text}
                   {msg.role === "genie" && msg.context && (
                     <>
                       <IntentChips context={msg.context} />
-                      <InlineOutfitPreview onTryOnTwin={() => setActiveTab("twin")} />
+                      <InlineOutfitPreview onTryOnTwin={() => {
+                        setIsTryOnLoading(true);
+                        if (baseUserImage) {
+                          // Already have image, just do the loading overlay then switch
+                          setTimeout(() => {
+                            if (canvasItems["TOP"]?.id === "top_prompt1") {
+                              setDisplayImage("/catalog/prompt1_result.png");
+                            }
+                            setIsTryOnLoading(false);
+                            setActiveTab("twin");
+                          }, 3000);
+                        }
+                      }} />
                     </>
                   )}
                 </div>
@@ -294,36 +395,159 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
               </div>
             ))}
 
+
             {!userGender && (
               <div className="flex items-center gap-3 mt-1 ml-2">
                 <button
                   onClick={() => handleGenderSelect("Men")}
-                  className="px-4 py-2 bg-white border border-[#eaeaec] rounded-xl text-[12px] font-bold text-[#282c3f] hover:border-[#ff3f6c]/40 hover:bg-[#ff3f6c]/5 transition-colors shadow-sm cursor-pointer"
+                  className="px-5 py-2.5 bg-white/90 backdrop-blur-sm border border-[#eaeaec] rounded-2xl text-[14px] font-bold text-[#282c3f] hover:border-[#ff3f6c] hover:text-[#ff3f6c] transition-all shadow-sm cursor-pointer flex items-center gap-2"
                 >
-                  Men
+                  <span className="text-lg">👨</span> Men
                 </button>
                 <button
                   onClick={() => handleGenderSelect("Women")}
-                  className="px-4 py-2 bg-white border border-[#eaeaec] rounded-xl text-[12px] font-bold text-[#282c3f] hover:border-[#ff3f6c]/40 hover:bg-[#ff3f6c]/5 transition-colors shadow-sm cursor-pointer"
+                  className="px-5 py-2.5 bg-white/90 backdrop-blur-sm border border-[#eaeaec] rounded-2xl text-[14px] font-bold text-[#282c3f] hover:border-[#ff3f6c] hover:text-[#ff3f6c] transition-all shadow-sm cursor-pointer flex items-center gap-2"
                 >
-                  Women
+                  <span className="text-lg">👩</span> Women
                 </button>
               </div>
             )}
 
-            {isParsing && (
-              <div className="flex mr-auto max-w-[88%]">
-                <div className="bg-white/95 border border-[#eaeaec] p-3 rounded-2xl rounded-bl-md flex items-center gap-1.5 shadow-xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#535766] animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#535766] animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#535766] animate-bounce" style={{ animationDelay: "300ms" }} />
+            {userGender && !preferencesConfirmed && (
+              <div className="flex flex-col gap-3 mt-1 ml-2 bg-white/95 border border-[#eaeaec] p-4 rounded-2xl max-w-[85%] shadow-md">
+                <span className="text-[12px] font-bold text-[#282c3f]">
+                  What are we styling today? ✨
+                </span>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { key: "TOP", label: "Topwear 👕" },
+                    { key: "BOTTOM", label: "Bottomwear 👖" },
+                    { key: "FOOTWEAR", label: "Footwear 👟" },
+                    { key: "ACCESSORY", label: "Accessories 💍" },
+                  ].map((pref) => {
+                    const isSelected = tempPrefs.includes(pref.key);
+                    return (
+                      <button
+                        key={pref.key}
+                        type="button"
+                        onClick={() => toggleTempPref(pref.key)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-bold border transition-all ${
+                          isSelected
+                            ? "bg-[#ff3f6c]/10 border-[#ff3f6c] text-[#ff3f6c]"
+                            : "bg-[#f5f5f6] border-[#eaeaec] text-[#282c3f] hover:border-[#ff3f6c]/30"
+                        }`}
+                      >
+                        <span>{pref.label}</span>
+                        {isSelected && <span className="text-[10px] bg-[#ff3f6c] text-white px-1.5 py-0.5 rounded-full">Selected</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleConfirmPreferences}
+                  disabled={tempPrefs.length === 0}
+                  className="w-full py-2.5 rounded-xl bg-[#ff3f6c] text-white text-[12px] font-bold hover:bg-[#ff3f6c]/90 transition-colors disabled:opacity-50 cursor-pointer text-center"
+                >
+                  Let's style! 🚀
+                </button>
+              </div>
+            )}
+
+            {(isParsing || isDemoLoading) && (
+              <div className="flex mr-auto max-w-[88%] mt-2">
+                <div className="bg-white/95 border border-[#eaeaec] px-4 py-3 rounded-2xl rounded-bl-md flex flex-col gap-2 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff3f6c] animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff6b8b] animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff9eb2] animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                  <span className="text-[10px] font-bold text-[#ff3f6c] animate-pulse">Loading up your results...</span>
                 </div>
               </div>
             )}
           </main>
 
+          {/* Removed Enter Digital Twin Arrow as requested */}
+          {/* Custom Fullscreen Try-On Loading Overlay */}
+          {isTryOnLoading && (
+            <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+              <style>{`
+                @keyframes marquee {
+                  0% { transform: translateX(0%); }
+                  100% { transform: translateX(-50%); }
+                }
+                .animate-marquee {
+                  display: flex;
+                  width: 200%;
+                  animation: marquee 8s linear infinite;
+                }
+              `}</style>
+              
+              {baseUserImage ? (
+                <>
+                  <div className="relative flex items-center justify-center mb-6">
+                    <div className="w-16 h-16 rounded-full border-4 border-[#ff3f6c]/20 border-t-[#ff3f6c] animate-spin" />
+                    <Sparkles size={24} className="absolute text-[#ffd700] animate-pulse" fill="#ffd700" />
+                  </div>
+                  
+                  <h2 className="text-2xl font-extrabold text-[#ff3f6c] tracking-wide mb-2 animate-pulse drop-shadow-sm" style={{ fontFamily: "cursive" }}>
+                    getting your stuff ready for you...
+                  </h2>
+                  <p className="text-xs text-[#535766] mb-8 font-medium">
+                    Creating your personalized digital twin avatar
+                  </p>
+
+                  {/* Horizontal Scroll of shopping items */}
+                  <div className="overflow-hidden w-full max-w-[280px] border-y border-[#ff3f6c]/10 py-3 relative bg-pink-50/30 rounded-xl">
+                    <div className="animate-marquee flex gap-8 items-center text-[#ff3f6c]/80">
+                      <div className="flex gap-8 shrink-0 justify-around w-full items-center">
+                        <ShoppingBag size={24} />
+                        <span className="text-xl">👗</span>
+                        <Shirt size={24} />
+                        <span className="text-xl">👜</span>
+                        <Sparkles size={24} fill="#ffd700" className="text-[#ffd700]" />
+                        <span className="text-xl">👠</span>
+                      </div>
+                      <div className="flex gap-8 shrink-0 justify-around w-full items-center">
+                        <ShoppingBag size={24} />
+                        <span className="text-xl">👗</span>
+                        <Shirt size={24} />
+                        <span className="text-xl">👜</span>
+                        <Sparkles size={24} fill="#ffd700" className="text-[#ffd700]" />
+                        <span className="text-xl">👠</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-white p-6 rounded-3xl shadow-[0_10px_40px_rgba(255,63,108,0.2)] border border-pink-100 max-w-[280px] flex flex-col items-center animate-in zoom-in-95 duration-300">
+                  <div className="w-12 h-12 bg-pink-50 rounded-full flex items-center justify-center mb-3">
+                    <Camera size={24} className="text-[#ff3f6c]" />
+                  </div>
+                  <h3 className="text-lg font-black text-[#282c3f] mb-2">Upload Photo</h3>
+                  <p className="text-xs text-[#535766] text-center font-medium mb-6">
+                    Please upload a clear, full-body photo of yourself to create your Digital Twin.
+                  </p>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full bg-[#ff3f6c] hover:bg-[#ff3f6c]/90 text-white font-bold py-3 rounded-xl shadow-md transition-transform active:scale-95 cursor-pointer"
+                  >
+                    Select Image
+                  </button>
+                  <button 
+                    onClick={() => setIsTryOnLoading(false)} 
+                    className="mt-4 text-[10px] text-[#9496a2] hover:text-[#282c3f] font-bold underline cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <div
-            className="relative z-20 shrink-0 bg-white/95 backdrop-blur-sm border-t border-[#eaeaec] p-3"
+            className="relative z-20 shrink-0 bg-[#ff3f6c] border-t border-[#ff3f6c] p-3 shadow-[0_-4px_15px_rgba(255,63,108,0.2)]"
             style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
           >
             <div className="flex flex-wrap gap-2 mb-2">
@@ -332,39 +556,44 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
                   key={chip}
                   type="button"
                   onClick={() => setComposer(chip)}
-                  className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-[#f5f5f6] border border-[#eaeaec] text-[#535766] hover:border-[#ff3f6c]/40 transition-colors"
+                  disabled={!userGender || !preferencesConfirmed}
+                  className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-white/20 text-white border border-white/25 shadow-xs disabled:opacity-50 cursor-pointer"
                 >
                   {chip}
                 </button>
               ))}
             </div>
             <form onSubmit={handleSubmit} className="flex gap-2 items-center">
-              <div className="flex-1 flex items-center bg-[#f5f5f6] border border-[#eaeaec] rounded-xl px-3 py-2.5 focus-within:border-[#ff3f6c]/40 transition-colors min-h-11">
+              <div className="flex-1 flex items-center bg-white rounded-xl px-3 py-2.5 shadow-inner min-h-11">
                 <Sparkles className="w-4 h-4 text-[#ff3f6c] shrink-0 mr-2" />
                 <input
                   type="text"
                   value={composer}
                   onChange={(e) => setComposer(e.target.value)}
-                  disabled={isParsing || !userGender}
-                  placeholder={!userGender ? "Please select your gender above..." : 'e.g. "Bhai ki shaadi sherwani under 5k"'}
-                  className="flex-1 min-w-0 bg-transparent text-[13px] outline-none placeholder-[#9496a2] disabled:opacity-50"
+                  disabled={isParsing || !userGender || !preferencesConfirmed}
+                  placeholder={
+                    !userGender 
+                      ? "Please select your gender above..." 
+                      : !preferencesConfirmed 
+                        ? "Please select what you're styling today..." 
+                        : 'e.g. "Bhai ki shaadi sherwani under 5k"'
+                  }
+                  className="flex-1 min-w-0 bg-transparent text-[13px] outline-none placeholder-[#ff3f6c]/60 text-[#282c3f] disabled:opacity-50"
                 />
               </div>
               <button
                 type="submit"
-                disabled={isParsing || !composer.trim() || !userGender}
-                className="min-h-11 min-w-11 flex items-center justify-center rounded-xl bg-[#ff3f6c] text-white disabled:opacity-50 shadow-xs cursor-pointer"
+                disabled={isParsing || isDemoLoading || !composer.trim() || !userGender || !preferencesConfirmed}
+                className="min-h-11 min-w-11 flex items-center justify-center rounded-xl bg-white shadow-sm cursor-pointer"
                 aria-label="Send"
               >
-                {isParsing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                {isParsing || isDemoLoading ? <span className="w-5 h-5 border-2 border-[#ff3f6c] border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-5 h-5 text-[#ffa000]" fill="#ffa000" />}
               </button>
             </form>
           </div>
         </>
       ) : (
-        <main className="relative z-10 flex-1 min-h-0 overflow-y-auto bg-gray-50 flex flex-col">
-          <DigitalTwin />
-        </main>
+        <DigitalTwin onBack={() => setActiveTab("chat")} />
       )}
     </div>
   );

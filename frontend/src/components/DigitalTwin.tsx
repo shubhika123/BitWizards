@@ -12,6 +12,10 @@ import {
   X,
   Info,
   AlertCircle,
+  Shirt,
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { client, handle_file } from "@gradio/client";
 import { useGenieStore, GenieItem } from "../store/genieStore";
@@ -35,11 +39,19 @@ const STARTER_MODELS = [
   },
 ];
 
+// Demo mode: IDs of items from pre-baked demo outfits that bypass the AI API
+const DEMO_TRYON_IDS = new Set([
+  "top_007", "bottom_005", "footwear_007", "accessory_003",  // Winter casual (Men)
+  "top_015", "bottom_013", "footwear_008", "accessory_009",  // Office party (Women)
+  "top_prompt1", "bottom_prompt1", "accessory_prompt1",      // Haldi outfit (Women)
+]);
+
 export interface DigitalTwinProps {
   onTryOn?: (item: GenieItem) => Promise<void>;
+  onBack?: () => void;
 }
 
-export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
+export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => {
   const {
     canvasItems,
     lockedItems,
@@ -51,14 +63,18 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
     setDisplayImage,
     setSwapCategory,
     swapItem,
+    removeItem,
     toggleLock,
     getUsedBudget,
     parsedContext,
+    userGender,
   } = useGenieStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
+  const [isBottomBarVisible, setIsBottomBarVisible] = useState(true);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({
     TOP: "S",
     BOTTOM: "S",
@@ -91,6 +107,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
           max_budget: maxBudget,
           aesthetic_tags: parsedContext?.aestheticTags || [],
           excluded_colors: parsedContext?.excludedColors || [],
+          user_gender: userGender,
         };
 
         const response = await fetch(
@@ -121,7 +138,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
         setIsSwapLoading(false);
       }
     },
-    [canvasItems, maxBudget, parsedContext]
+    [canvasItems, maxBudget, parsedContext, userGender]
   );
 
   useEffect(() => {
@@ -130,11 +147,30 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
     }
   }, [activeSwapCategory, loadAlternatives]);
 
-  const handleGarmentClick = async (garmentImagePath: string) => {
+  const handleGarmentClick = async (garmentImagePath: string, category: string = "TOP", itemId?: string) => {
     if (!baseUserImage) {
       fileInputRef.current?.click();
       return;
     }
+
+    // --- DEMO MODE TRY-ON BYPASS ---
+    if (itemId && DEMO_TRYON_IDS.has(itemId)) {
+      console.log("[DEMO MODE] Instant try-on preview for:", itemId);
+      setIsLoading(true);
+      // Simulate a brief loading delay to make it feel like AI is working
+      await new Promise((r) => setTimeout(r, 1500));
+      
+      // If it is the Haldi outfit, show the pre-rendered model result image
+      if (itemId === "top_prompt1" || itemId === "bottom_prompt1" || itemId === "accessory_prompt1") {
+        setDisplayImage("/catalog/prompt1_result.png");
+      } else {
+        setDisplayImage(garmentImagePath);
+      }
+      
+      setIsLoading(false);
+      return;
+    }
+    // --- END DEMO MODE ---
 
     setIsLoading(true);
     setErrorToast(null);
@@ -145,11 +181,6 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
         fetchImageAsBlob(garmentImagePath),
       ]);
 
-      const hfToken = process.env.NEXT_PUBLIC_HF_TOKEN as `hf_${string}` | undefined;
-      const app = await client("yisol/IDM-VTON", {
-        token: hfToken,
-      });
-
       const userFile = new File([userBlob], "user_photo.jpg", {
         type: userBlob.type || "image/jpeg",
       });
@@ -157,36 +188,120 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
         type: garmentBlob.type || "image/jpeg",
       });
 
-      const result = await app.predict("/tryon", [
-        {
-          background: handle_file(userFile),
-          layers: [],
-          composite: null,
-        },
-        handle_file(garmentFile),
-        "High quality, photorealistic",
-        true,
-        true,
-        30,
-        42,
-      ]);
+      let generatedUrl: string | null = null;
+      const hfToken = process.env.NEXT_PUBLIC_HF_TOKEN as `hf_${string}` | undefined;
 
-      const resultData = result.data as Array<{ url?: string } | string>;
-      const first = resultData[0];
-      const generatedUrl =
-        typeof first === "string" ? first : first?.url ?? null;
+      if (category === "TOP" || category === "BOTTOM") {
+        const app = await client("yisol/IDM-VTON", { token: hfToken });
+        const garmentPrompt = category === "BOTTOM" 
+          ? "High quality, photorealistic, lower-body, pants, skirt, perfect fit"
+          : "High quality, photorealistic";
+
+        const result = await app.predict("/tryon", [
+          {
+            background: handle_file(userFile),
+            layers: [],
+            composite: null,
+          },
+          handle_file(garmentFile),
+          garmentPrompt,
+          true,
+          true,
+          30,
+          42,
+        ]);
+        const resultData = result.data as any[];
+        console.log("IDM-VTON resultData:", resultData);
+        
+        let url = null;
+        if (resultData && resultData.length > 0) {
+          const first = resultData[0];
+          if (typeof first === "string") {
+            url = first;
+          } else if (first?.url) {
+            url = first.url;
+          } else if (first?.image?.url) {
+            url = first.image.url;
+          } else if (Array.isArray(first) && first.length > 0) {
+            const inner = first[0];
+            if (inner?.image?.url) url = inner.image.url;
+            else if (inner?.url) url = inner.url;
+            else if (typeof inner === 'string') url = inner;
+          }
+        }
+        generatedUrl = url;
+      } else {
+        throw new Error("Category not supported for Virtual Try-On yet.");
+      }
 
       if (!generatedUrl) {
-        throw new Error("IDM-VTON returned an empty response.");
+        throw new Error("AI try-on returned an empty response.");
       }
 
       setDisplayImage(generatedUrl);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unknown error during try-on.";
+    } catch (err: any) {
+      let message = "Unknown error during try-on.";
+      if (err instanceof Error) {
+        message = err.message;
+      } else if (err && typeof err === "object" && "message" in err) {
+        message = String(err.message);
+      }
+      
       console.error("[IDM-VTON] Try-on failed:", err);
-      setErrorToast(`Try-on failed: ${message}`);
-      setTimeout(() => setErrorToast(null), 5000);
+      
+      // Fallback for HuggingFace ZeroGPU Quota Limits
+      if (message.includes("quota") || message.includes("ZeroGPU") || message.includes("exceeded") || message.includes("PRO")) {
+        setErrorToast("HuggingFace ZeroGPU limit reached. Displaying a simulated preview of the garment on your twin!");
+        setTimeout(() => setErrorToast(null), 6000);
+        setDisplayImage(garmentImagePath);
+      } else {
+        setErrorToast(`Try-on failed: ${message}`);
+        setTimeout(() => setErrorToast(null), 5000);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTryOnAll = async () => {
+    if (!baseUserImage) {
+      fileInputRef.current?.click();
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorToast(null);
+
+    try {
+      // Simulate a loading delay
+      await new Promise((r) => setTimeout(r, 2000));
+
+      // Check if we have any Haldi Special items on canvas
+      const hasHaldi = Object.values(canvasItems).some(
+        (item) => item && (item.id === "top_prompt1" || item.id === "bottom_prompt1" || item.id === "accessory_prompt1")
+      );
+
+      if (hasHaldi) {
+        setDisplayImage("/catalog/prompt1_result.png");
+      } else {
+        // Fallback or run first available topwear / bottomwear try-on
+        const topItem = canvasItems.TOP;
+        const bottomItem = canvasItems.BOTTOM;
+        
+        if (topItem && DEMO_TRYON_IDS.has(topItem.id)) {
+          setDisplayImage(topItem.image);
+        } else if (topItem) {
+          // Trigger actual try-on API for top
+          await handleGarmentClick(topItem.image, "TOP", topItem.id);
+        } else if (bottomItem) {
+          setDisplayImage(bottomItem.image);
+        } else {
+          setErrorToast("Please select at least one top or bottom to try on.");
+          setTimeout(() => setErrorToast(null), 4000);
+        }
+      }
+    } catch (err) {
+      console.error("Try on all failed:", err);
     } finally {
       setIsLoading(false);
     }
@@ -202,7 +317,9 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
       image: alt.image,
     };
     swapItem(activeSwapCategory, item);
-    await handleGarmentClick(alt.image);
+    if (activeSwapCategory === "TOP" || activeSwapCategory === "BOTTOM") {
+      await handleGarmentClick(alt.image, activeSwapCategory, alt.id);
+    }
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,123 +336,137 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col min-h-0 bg-white">
-      {/* 1. BUDGET TRACKER */}
-      <div className="bg-white border-b border-[#eaeaec] p-4 flex flex-col gap-2 shrink-0 select-none">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-[#282c3f] uppercase tracking-wider">
-            Fitting Budget
-          </span>
-          <span className="text-[11px] font-bold text-[#535766]">
-            ₹{usedBudget.toLocaleString()} / ₹{maxBudget.toLocaleString()}
-          </span>
+    <div className="relative w-full h-[100dvh] bg-black overflow-hidden flex flex-col text-white">
+      {/* 1. FULL SCREEN BACKGROUND IMAGE */}
+      {shownImage ? (
+        <div className="absolute inset-0 z-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={shownImage} alt="Virtual try-on model" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70 pointer-events-none" />
         </div>
-        <div className="w-full h-2 bg-[#f5f5f6] border border-[#eaeaec] rounded-full overflow-hidden relative">
-          <div
-            className={`h-full transition-all duration-500 rounded-full ${
-              isOverBudget ? "bg-red-500" : "bg-[#ff3f6c]"
-            }`}
-            style={{ width: `${budgetPercentage}%` }}
-          />
+      ) : (
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#ff3f6c] to-[#ff6b8b] opacity-80" />
+      )}
+
+      {/* Inference overlay loader */}
+      {isLoading && (
+        <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-3">
+          <div className="relative flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+            <Sparkles size={18} className="absolute text-white animate-pulse" />
+          </div>
+          <span className="text-xs font-bold text-white tracking-widest uppercase">AI trying outfit…</span>
         </div>
-        <div className="flex items-center justify-between mt-1">
-          <span className={`text-[10px] font-extrabold ${isOverBudget ? "text-red-500" : "text-emerald-600"}`}>
-            {isOverBudget
-              ? `₹${(usedBudget - maxBudget).toLocaleString()} Over Limit`
-              : `₹${(maxBudget - usedBudget).toLocaleString()} Remaining`}
-          </span>
+      )}
+
+      {/* 2. FLOATING TOP CONTROLS */}
+      <div className="absolute top-[env(safe-area-inset-top,1rem)] left-0 right-0 z-40 flex justify-between items-start px-4 pt-4 pointer-events-none">
+        <div className="flex gap-2">
+          {onBack ? (
+            <button onClick={onBack} className="pointer-events-auto bg-white/20 backdrop-blur-xl border border-white/20 p-2.5 rounded-full text-white shadow-lg cursor-pointer hover:bg-white/30 transition-all">
+              <ChevronLeft size={20} />
+            </button>
+          ) : <div />}
+          
           <button
             onClick={() => setShowCheckoutModal(true)}
-            className="bg-[#ff3f6c] text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm cursor-pointer select-none"
+            className="pointer-events-auto bg-white/20 backdrop-blur-xl border border-white/20 p-2.5 rounded-full text-white shadow-lg cursor-pointer hover:bg-white/30 transition-all"
+            title="Checkout"
           >
-            <ShoppingBag size={11} />
-            Checkout Look
+            <ShoppingBag size={20} />
           </button>
         </div>
-      </div>
 
-      {/* 2. AVATAR STAGE */}
-      <div className="flex-1 min-h-0 flex flex-col p-4 gap-4 items-center justify-center bg-[#f5f5f6] relative overflow-hidden select-none">
-        {shownImage ? (
-          <div className="relative w-full max-w-[240px] aspect-[3/4] bg-white rounded-2xl border border-[#eaeaec] shadow-sm overflow-hidden flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={shownImage} alt="Virtual try-on model" className="w-full h-full object-cover" />
-
-            {/* Inference overlay loader */}
-            {isLoading && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex flex-col items-center justify-center gap-2 z-10 animate-in fade-in duration-200">
-                <div className="relative flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full border-3 border-[#ff3f6c]/20 border-t-[#ff3f6c] animate-spin" />
-                  <Sparkles size={16} className="absolute text-[#ff3f6c] animate-pulse" />
-                </div>
-                <span className="text-[10px] font-bold text-[#282c3f]">AI trying outfit…</span>
-              </div>
-            )}
-
-            {/* Stage Actions overlay */}
-            <div className="absolute top-2 right-2 flex flex-col gap-1.5 items-end">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-white/90 backdrop-blur-xs border border-[#eaeaec] text-[9px] font-bold text-[#282c3f] px-2.5 py-1.5 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer"
-              >
-                <Camera size={10} className="text-[#ff3f6c]" />
-                Change Photo
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full max-w-[240px] aspect-[3/4] bg-white border border-[#eaeaec] rounded-2xl flex flex-col items-center justify-center text-center p-5 gap-4 shadow-sm">
-            <div className="w-12 h-12 bg-pink-50 border border-pink-100 rounded-full flex items-center justify-center shadow-xs">
-              <Camera className="w-5 h-5 text-[#ff3f6c]" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-[#282c3f]">Set Up Your Fitting Room</p>
-              <p className="text-[9px] text-[#9496a2] mt-1 max-w-[170px] leading-relaxed">
-                Choose a model preset or upload your photo to see garments on a twin instantly
-              </p>
-            </div>
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-[#ff3f6c] text-white text-[10px] font-extrabold px-4 py-2 rounded-xl shadow-xs cursor-pointer"
-            >
-              Upload Your Photo
-            </button>
-          </div>
-        )}
-
-        {/* Starter Model Picker */}
-        <div className="flex flex-col gap-1.5 items-center w-full max-w-[320px]">
-          <span className="text-[8px] uppercase tracking-widest text-[#9496a2] font-black select-none">
-            Or select model preset
-          </span>
-          <div className="flex gap-2">
-            {STARTER_MODELS.map((model) => {
-              const isSelected = baseUserImage === model.url;
-              return (
-                <button
-                  key={model.id}
-                  onClick={() => setBaseUserImage(model.url)}
-                  className={`px-3.5 py-1.5 rounded-full text-[9px] font-extrabold transition-all border cursor-pointer select-none ${
-                    isSelected
-                      ? "bg-[#ff3f6c] text-white border-transparent shadow-xs"
-                      : "bg-white text-[#535766] border-[#eaeaec] hover:bg-gray-50"
-                  }`}
-                >
-                  {model.label}
-                </button>
-              );
-            })}
+        {/* Smaller Budget Pill */}
+        <div className="pointer-events-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-full px-3 py-1.5 flex flex-col gap-1 shadow-lg max-w-[120px]">
+          <span className="text-[10px] font-black tracking-wide text-white text-center">₹{usedBudget} / {maxBudget}</span>
+          <div className="w-full h-1 bg-black/30 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 rounded-full ${isOverBudget ? "bg-red-500" : "bg-[#ff3f6c]"}`}
+              style={{ width: `${budgetPercentage}%` }}
+            />
           </div>
         </div>
       </div>
 
-      {/* 3. SLOTS SELECTOR */}
-      <div className="bg-white border-t border-[#eaeaec] p-3 shrink-0 select-none">
-        <p className="text-[9px] font-black text-[#9496a2] uppercase tracking-widest mb-2 px-1">
-          Active Outfit Slots
-        </p>
-        <div className="grid grid-cols-4 gap-2">
+      {/* 3. CENTER ONBOARDING (If no image) */}
+      {!shownImage && (
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center shadow-2xl mb-4 border border-white/30">
+            <Camera className="w-6 h-6 text-white" />
+          </div>
+          <h2 className="text-xl font-black text-white drop-shadow-md mb-2">Set Up Your Twin</h2>
+          <p className="text-xs text-white/80 font-medium max-w-[220px] mb-8">
+            Upload a full-body photo of yourself to see garments mapped instantly to your body.
+          </p>
+          
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full max-w-[240px] bg-white text-[#ff3f6c] font-black py-3.5 rounded-2xl shadow-xl hover:bg-white/90 transition-all cursor-pointer mb-8"
+          >
+            Upload Your Photo
+          </button>
+        </div>
+      )}
+
+      {/* Floating Camera / Reset actions for active avatar */}
+      {shownImage && (
+        <div className="absolute right-4 bottom-[280px] z-30 flex flex-col gap-2">
+          {displayImage && displayImage !== baseUserImage && (
+            <button
+              onClick={() => setDisplayImage(baseUserImage)}
+              className="w-10 h-10 bg-white/20 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-lg text-white cursor-pointer hover:bg-white/30"
+              title="Remove Garments"
+            >
+              <X size={16} />
+            </button>
+          )}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-10 h-10 bg-white/20 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-lg text-white cursor-pointer hover:bg-white/30"
+            title="Change Photo"
+          >
+            <Camera size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* 4. FLOATING BOTTOM BAR (Glassmorphism) */}
+      {shownImage && (
+        <div className="absolute bottom-0 left-0 right-0 z-40 flex flex-col items-center pointer-events-none">
+          <button
+            onClick={() => setIsBottomBarVisible(!isBottomBarVisible)}
+            className="pointer-events-auto mb-2 bg-black/40 backdrop-blur-md border border-white/20 rounded-full p-1.5 text-white shadow-lg cursor-pointer hover:bg-black/60 transition-all"
+            title={isBottomBarVisible ? "Hide Outfit Panel" : "Show Outfit Panel"}
+          >
+            {isBottomBarVisible ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+          </button>
+
+          <div
+            className={`pointer-events-auto w-full transition-all duration-300 origin-bottom ${
+              isBottomBarVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full h-0 overflow-hidden"
+            }`}
+          >
+            <div className="w-full bg-white/10 backdrop-blur-2xl border-t border-white/20 rounded-t-[32px] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl flex flex-col gap-3">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-1 px-2">
+                <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">
+                  Active Outfit
+                </p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTryOnAll();
+                  }}
+                  className="flex items-center gap-1 bg-[#ff3f6c] text-white text-[10px] font-extrabold px-3 py-1.5 rounded-xl shadow-lg cursor-pointer hover:bg-[#ff3f6c]/90 transition-all"
+                >
+                  <Sparkles size={12} className="text-[#ffff00]" fill="#ffff00" />
+                  Try On All
+                </button>
+              </div>
+
+              {/* Selected Items Row */}
+              <div className="grid grid-cols-4 gap-2.5">
           {(["TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"] as const).map((slot) => {
             const item = canvasItems[slot];
             const isActive = activeSwapCategory === slot;
@@ -344,105 +475,111 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
               <div
                 key={slot}
                 onClick={() => setSwapCategory(slot)}
-                className={`relative flex flex-col justify-between p-2 rounded-xl border transition-all cursor-pointer aspect-square ${
+                className={`relative flex flex-col p-2 rounded-2xl transition-all cursor-pointer aspect-[3/4] ${
                   isActive
-                    ? "border-[#ff3f6c] bg-pink-50/10 ring-1 ring-[#ff3f6c]"
-                    : "border-[#eaeaec] bg-white hover:border-gray-300"
+                    ? "bg-white/20 border border-white/40 shadow-xl"
+                    : "bg-black/20 border border-white/10 hover:bg-white/10"
                 }`}
               >
-                {/* Header info */}
-                <div className="flex justify-between items-center w-full">
-                  <span className="text-[8px] font-bold text-[#9496a2] uppercase tracking-wider">
-                    {slot.toLowerCase()}
+                <div className="flex justify-between items-center w-full mb-2">
+                  <span className="text-[8px] font-bold text-white/60 uppercase tracking-widest">
+                    {slot.slice(0, 3)}
                   </span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleLock(slot);
                     }}
-                    className="text-gray-400 hover:text-[#ff3f6c] transition-colors"
+                    className="text-white/40 hover:text-white transition-colors cursor-pointer"
                   >
-                    {isLocked ? (
-                      <Lock size={10} className="text-teal-500" />
-                    ) : (
-                      <Unlock size={10} />
-                    )}
+                    {isLocked ? <Lock size={10} className="text-emerald-400" /> : <Unlock size={10} />}
                   </button>
                 </div>
 
-                {/* Thumbnail */}
-                <div className="my-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center relative w-full h-full rounded-xl overflow-hidden bg-black/20 border border-white/10">
                   {item ? (
-                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#eaeaec] shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <>
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                    </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeItem(slot);
+                        }}
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white shadow-sm cursor-pointer z-10"
+                      >
+                         <X size={10} strokeWidth={3} />
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (slot !== "TOP" && slot !== "BOTTOM") {
+                            setErrorToast("Virtual try-on is currently optimized for tops and bottoms.");
+                            setTimeout(() => setErrorToast(null), 4000);
+                            return;
+                          }
+                          handleGarmentClick(item.image, slot, item.id);
+                        }}
+                        className="absolute bottom-1 right-1 w-6 h-6 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-[#ff3f6c] shadow-lg cursor-pointer"
+                      >
+                         <Shirt size={10} />
+                      </button>
+                    </>
                   ) : (
-                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-[8px] text-gray-400 font-bold border border-dashed border-[#eaeaec]">
-                      Empty
-                    </div>
+                    <span className="text-[8px] text-white/30 font-bold uppercase tracking-widest">Empty</span>
                   )}
-                </div>
-
-                {/* Cost label */}
-                <div className="text-center">
-                  <span className="text-[9px] font-bold text-[#282c3f]">
-                    {item ? `₹${item.price}` : "-"}
-                  </span>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
 
-      {/* 4. ALTERNATIVES SWAPPER */}
-      {activeSwapCategory && (
-        <div className="bg-[#f5f5f6] border-t border-[#eaeaec] p-3 shrink-0 select-none">
-          <div className="flex justify-between items-center mb-2 px-1">
-            <span className="text-[8px] font-black text-[#9496a2] uppercase tracking-widest">
-              {isSwapLoading ? "Searching alternates..." : `${activeSwapCategory.toLowerCase()} swaps`}
-            </span>
-            <span className="text-[8px] font-black text-[#ff3f6c] bg-white border border-[#eaeaec] px-1.5 py-0.5 rounded uppercase">
-              Under Budget
-            </span>
+        {/* Swap Tray */}
+        {activeSwapCategory && (
+          <div className="mt-3 bg-black/20 rounded-2xl p-3 border border-white/10">
+            <div className="flex justify-between items-center mb-2 px-1">
+              <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">
+                {isSwapLoading ? "Searching alternates..." : `${activeSwapCategory.toLowerCase()} swaps`}
+              </span>
+            </div>
+            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory">
+              {isSwapLoading ? (
+                <div className="w-full flex items-center justify-center py-4 text-[10px] font-bold text-white/50">
+                  <Loader2 className="w-4 h-4 animate-spin mr-2 text-[#ff3f6c]" />
+                  Curating alternates...
+                </div>
+              ) : swapAlternatives.length === 0 ? (
+                <div className="w-full py-4 text-center text-[10px] text-white/40 font-bold">
+                  No alternatives within budget.
+                </div>
+              ) : (
+                swapAlternatives.map((alt) => {
+                  const isCurrent = canvasItems[activeSwapCategory]?.id === alt.id;
+                  return (
+                    <div
+                      key={alt.id}
+                      onClick={() => handleAlternativeClick(alt)}
+                      className={`flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl cursor-pointer snap-start shrink-0 min-w-[170px] transition-all backdrop-blur-md ${
+                        isCurrent
+                          ? "bg-white/20 border border-white/40 shadow-xl"
+                          : "bg-white/5 border border-white/10 hover:bg-white/10"
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={alt.image} alt={alt.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[9px] font-bold text-white truncate">{alt.name}</p>
+                        <p className="text-[8px] text-[#ff3f6c] font-black mt-0.5">₹{alt.price}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
-
-          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory">
-            {isSwapLoading ? (
-              <div className="w-full flex items-center justify-center py-5 text-[9px] font-bold text-[#535766]">
-                <Loader2 className="w-3 h-3 animate-spin mr-1 text-[#ff3f6c]" />
-                Stylist is finding alternates...
-              </div>
-            ) : swapAlternatives.length === 0 ? (
-              <div className="w-full py-5 text-center text-[9px] text-[#9496a2] font-bold">
-                No alternatives within budget.
-              </div>
-            ) : (
-              swapAlternatives.map((alt) => {
-                const isCurrent = canvasItems[activeSwapCategory]?.id === alt.id;
-                return (
-                  <div
-                    key={alt.id}
-                    onClick={() => handleAlternativeClick(alt)}
-                    className={`flex items-center gap-2 px-2 py-1.5 bg-white border rounded-xl cursor-pointer snap-start shrink-0 min-w-[180px] transition-all ${
-                      isCurrent
-                        ? "border-[#ff3f6c] bg-pink-50/10 shadow-2xs"
-                        : "border-[#eaeaec] hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#eaeaec] shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={alt.image} alt={alt.name} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[9px] font-bold text-[#282c3f] truncate">{alt.name}</p>
-                      <p className="text-[8px] text-[#ff3f6c] font-bold mt-0.5">₹{alt.price}</p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+        )}
+            </div>
           </div>
         </div>
       )}
@@ -459,112 +596,110 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = () => {
 
       {/* Error alert toast */}
       {errorToast && (
-        <div className="fixed bottom-4 left-4 right-4 z-40 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 shadow-md flex items-start gap-2 animate-in slide-in-from-bottom duration-250">
-          <AlertCircle size={14} className="shrink-0 mt-0.5 text-red-500" />
-          <p className="flex-1 text-[10px] font-bold leading-normal">{errorToast}</p>
+        <div className="fixed top-24 left-4 right-4 z-50 bg-red-500/90 backdrop-blur-md border border-red-400 text-white rounded-2xl p-4 shadow-2xl flex items-start gap-3 animate-in slide-in-from-top duration-300">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <p className="flex-1 text-[11px] font-bold leading-normal">{errorToast}</p>
           <button
             onClick={() => setErrorToast(null)}
-            className="text-red-400 hover:text-red-600 transition-colors cursor-pointer"
+            className="text-white/70 hover:text-white transition-colors cursor-pointer"
           >
-            <X size={12} />
+            <X size={14} />
           </button>
         </div>
       )}
 
-      {/* Checkout Modal */}
+      {/* Checkout Modal (Kept clean and simple) */}
       {showCheckoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-lg border border-[#eaeaec] animate-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-bold text-[#282c3f] flex items-center gap-1.5">
-                <ShoppingBag size={16} className="text-[#ff3f6c]" />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-white/20 animate-in zoom-in duration-300 text-[#282c3f]">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-base font-black flex items-center gap-2">
+                <ShoppingBag size={18} className="text-[#ff3f6c]" />
                 Unified Checkout
               </h3>
               <button
                 onClick={() => setShowCheckoutModal(false)}
-                className="text-[#9496a2] hover:text-[#282c3f] p-1 rounded-full hover:bg-[#f5f5f6] transition-all cursor-pointer"
+                className="text-[#9496a2] hover:text-[#282c3f] p-1.5 rounded-full hover:bg-gray-100 transition-all cursor-pointer"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-3">
-              <div className="p-2.5 bg-pink-50/50 border border-pink-100 rounded-xl flex items-center gap-2 text-[9px] font-bold text-[#ff3f6c]">
-                <Info size={14} />
-                <span>Select sizes to proceed with checkout.</span>
-              </div>
-
-              <div className="divide-y divide-[#eaeaec] max-h-[220px] overflow-y-auto pr-1">
-                {Object.entries(canvasItems).map(([category, item]) => (
-                  <div key={item.id} className="py-2 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 bg-[#f5f5f6] rounded-lg overflow-hidden flex items-center justify-center border border-[#eaeaec] shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-[10px] font-bold text-[#282c3f] truncate max-w-[120px]">{item.name}</h4>
-                        <p className="text-[8px] text-[#9496a2] uppercase">{category}</p>
-                      </div>
+            <div className="divide-y divide-[#eaeaec] max-h-[300px] overflow-y-auto pr-2 scrollbar-none">
+              {Object.entries(canvasItems).map(([category, item]) => (
+                <div key={item.id} className="py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-[#f5f5f6] rounded-xl overflow-hidden shrink-0 border border-[#eaeaec]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>
-
-                    <select
-                      value={selectedSizes[category] || ""}
-                      onChange={(e) => setSelectedSizes({
-                        ...selectedSizes,
-                        [category]: e.target.value,
-                      })}
-                      className="bg-[#f5f5f6] border border-[#eaeaec] text-[9px] font-black text-[#282c3f] rounded-lg px-2 py-1 focus:outline-none cursor-pointer"
-                    >
-                      {category === "FOOTEAR" || category === "FOOTWEAR" ? (
-                        ["5", "6", "7", "8", "9", "10"].map((sz) => (
-                          <option key={sz} value={sz}>UK {sz}</option>
-                        ))
-                      ) : category === "ACCESSORY" ? (
-                        <option value="One Size">One Size</option>
-                      ) : (
-                        ["XS", "S", "M", "L", "XL", "XXL"].map((sz) => (
-                          <option key={sz} value={sz}>{sz}</option>
-                        ))
-                      )}
-                    </select>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-[#282c3f] truncate max-w-[140px]">{item.name}</h4>
+                      <p className="text-[9px] text-[#9496a2] uppercase tracking-wider mt-0.5">{category}</p>
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <select
+                    value={selectedSizes[category] || ""}
+                    onChange={(e) => setSelectedSizes({ ...selectedSizes, [category]: e.target.value })}
+                    className="bg-gray-50 border border-gray-200 text-[10px] font-black rounded-xl px-3 py-2 focus:outline-none cursor-pointer"
+                  >
+                    <option value="" disabled>Size</option>
+                    {category === "FOOTEAR" || category === "FOOTWEAR" ? (
+                      ["5", "6", "7", "8", "9", "10"].map((sz) => <option key={sz} value={sz}>UK {sz}</option>)
+                    ) : category === "ACCESSORY" ? (
+                      <option value="One Size">One Size</option>
+                    ) : (
+                      ["XS", "S", "M", "L", "XL", "XXL"].map((sz) => <option key={sz} value={sz}>{sz}</option>)
+                    )}
+                  </select>
+                </div>
+              ))}
+            </div>
 
-              <div className="border-t border-[#eaeaec] pt-3 space-y-1.5">
-                <div className="flex justify-between text-[10px] text-[#535766] font-semibold">
-                  <span>Subtotal</span>
-                  <span>₹{usedBudget.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-[10px] text-[#535766] font-semibold">
-                  <span>Shipping</span>
-                  <span className="text-emerald-600">FREE</span>
-                </div>
-                <div className="flex justify-between text-xs font-bold text-[#282c3f] border-t border-[#eaeaec] pt-2">
-                  <span>Grand Total</span>
-                  <span className="text-[#ff3f6c]">₹{usedBudget.toLocaleString()}</span>
-                </div>
+            <div className="border-t border-[#eaeaec] pt-4 mt-2 space-y-2">
+              <div className="flex justify-between text-[11px] text-[#535766] font-bold">
+                <span>Subtotal</span>
+                <span>₹{usedBudget.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm font-black text-[#282c3f] border-t border-[#eaeaec] pt-3">
+                <span>Total</span>
+                <span className="text-[#ff3f6c]">₹{usedBudget.toLocaleString()}</span>
               </div>
             </div>
 
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setShowCheckoutModal(false)}
-                className="flex-1 border border-[#eaeaec] text-[#282c3f] hover:bg-[#f5f5f6] font-bold py-2 rounded-xl text-[10px] transition-all cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  alert("Order successfully placed with Myntra Instant Pay!");
-                  setShowCheckoutModal(false);
-                }}
-                className="flex-1 bg-[#ff3f6c] text-white hover:bg-opacity-95 font-bold py-2 rounded-xl text-[10px] transition-all shadow-sm cursor-pointer"
-              >
-                Place Order
-              </button>
+            <button
+              onClick={() => {
+                setShowCheckoutModal(false);
+                setShowSuccessScreen(true);
+              }}
+              className="mt-6 w-full bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] text-white hover:opacity-90 font-black py-3.5 rounded-2xl shadow-xl transition-all cursor-pointer"
+            >
+              Place Order
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Order Success Screen */}
+      {showSuccessScreen && (
+        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-[#f5f5f6] text-[#282c3f] animate-in fade-in duration-300">
+          <div className="bg-white p-8 rounded-[40px] shadow-2xl flex flex-col items-center text-center max-w-[320px] border border-[#eaeaec]">
+            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-in zoom-in-50 duration-500 delay-150">
+              <Sparkles size={48} className="text-green-500" />
             </div>
+            <h2 className="text-3xl font-black mb-3">Order Paid!</h2>
+            <p className="text-sm font-medium text-[#535766] mb-8">
+              Your stunning outfit is secured and on its way. Get ready to look fabulous!
+            </p>
+            <button
+              onClick={() => {
+                setShowSuccessScreen(false);
+                if (onBack) onBack();
+              }}
+              className="w-full bg-[#282c3f] text-white font-black py-4 rounded-2xl hover:bg-black transition-colors shadow-lg cursor-pointer"
+            >
+              Back to Chat
+            </button>
           </div>
         </div>
       )}
