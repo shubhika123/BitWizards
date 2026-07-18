@@ -338,7 +338,9 @@ export function GenieLegacyExperience() {
     // Generate a shareable URL with current state serialized
     const stateParams = new URLSearchParams();
     Object.entries(canvasItems).forEach(([cat, item]) => {
-      stateParams.set(cat.toLowerCase(), `${item.id}:${item.price}`);
+      if (item) {
+        stateParams.set(cat.toLowerCase(), `${item.id}:${item.price}`);
+      }
     });
     const shareUrl = `${window.location.origin}/genie?${stateParams.toString()}`;
 

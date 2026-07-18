@@ -48,7 +48,7 @@ interface GenieState {
   // Actions
   toggleLock: (category: string) => void;
   setSwapCategory: (category: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY" | null) => void;
-  swapItem: (category: string, newItem: GenieItem | null) => void;
+  swapItem: (category: string, newItem: GenieItem) => void;
   removeItem: (category: string) => void;
   getUsedBudget: () => number;
   setParsedContext: (context: GenieParsedContext | null) => void;

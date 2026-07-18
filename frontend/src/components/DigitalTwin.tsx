@@ -626,8 +626,10 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
             </div>
 
             <div className="divide-y divide-[#eaeaec] max-h-[300px] overflow-y-auto pr-2 scrollbar-none">
-              {Object.entries(canvasItems).map(([category, item]) => (
-                <div key={item.id} className="py-3 flex items-center justify-between gap-3">
+              {Object.entries(canvasItems).map(([category, item]) => {
+                if (!item) return null;
+                return (
+                  <div key={item.id} className="py-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-[#f5f5f6] rounded-xl overflow-hidden shrink-0 border border-[#eaeaec]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -653,7 +655,8 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
                     )}
                   </select>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="border-t border-[#eaeaec] pt-4 mt-2 space-y-2">

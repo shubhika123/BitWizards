@@ -4,6 +4,10 @@ import "./globals.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sparkles, ShoppingBag, Users, Store } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
+import Splash from "../components/Splash";
+import LoginScreen from "../components/LoginScreen";
+import React, { useState, useEffect } from "react";
 
 const MyntraLogo = ({ className = "w-5.5 h-5.5" }: { className?: string }) => (
   <svg viewBox="10 5 80 70" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -21,6 +25,39 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname() || "/";
   const isGenieRoute = pathname.startsWith("/genie");
+
+  const { user, isInitialized, initAuth } = useAuthStore();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    initAuth();
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500); // 2.5 seconds splash display
+    return () => clearTimeout(timer);
+  }, [initAuth]);
+
+  // 1. Splash Screen
+  if (showSplash || !isInitialized) {
+    return (
+      <html lang="en" className="h-full antialiased">
+        <body className="min-h-screen flex flex-col bg-[#282c3f] antialiased">
+          <Splash />
+        </body>
+      </html>
+    );
+  }
+
+  // 2. Authentication Shield
+  if (!user) {
+    return (
+      <html lang="en" className="h-full antialiased">
+        <body className="min-h-screen flex flex-col bg-[#282c3f] antialiased">
+          <LoginScreen />
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html
