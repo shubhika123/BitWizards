@@ -1,8 +1,16 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.api import feed, search, bazaar, social, genie
 from app.api.OutfitCircle import router as outfit_circle_router
+
+# Configure logging so pipeline steps are visible in the uvicorn terminal
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  [%(name)s] %(message)s",
+    datefmt="%H:%M:%S"
+)
 
 
 

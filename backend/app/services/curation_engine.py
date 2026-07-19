@@ -7,12 +7,15 @@ and serve paginated alternatives for slot replacements.
 """
 
 import os
+import logging
 from typing import List, Dict, Any, Optional
 from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
 from app.config import settings
 from app.models.GenieSchema import GenieCurateRequest, GenieAlternativesRequest
 from app.services.database import MockDB
+
+logger = logging.getLogger("app.services.curation_engine")
 
 
 class CurationEngine:
@@ -26,7 +29,7 @@ class CurationEngine:
         Thread-safe lazy initialization of the Pinecone client and SentenceTransformer model.
         """
         if cls._model is None:
-            print("Loading SentenceTransformer model 'all-MiniLM-L6-v2' inside backend...")
+            logger.info("Loading SentenceTransformer model 'all-MiniLM-L6-v2' inside emulation engine...")
             cls._model = SentenceTransformer('all-MiniLM-L6-v2')
         if cls._pc is None:
             cls._pc = Pinecone(api_key=settings.PINECONE_API_KEY)
@@ -53,15 +56,43 @@ class CurationEngine:
         }
         return mapping.get(cat, cat.upper())
 
+    @staticmethod
+    def _is_gender_mismatched(user_gender: Optional[str], product_gender: Optional[str]) -> bool:
+        """
+        Defensive case-insensitive evaluation checking common gender inputs 
+        against catalog attributes.
+        """
+        if not user_gender or not product_gender:
+            return False
+            
+        u_g = str(user_gender).strip().lower()
+        p_g = str(product_gender).strip().lower()
+        
+        if p_g == "unisex":
+            return False
+            
+        is_user_women = "wom" in u_g or "fem" in u_g
+        is_prod_women = "wom" in p_g or "fem" in p_g
+        
+        is_user_men = "men" in u_g or "male" in u_g and not is_user_women
+        is_prod_men = "men" in p_g or "male" in p_g and not is_prod_women
+        
+        if is_user_women and is_prod_women:
+            return False
+        if is_user_men and is_prod_men:
+            return False
+            
+        return True
+
     @classmethod
     def generate_outfit(cls, req: GenieCurateRequest) -> Dict[str, Any]:
         """
-        Generate a complete 4-piece outfit using local sentence embeddings,
+        Generate a complete, cohesive 4-piece outfit using local sentence embeddings,
         Pinecone category queries, and constraint-based budget permutations.
         """
         index, model = cls._get_resources()
+        SEMANTIC_SCORE_THRESHOLD = 0.40
         
-        # Resolve locked items by slot
         locked_items_by_slot = {}
         for p_id in req.locked_item_ids:
             item = MockDB.get_product(p_id)
@@ -73,12 +104,19 @@ class CurationEngine:
                     "category": front_cat,
                     "price": float(item["price"]),
                     "image_url": item["image_url"],
-                    "score": 1.0
+                    "score": 1.0,
+                    "tags": item.get("aesthetic_tags", []),
+                    "occasions": item.get("occasions", [])
                 }
 
-        # Query candidates for each slot
         slots = ["TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"]
         slot_candidates = {}
+
+        target_items = getattr(req, "target_items", [])
+        target_str = ", ".join(target_items) if target_items else ""
+        
+        # Used for the Contextual Vibe Gate
+        raw_query = getattr(req, "query", "").lower()
 
         for slot in slots:
             if slot in locked_items_by_slot:
@@ -87,79 +125,124 @@ class CurationEngine:
 
             pinecone_cat = cls.map_frontend_category_to_pinecone(slot)
             
-            # Generate representation query text
-            target_str = " ".join(req.target_items) if req.target_items else ""
-            search_text = f"Aesthetics: {', '.join(req.aesthetic_tags)}. Style: {req.occasion_category or 'casual'}. Category: {pinecone_cat}. Focus: {target_str}."
+            # STABLE SEARCH TEXT (Do not change this order)
+            search_text = f"Category: {pinecone_cat}. Name: {target_str}. Occasion: {req.occasion_category or ''}. Aesthetics: {', '.join(req.aesthetic_tags)}."
             query_vector = model.encode(search_text).tolist()
 
-            # Pinecone filter dict
+            # PINECONE DB FILTER SETUP
             filter_dict = {"category": pinecone_cat}
+            
             if req.max_budget is not None:
                 filter_dict["price"] = {"$lte": float(req.max_budget)}
+            
+            if req.user_gender:
+                g_val = str(req.user_gender).strip()
+                filter_dict["gender"] = {"$in": [g_val, g_val.lower(), g_val.title(), g_val.upper(), "Unisex"]}
+                
+            if req.excluded_colors:
+                banned_colors = [str(c).lower().strip() for c in req.excluded_colors]
+                filter_dict["colors"] = {"$nin": banned_colors}
+                
+            if req.excluded_tags:
+                banned_tags = [str(t).lower().strip() for t in req.excluded_tags]
+                filter_dict["aesthetic_tags"] = {"$nin": banned_tags}
 
-            # Query index requesting top_k=4
             res = index.query(
                 vector=query_vector,
                 top_k=20, 
                 include_metadata=True,
                 filter=filter_dict
             )
-            
+
+            # --- RESTORED: PINECONE RAW MATCHES PRINT TRACE ---
             print(f"\n==================== PINECONE MATCHES FOR {slot} ====================")
             for match in res.matches:
-                print(f"ID: {match.id} | Score: {match.score} | Name: {match.metadata.get('name')}")
-            print("=======================================================================\n")
+                m_name = match.metadata.get("name", "Unknown Item") if match.metadata else "Unknown Item"
+                print(f"ID: {match.id} | Score: {match.score:.9f} | Name: {m_name}")
+            print("=======================================================================")
 
             candidates = []
             for match in res.matches:
+                match_score = float(match.score)
+                if match_score < SEMANTIC_SCORE_THRESHOLD:
+                    continue
+
                 meta = match.metadata
-                
-                # Fetch full product to check gender since Pinecone metadata is missing it
                 full_product = MockDB.get_product(match.id)
                 if not full_product:
                     continue
                 
-                # Check gender match if user_gender is provided
-                if req.user_gender:
-                    prod_gender = full_product.get("gender")
-                    if prod_gender and prod_gender.lower() not in [req.user_gender.lower(), "unisex"]:
-                        continue
-                
-                # Check hard color exclusions
-                item_colors = [c.lower() for c in meta.get("colors", [])]
-                if any(color.lower() in item_colors for color in req.excluded_colors):
+                if cls._is_gender_mismatched(req.user_gender, full_product.get("gender")):
                     continue
                 
-                # Check hard tag exclusions
-                item_tags = [t.lower() for t in meta.get("aesthetic_tags", [])]
-                if any(tag.lower() in item_tags for tag in req.excluded_tags):
+                raw_colors = meta.get("colors") or full_product.get("colors") or []
+                item_colors = [str(c).lower().strip() for c in (raw_colors if isinstance(raw_colors, list) else [raw_colors])]
+                if any(str(color).lower().strip() in item_colors for color in req.excluded_colors):
                     continue
+                
+                raw_tags = meta.get("aesthetic_tags") or full_product.get("aesthetic_tags") or []
+                item_tags = [str(t).lower().strip() for t in (raw_tags if isinstance(raw_tags, list) else [raw_tags])]
+                if any(str(tag).lower().strip() in item_tags for tag in req.excluded_tags):
+                    continue
+
+                # --- 1. LEXICAL KEYWORD BOOST (Fixes Cargo Pants Ignored) ---
+                original_score = match_score
+                item_keywords = [k.lower() for k in full_product.get("keywords", [])]
+                for target in target_items:
+                    target_lower = target.lower()
+                    if target_lower in item_keywords or any(target_lower in k or k in target_lower for k in item_keywords):
+                        match_score *= 1.5 
+                        break # Only boost once per item, even if multiple targets match
+                #print(item_keywords,target_items)
+                #if match_score != original_score:
+                m_name = meta.get("name") or full_product.get("name", "Unknown Item")
+               # print(f"  [KEYWORD BOOST] {m_name} (ID: {match.id}) | Score: {original_score:.4f} -> {match_score:.4f}")
+
+                # --- 2. CONTEXTUAL VIBE GATE (Fixes Office vs Ethnic Formal) ---
+                is_office_request = "office" in raw_query or "internship" in raw_query or "interview" in raw_query
+                is_ethnic_request = "kurta" in raw_query or "traditional" in raw_query or "wedding" in raw_query or "farewell" in raw_query
+                req_occasion = getattr(req, "occasion_category", "") or ""
+
+                if req_occasion.lower() in ["formal", "wedding"]:
+                    # Always penalize streetwear if they ask for formal
+                    if "streetwear" in item_tags:
+                        match_score *= 0.4
+                    
+                    if is_office_request:
+                        if any(tag in ["ethnic", "traditional"] for tag in item_tags):
+                            match_score *= 0.5 # Penalize ethnic for office
+                        if "formal-business" in [o.lower() for o in full_product.get("occasions", [])]:
+                            match_score *= 1.5 # Boost business items
+                    
+                    elif is_ethnic_request:
+                        if "formal-ethnic" in [o.lower() for o in full_product.get("occasions", [])] or "wedding" in [o.lower() for o in full_product.get("occasions", [])]:
+                            match_score *= 1.5 # Boost ethnic items
 
                 candidates.append({
                     "id": match.id,
-                    "name": meta["name"],
+                    "name": full_product.get("name") or meta.get("name"),
                     "category": slot,
-                    "price": float(meta["price"]),
-                    "image_url": meta["image_url"],
-                    "score": float(match.score)
+                    "price": float(full_product.get("price") or meta.get("price")),
+                    "image_url": full_product.get("image_url") or meta.get("image_url"),
+                    "score": match_score,
+                    "tags": item_tags,
+                    "occasions": [str(o).lower() for o in full_product.get("occasions", [])]
                 })
 
-            # If candidates are empty, fall back to MockDB
             if not candidates:
                 fallback_items = [p for p in MockDB.get_products() if p["category"] == pinecone_cat]
                 for p in fallback_items:
-                    # Check gender match
-                    if req.user_gender:
-                        prod_gender = p.get("gender")
-                        if prod_gender and prod_gender.lower() not in [req.user_gender.lower(), "unisex"]:
-                            continue
+                    if cls._is_gender_mismatched(req.user_gender, p.get("gender")):
+                        continue
 
-                    item_colors = [c.lower() for c in p.get("colors", [])]
-                    if any(color.lower() in item_colors for color in req.excluded_colors):
+                    raw_colors = p.get("colors") or []
+                    item_colors = [str(c).lower().strip() for c in raw_colors]
+                    if any(str(color).lower().strip() in item_colors for color in req.excluded_colors):
                         continue
                     
-                    item_tags = [t.lower() for t in p.get("aesthetic_tags", [])]
-                    if any(tag.lower() in item_tags for tag in req.excluded_tags):
+                    raw_tags = p.get("aesthetic_tags") or []
+                    item_tags = [str(t).lower().strip() for t in raw_tags]
+                    if any(str(tag).lower().strip() in item_tags for tag in req.excluded_tags):
                         continue
 
                     candidates.append({
@@ -168,61 +251,48 @@ class CurationEngine:
                         "category": slot,
                         "price": float(p["price"]),
                         "image_url": p["image_url"],
-                        "score": 0.1
+                        "score": 0.1 + (1.0 / (float(p["price"]) + 1.0)),
+                        "tags": item_tags,
+                        "occasions": [str(o).lower() for o in p.get("occasions", [])]
                     })
                     
             candidates.sort(key=lambda x: x["score"], reverse=True)
-            slot_candidates[slot] = candidates
+            slot_candidates[slot] = candidates[:4]
 
-        max_budget_limit = req.max_budget if req.max_budget is not None else 5000
-
-        # Zero Result Protection Floor
         if any(len(slot_candidates[slot]) == 0 for slot in slots):
             return {
                 "outfit": [],
-                "swap_boxes": {},
-                "budget_exceeded": False
+                "swap_boxes": {s: [] for s in slots},
+                "budget_exceeded": False,
+                "local_consent_prompt": "Uh oh, none of our current stock pieces completely align with that style option. Try shifting your tags!"
             }
 
-        # Step 3: check #1 highest-scoring combo
-        top_combo = [
-            slot_candidates["TOP"][0],
-            slot_candidates["BOTTOM"][0],
-            slot_candidates["FOOTWEAR"][0],
-            slot_candidates["ACCESSORY"][0]
-        ]
-        total_price = sum(item["price"] for item in top_combo)
-        
-        if total_price <= max_budget_limit:
-            active_outfit = top_combo
-            swap_boxes = {
-                "TOP": slot_candidates["TOP"][1:4],
-                "BOTTOM": slot_candidates["BOTTOM"][1:4],
-                "FOOTWEAR": slot_candidates["FOOTWEAR"][1:4],
-                "ACCESSORY": slot_candidates["ACCESSORY"][1:4]
-            }
-            result = {
-                "outfit": active_outfit,
-                "swap_boxes": swap_boxes,
-                "budget_exceeded": False
-            }
-            print("\n==================== FINAL SELECTED OUTFIT ====================")
-            for item in result["outfit"]:
-                print(f"[{item['category']}] {item['name']} (ID: {item['id']}) - Score: {item['score']}")
-            print("===============================================================\n")
-            return result
+        max_budget_limit = req.max_budget if req.max_budget is not None else 100000
 
-        # Step 4: Combinatorial Fallback
         best_combo = None
         best_total_score = -1.0
         
+        # --- 3. COMBINATORIAL OPTIMIZATION LOOP ---
         for top in slot_candidates["TOP"]:
             for bottom in slot_candidates["BOTTOM"]:
                 for footwear in slot_candidates["FOOTWEAR"]:
                     for accessory in slot_candidates["ACCESSORY"]:
                         combo_price = top["price"] + bottom["price"] + footwear["price"] + accessory["price"]
+                        
                         if combo_price <= max_budget_limit:
-                            combo_score = top["score"] + bottom["score"] + footwear["score"] + accessory["score"]
+                            base_score = top["score"] + bottom["score"] + footwear["score"] + accessory["score"]
+                            
+                            # --- 4. HARMONY PENALTY (Prevents Clashing Vibes) ---
+                            vibe_clash = 0.0
+                            top_is_formal = any(o in ["formal-business", "formal-ethnic", "office"] for o in top["occasions"])
+                            bottom_is_street = "streetwear" in bottom["tags"]
+                            footwear_is_street = "streetwear" in footwear["tags"]
+                            
+                            if top_is_formal and (bottom_is_street or footwear_is_street):
+                                vibe_clash += 0.8  # Heavy penalty for mixing suit jackets with cargo pants
+                                
+                            combo_score = base_score - vibe_clash
+                            
                             if combo_score > best_total_score:
                                 best_total_score = combo_score
                                 best_combo = [top, bottom, footwear, accessory]
@@ -230,38 +300,47 @@ class CurationEngine:
         budget_exceeded = False
         if best_combo is None:
             budget_exceeded = True
-            cheapest_combo = [
+            best_combo = [
                 min(slot_candidates["TOP"], key=lambda x: x["price"]),
                 min(slot_candidates["BOTTOM"], key=lambda x: x["price"]),
                 min(slot_candidates["FOOTWEAR"], key=lambda x: x["price"]),
                 min(slot_candidates["ACCESSORY"], key=lambda x: x["price"])
             ]
-            best_combo = cheapest_combo
 
-        active_outfit = best_combo
-        swap_boxes = {
-            "TOP": [c for c in slot_candidates["TOP"] if c["id"] != active_outfit[0]["id"]][:3],
-            "BOTTOM": [c for c in slot_candidates["BOTTOM"] if c["id"] != active_outfit[1]["id"]][:3],
-            "FOOTWEAR": [c for c in slot_candidates["FOOTWEAR"] if c["id"] != active_outfit[2]["id"]][:3],
-            "ACCESSORY": [c for c in slot_candidates["ACCESSORY"] if c["id"] != active_outfit[3]["id"]][:3]
-        }
+        # --- RESTORED: FINAL SELECTED OUTFIT PRINT TRACE ---
+        print("\n==================== FINAL SELECTED OUTFIT ====================")
+        for item in best_combo:
+            score = item.get('score', 0)
+            if isinstance(score, float):
+                print(f"[{item['category'].upper()}] {item['name']} (ID: {item['id']}) - Score: {score:.9f}")
+            else:
+                print(f"[{item['category'].upper()}] {item['name']} (ID: {item['id']}) - Score: {score}")
+        print("===============================================================\n")
 
-        result = {
-            "outfit": active_outfit,
+        # Cleanup internal keys before returning to frontend
+        for item in best_combo:
+            item.pop("tags", None)
+            item.pop("occasions", None)
+            
+        swap_boxes = {}
+        for s in slots:
+            clean_swaps = []
+            for c in slot_candidates[s]:
+                if c["id"] != best_combo[slots.index(s)]["id"]:
+                    clean_c = c.copy()
+                    clean_c.pop("tags", None)
+                    clean_c.pop("occasions", None)
+                    clean_swaps.append(clean_c)
+            swap_boxes[s] = clean_swaps[:3]
+
+        return {
+            "outfit": best_combo,
             "swap_boxes": swap_boxes,
             "budget_exceeded": budget_exceeded
         }
-        print("\n==================== FINAL SELECTED OUTFIT ====================")
-        for item in result["outfit"]:
-            print(f"[{item['category']}] {item['name']} (ID: {item['id']}) - Score: {item['score']}")
-        print("===============================================================\n")
-        return result
 
     @classmethod
     def get_slot_alternatives(cls, req: GenieAlternativesRequest) -> List[Dict[str, Any]]:
-        """
-        Calculates remaining budget and retrieves paginated catalog options for swaps.
-        """
         index, model = cls._get_resources()
 
         slot = req.category_to_refresh or req.slot_category
@@ -274,28 +353,40 @@ class CurationEngine:
         pinecone_cat = cls.map_frontend_category_to_pinecone(slot)
         front_cat = cls.map_pinecone_category_to_frontend(slot)
 
-        # Calculate remaining budget
         other_total = 0.0
         for p_id in active_ids:
             p = MockDB.get_product(p_id)
             if p:
                 other_total += float(p["price"])
         
-        remaining_budget = float(req.max_budget) - other_total
+        remaining_budget = float(req.max_budget) - other_total if req.max_budget else 100000
 
-        # Query Pinecone for alternatives
-        search_text = f"Category: {pinecone_cat}. Name: . Occasions: {req.occasion_category or ''}. Aesthetics: {', '.join(req.aesthetic_tags)}."
+        target_items = getattr(req, "target_items", [])
+        target_str = ", ".join(target_items) if target_items else ""
+
+        search_text = f"Category: {pinecone_cat}. Name: {target_str}. Occasion: {req.occasion_category or ''}. Aesthetics: {', '.join(req.aesthetic_tags)}."
         query_vector = model.encode(search_text).tolist()
 
         filter_dict = {
             "category": pinecone_cat,
             "price": {"$lte": remaining_budget}
         }
+        
+        if req.user_gender:
+            g_val = str(req.user_gender).strip()
+            filter_dict["gender"] = {"$in": [g_val, g_val.lower(), g_val.title(), g_val.upper(), "Unisex"]}
 
-        # Request top_k=20 to allow pagination offsets
+        if req.excluded_colors:
+            banned_colors = [str(c).lower().strip() for c in req.excluded_colors]
+            filter_dict["colors"] = {"$nin": banned_colors}
+            
+        if req.excluded_tags:
+            banned_tags = [str(t).lower().strip() for t in req.excluded_tags]
+            filter_dict["aesthetic_tags"] = {"$nin": banned_tags}
+
         res = index.query(
             vector=query_vector,
-            top_k=20,
+            top_k=30,
             include_metadata=True,
             filter=filter_dict
         )
@@ -306,28 +397,31 @@ class CurationEngine:
             if match.id in active_set:
                 continue
 
-            # Fetch full product to check gender since Pinecone metadata is missing it
             full_product = MockDB.get_product(match.id)
             if not full_product:
                 continue
                 
-            # Check gender match if user_gender is provided
-            if req.user_gender:
-                prod_gender = full_product.get("gender")
-                if prod_gender and prod_gender not in [req.user_gender, "Unisex"]:
-                    continue
+            if cls._is_gender_mismatched(req.user_gender, full_product.get("gender")):
+                continue
 
             meta = match.metadata
-            item_colors = [c.lower() for c in meta.get("colors", [])]
-            if any(color.lower() in item_colors for color in req.excluded_colors):
+            
+            raw_colors = meta.get("colors") or full_product.get("colors") or []
+            item_colors = [str(c).lower().strip() for c in (raw_colors if isinstance(raw_colors, list) else [raw_colors])]
+            if any(str(color).lower().strip() in item_colors for color in req.excluded_colors):
+                continue
+            
+            raw_tags = meta.get("aesthetic_tags") or full_product.get("aesthetic_tags") or []
+            item_tags = [str(t).lower().strip() for t in (raw_tags if isinstance(raw_tags, list) else [raw_tags])]
+            if any(str(tag).lower().strip() in item_tags for tag in req.excluded_tags):
                 continue
 
             candidates.append({
                 "id": match.id,
-                "name": meta["name"],
+                "name": full_product.get("name") or meta.get("name"),
                 "category": front_cat,
-                "price": float(meta["price"]),
-                "image_url": meta["image_url"],
+                "price": float(full_product.get("price") or meta.get("price")),
+                "image_url": full_product.get("image_url") or meta.get("image_url"),
                 "score": float(match.score)
             })
 
@@ -337,7 +431,6 @@ class CurationEngine:
         offset = page * limit
         paginated_candidates = candidates[offset : offset + limit]
 
-        # Fallback to top candidates if pagination runs out
         if not paginated_candidates and candidates:
             paginated_candidates = candidates[:limit]
 

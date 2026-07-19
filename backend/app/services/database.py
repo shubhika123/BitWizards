@@ -16,6 +16,7 @@ class ProductEntity(BaseModel):
     occasions: List[str] = Field(default_factory=list)
     colors: List[str] = Field(default_factory=list)
     aesthetic_tags: List[str] = Field(default_factory=list)
+    keywords: List[str] = Field(default_factory=list)
     image_url: str = Field(...)
     gender: str = Field(default="Unisex")
 
@@ -34,8 +35,9 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest"],
         "colors": ["black", "neon green"],
         "aesthetic_tags": ["streetwear", "tech-core", "baggy", "dark"],
-        "gender": "unisex",
-        "image_url": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=400&q=80"
+        "keywords": ["t-shirt", "tshirt", "tee", "graphic tee"],
+        "gender": "Unisex",
+        "image_url": "/catalog/top_001.png"
     },
     {
         "id": "top_002",
@@ -45,7 +47,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "party", "date"],
         "colors": ["red", "black", "grey"],
         "aesthetic_tags": ["streetwear", "layering", "grunge", "winter"],
-        "gender": "men",
+        "keywords": ["shirt", "flannel", "flannel shirt", "jacket"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -56,7 +59,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest"],
         "colors": ["olive", "dark green"],
         "aesthetic_tags": ["streetwear", "minimalist", "cozy", "winter"],
-        "gender": "unisex",
+        "keywords": ["hoodie", "sweatshirt", "hood"],
+        "gender": "Unisex",
         "image_url": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -67,7 +71,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "party"],
         "colors": ["blue", "faded blue"],
         "aesthetic_tags": ["vintage", "layering", "classic", "rugged"],
-        "gender": "men",
+        "keywords": ["jacket", "denim jacket", "jean jacket"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1495105787522-5334e3ffa0efa?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -75,10 +80,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "lucknowi chikankari short kurta",
         "category": "Topwear",
         "price": 1250,
-        "occasions": ["festive", "wedding","formal"],
+        "occasions": ["festive", "wedding", "Formal-Ethnic"],
         "colors": ["mint", "pastel green", "white"],
-        "aesthetic_tags": ["ethnic", "elegant", "light", "fusion","modern", "trendy"],
-        "gender": "men",
+        "aesthetic_tags": ["ethnic", "elegant", "light", "fusion", "modern", "trendy"],
+        "keywords": ["kurta", "chikankari", "chikan", "lucknowi", "chikan kari", "embroidered kurta"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1597983073493-88cd35cf93b0?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -89,7 +95,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["festive", "wedding", "party"],
         "colors": ["mustard", "yellow", "gold"],
         "aesthetic_tags": ["ethnic", "modern", "vibrant", "haldi"],
-        "gender": "men",
+        "keywords": ["kurta", "silk kurta"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1583391733959-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -97,10 +104,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "textured bandhgala nehru jacket",
         "category": "Topwear",
         "price": 2100,
-        "occasions": ["wedding", "formal"],
+        "occasions": ["wedding", "Formal-Ethnic"],
         "colors": ["navy", "black"],
         "aesthetic_tags": ["ethnic", "royal", "structured", "layering"],
-        "gender": "men",
+        "keywords": ["nehru jacket", "bandhgala", "jacket", "blazer", "waistcoat"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -111,7 +119,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest", "party"],
         "colors": ["black", "white"],
         "aesthetic_tags": ["minimalist", "y2k", "sleek", "summer"],
-        "gender": "women",
+        "keywords": ["crop top", "halter top", "top"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -122,7 +131,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "date"],
         "colors": ["cream", "beige"],
         "aesthetic_tags": ["boho", "vintage", "textured", "cozy"],
-        "gender": "women",
+        "keywords": ["cardigan", "sweater", "knitwear"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1434389678369-e8412675d0f6?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -133,7 +143,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest"],
         "colors": ["white", "pink", "purple"],
         "aesthetic_tags": ["streetwear", "baggy", "gen-z", "kawaii"],
-        "gender": "women",
+        "keywords": ["t-shirt", "tshirt", "tee", "anime tee"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -144,7 +155,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["party", "date"],
         "colors": ["black", "maroon"],
         "aesthetic_tags": ["edgy", "glam", "statement", "night-out"],
-        "gender": "women",
+        "keywords": ["corset", "corset top", "top"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1550614000-4b95dd2475a3?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -155,7 +167,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["festive", "wedding"],
         "colors": ["hot pink", "magenta", "silver"],
         "aesthetic_tags": ["ethnic", "glam", "vibrant", "heavy"],
-        "gender": "women",
+        "keywords": ["kurti", "kurta", "mirror work", "top"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -166,7 +179,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["festive", "casual"],
         "colors": ["red", "orange"],
         "aesthetic_tags": ["ethnic", "traditional", "flowy", "bright"],
-        "gender": "women",
+        "keywords": ["angrakha", "kurta", "kurti", "bandhani"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -177,7 +191,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "party"],
         "colors": ["gold", "cream"],
         "aesthetic_tags": ["ethnic", "fusion", "glam", "sleek"],
-        "gender": "women",
+        "keywords": ["blouse", "top"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -185,10 +200,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "cotton anarkali kurta",
         "category": "Topwear",
         "price": 1100,
-        "occasions": ["festive", "office"],
+        "occasions": ["festive", "Office"],
         "colors": ["yellow", "mustard"],
         "aesthetic_tags": ["ethnic", "elegant", "haldi", "flowy"],
-        "gender": "women",
+        "keywords": ["anarkali", "kurta", "kurti", "gown"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1617260537877-cd5f4ccda364?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -196,10 +212,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "solid satin shirt",
         "category": "Topwear",
         "price": 999,
-        "occasions": ["formal", "party", "date"],
+        "occasions": ["Formal-Business", "Office", "party", "date"],
         "colors": ["emerald green", "navy"],
         "aesthetic_tags": ["sleek", "elegant", "minimalist", "premium"],
-        "gender": "women",
+        "keywords": ["shirt", "blouse", "satin shirt"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1598554747436-c9293d6a588f?auto=format&fit=crop&w=400&q=80"
     },
 
@@ -214,8 +231,9 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest"],
         "colors": ["black", "charcoal"],
         "aesthetic_tags": ["streetwear", "tech-core", "utility", "baggy"],
-        "gender": "men",
-        "image_url": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=400&q=80"
+        "keywords": ["cargo pants", "cargos", "pants", "trousers"],
+        "gender": "Men",
+        "image_url": "/catalog/bot_001.png"
     },
     {
         "id": "bot_002",
@@ -224,8 +242,9 @@ CATALOG: List[Dict[str, Any]] = [
         "price": 1299,
         "occasions": ["casual", "party"],
         "colors": ["beige", "tan", "khaki"],
-        "aesthetic_tags": ["streetwear", "y2k", "relaxed", "trendy"],
-        "gender": "unisex",
+        "aesthetic_tags": ["streetwear", "y2k", "relaxed"],
+        "keywords": ["parachute pants", "pants", "trousers"],
+        "gender": "Unisex",
         "image_url": "https://images.unsplash.com/photo-1549037173-e3b710c541d6?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -236,7 +255,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "date"],
         "colors": ["blue", "light blue"],
         "aesthetic_tags": ["streetwear", "vintage", "baggy", "casual"],
-        "gender": "unisex",
+        "keywords": ["jeans", "denim", "denim pants", "wide-leg jeans"],
+        "gender": "Unisex",
         "image_url": "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -244,10 +264,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "premium slim fit chinos",
         "category": "Bottomwear",
         "price": 1199,
-        "occasions": ["formal", "office", "date"],
+        "occasions": ["Formal-Business", "Office", "date"],
         "colors": ["navy", "black", "olive"],
         "aesthetic_tags": ["minimalist", "smart-casual", "sleek", "tailored"],
-        "gender": "men",
+        "keywords": ["chinos", "pants", "trousers"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -258,7 +279,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["festive", "wedding"],
         "colors": ["white", "cream", "off-white"],
         "aesthetic_tags": ["ethnic", "traditional", "comfort", "light"],
-        "gender": "men",
+        "keywords": ["pyjama", "pajama", "kurta pyjama", "churidar", "aligarh pyjama"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -269,7 +291,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "festive"],
         "colors": ["gold", "beige"],
         "aesthetic_tags": ["ethnic", "royal", "flowy", "traditional"],
-        "gender": "men",
+        "keywords": ["dhoti", "dhoti pants"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1596489370005-cb6d860d5dd7?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -279,9 +302,10 @@ CATALOG: List[Dict[str, Any]] = [
         "price": 1399,
         "occasions": ["casual", "college fest", "party"],
         "colors": ["olive", "khaki", "brown"],
-        "aesthetic_tags": ["streetwear", "y2k", "utility", "trendy"],
-        "gender": "women",
-        "image_url": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=400&q=80"
+        "aesthetic_tags": ["streetwear", "y2k", "utility"],
+        "keywords": ["cargo pants", "cargos", "pants"],
+        "gender": "Women",
+        "image_url": "/catalog/bot_007.png"
     },
     {
         "id": "bot_008",
@@ -291,7 +315,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "date"],
         "colors": ["grey", "washed black"],
         "aesthetic_tags": ["vintage", "grunge", "relaxed", "casual"],
-        "gender": "women",
+        "keywords": ["jeans", "mom jeans", "denim"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -302,7 +327,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "party"],
         "colors": ["white", "plaid", "black"],
         "aesthetic_tags": ["y2k", "preppy", "summer", "kawaii"],
-        "gender": "women",
+        "keywords": ["skirt", "tennis skirt", "mini skirt"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1582142407894-ec85a1260a46?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -310,10 +336,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "flared crepe trousers",
         "category": "Bottomwear",
         "price": 1099,
-        "occasions": ["formal", "office", "party"],
+        "occasions": ["Formal-Business", "Office", "party"],
         "colors": ["black", "navy", "maroon"],
         "aesthetic_tags": ["sleek", "elegant", "minimalist", "tailored"],
-        "gender": "women",
+        "keywords": ["trousers", "pants"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1509631179647-0c708bd226ee?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -324,7 +351,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "festive"],
         "colors": ["pink", "magenta", "gold"],
         "aesthetic_tags": ["ethnic", "glam", "heavy", "flowy"],
-        "gender": "women",
+        "keywords": ["sharara", "sharara pants", "gotta patti", "pants"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -335,7 +363,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["festive", "casual"],
         "colors": ["yellow", "white", "mustard"],
         "aesthetic_tags": ["ethnic", "comfort", "vibrant", "boho"],
-        "gender": "women",
+        "keywords": ["palazzo", "palazzo pants", "pants"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -346,7 +375,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "festive", "party"],
         "colors": ["gold", "cream"],
         "aesthetic_tags": ["ethnic", "fusion", "sleek", "premium"],
-        "gender": "women",
+        "keywords": ["pants", "trousers"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
     },
 
@@ -361,7 +391,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest"],
         "colors": ["black", "neon green", "grey"],
         "aesthetic_tags": ["streetwear", "tech-core", "chunky", "statement"],
-        "gender": "unisex",
+        "keywords": ["sneakers", "shoes"],
+        "gender": "Unisex",
         "image_url": "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -372,18 +403,20 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "date", "party"],
         "colors": ["white", "off-white"],
         "aesthetic_tags": ["minimalist", "clean", "versatile", "streetwear"],
-        "gender": "unisex",
-        "image_url": "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80"
+        "keywords": ["sneakers", "shoes"],
+        "gender": "Unisex",
+        "image_url": "/catalog/foot_002.png"
     },
     {
         "id": "foot_003",
         "name": "suede chelsea boots",
         "category": "Footwear",
         "price": 2100,
-        "occasions": ["formal", "party", "date"],
+        "occasions": ["Formal-Business", "party", "date"],
         "colors": ["brown", "tan", "black"],
         "aesthetic_tags": ["smart-casual", "sleek", "classic", "winter"],
-        "gender": "men",
+        "keywords": ["boots", "chelsea boots", "shoes"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1638247025967-b4e38f787b76?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -394,7 +427,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["festive", "wedding", "casual"],
         "colors": ["tan", "brown"],
         "aesthetic_tags": ["ethnic", "traditional", "rugged", "comfort"],
-        "gender": "men",
+        "keywords": ["kolhapuri", "kolhapuri chappal", "sandals", "chappal", "chappals"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -405,7 +439,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "festive"],
         "colors": ["navy", "black", "gold"],
         "aesthetic_tags": ["ethnic", "royal", "heavy", "statement"],
-        "gender": "men",
+        "keywords": ["mojri", "mojari", "jutti", "juttis", "shoes"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -416,7 +451,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest"],
         "colors": ["pink", "mint", "white"],
         "aesthetic_tags": ["streetwear", "kawaii", "vibrant", "y2k"],
-        "gender": "women",
+        "keywords": ["sneakers", "shoes"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -427,7 +463,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["party", "date", "wedding"],
         "colors": ["black", "silver", "red"],
         "aesthetic_tags": ["glam", "sleek", "night-out", "elegant"],
-        "gender": "women",
+        "keywords": ["heels", "stilettos", "shoes"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -435,10 +472,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "woven faux leather mules",
         "category": "Footwear",
         "price": 999,
-        "occasions": ["casual", "office", "date"],
+        "occasions": ["casual", "Office", "date"],
         "colors": ["beige", "tan", "cream"],
         "aesthetic_tags": ["minimalist", "smart-casual", "boho", "comfort"],
-        "gender": "women",
+        "keywords": ["mules", "shoes"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1535043934128-d8f99333a921?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -449,7 +487,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "festive"],
         "colors": ["gold", "rose gold"],
         "aesthetic_tags": ["ethnic", "glam", "heavy", "traditional"],
-        "gender": "women",
+        "keywords": ["wedges", "sandals", "heels"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1562183241-b937e95585b6?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -460,7 +499,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["festive", "casual"],
         "colors": ["yellow", "mustard", "multicolor"],
         "aesthetic_tags": ["ethnic", "vibrant", "handcrafted", "haldi"],
-        "gender": "women",
+        "keywords": ["jutti", "juttis", "flats", "shoes"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
     },
 
@@ -475,7 +515,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest", "party"],
         "colors": ["black", "dark grey"],
         "aesthetic_tags": ["streetwear", "edgy", "minimalist", "tech-core"],
-        "gender": "men",
+        "keywords": ["pendant", "necklace", "chain"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -486,18 +527,20 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "college fest"],
         "colors": ["olive", "black", "neon"],
         "aesthetic_tags": ["streetwear", "utility", "baggy", "functional"],
-        "gender": "unisex",
-        "image_url": "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=400&q=80"
+        "keywords": ["bag", "sling bag", "crossbody bag"],
+        "gender": "Unisex",
+        "image_url": "/catalog/acc_002.png"
     },
     {
         "id": "acc_003",
         "name": "digital retro chronograph watch",
         "category": "Accessory",
         "price": 899,
-        "occasions": ["casual", "office", "date"],
+        "occasions": ["casual", "Office", "date"],
         "colors": ["silver", "black"],
         "aesthetic_tags": ["minimalist", "vintage", "classic", "geek"],
-        "gender": "men",
+        "keywords": ["watch", "wristwatch"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -508,7 +551,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "party"],
         "colors": ["gold", "green", "brown"],
         "aesthetic_tags": ["classic", "vintage", "statement"],
-        "gender": "unisex",
+        "keywords": ["sunglasses", "shades", "glasses"],
+        "gender": "Unisex",
         "image_url": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -516,10 +560,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "silk pocket square & brooch set",
         "category": "Accessory",
         "price": 450,
-        "occasions": ["wedding", "formal"],
+        "occasions": ["wedding", "Formal-Ethnic"],
         "colors": ["maroon", "gold", "navy"],
         "aesthetic_tags": ["ethnic", "royal", "sleek", "premium"],
-        "gender": "men",
+        "keywords": ["pocket square", "brooch"],
+        "gender": "Men",
         "image_url": "https://images.unsplash.com/photo-1613588718956-c2e8f29ea156?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -530,7 +575,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["festive", "wedding", "college fest"],
         "colors": ["silver", "oxidised"],
         "aesthetic_tags": ["ethnic", "boho", "heavy", "traditional"],
-        "gender": "women",
+        "keywords": ["jhumka", "jhumkas", "earrings"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -541,7 +587,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "festive"],
         "colors": ["gold", "white", "pink"],
         "aesthetic_tags": ["ethnic", "royal", "glam", "heavy"],
-        "gender": "women",
+        "keywords": ["choker", "necklace", "jewellery", "jewelry", "kundan"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1599643478524-fb524b0b14c1?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -552,7 +599,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "festive"],
         "colors": ["magenta", "gold", "yellow"],
         "aesthetic_tags": ["ethnic", "traditional", "vibrant", "haldi"],
-        "gender": "women",
+        "keywords": ["potli", "potli bag", "clutch", "bag"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -563,7 +611,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["casual", "party", "date"],
         "colors": ["black", "silver"],
         "aesthetic_tags": ["y2k", "streetwear", "minimalist", "trendy"],
-        "gender": "women",
+        "keywords": ["bag", "shoulder bag"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -571,10 +620,11 @@ CATALOG: List[Dict[str, Any]] = [
         "name": "layered gold chain necklace",
         "category": "Accessory",
         "price": 499,
-        "occasions": ["casual", "party", "office"],
+        "occasions": ["casual", "party", "Office"],
         "colors": ["gold"],
         "aesthetic_tags": ["minimalist", "sleek", "elegant", "everyday"],
-        "gender": "women",
+        "keywords": ["necklace", "chain"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -585,7 +635,8 @@ CATALOG: List[Dict[str, Any]] = [
         "occasions": ["wedding", "festive"],
         "colors": ["white", "yellow", "orange"],
         "aesthetic_tags": ["ethnic", "traditional", "vibrant", "floral"],
-        "gender": "women",
+        "keywords": ["gajra", "hair accessory", "hair clip"],
+        "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1588616140502-3c1a84f3eb3c?auto=format&fit=crop&w=400&q=80"
     }
 ]
@@ -674,3 +725,19 @@ class MockDB:
             if product["id"] == product_id:
                 return product
         return None
+
+# --- AUTO-OVERRIDE IMAGE URLS WITH LOCAL FILES ---
+import os
+from pathlib import Path
+
+# Check frontend/public/catalog for any local images matching product IDs
+frontend_catalog_dir = Path(__file__).resolve().parents[3] / "frontend" / "public" / "catalog"
+
+if frontend_catalog_dir.exists():
+    for item in CATALOG:
+        pid = item["id"]
+        for ext in [".png", ".jpg", ".jpeg"]:
+            local_file = frontend_catalog_dir / f"{pid}{ext}"
+            if local_file.exists():
+                item["image_url"] = f"/catalog/{pid}{ext}"
+                break
