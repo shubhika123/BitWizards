@@ -331,7 +331,7 @@ class CurationEngine:
                     clean_c.pop("tags", None)
                     clean_c.pop("occasions", None)
                     clean_swaps.append(clean_c)
-            swap_boxes[s] = clean_swaps[:3]
+            swap_boxes[s] = clean_swaps[:4]
 
         return {
             "outfit": best_combo,
@@ -410,24 +410,27 @@ class CurationEngine:
             item_colors = [str(c).lower().strip() for c in (raw_colors if isinstance(raw_colors, list) else [raw_colors])]
             if any(str(color).lower().strip() in item_colors for color in req.excluded_colors):
                 continue
-            
+                
             raw_tags = meta.get("aesthetic_tags") or full_product.get("aesthetic_tags") or []
             item_tags = [str(t).lower().strip() for t in (raw_tags if isinstance(raw_tags, list) else [raw_tags])]
-            if any(str(tag).lower().strip() in item_tags for tag in req.excluded_tags):
+            if any(str(tag).lower().strip() in item_tags for tag in getattr(req, "excluded_tags", [])):
                 continue
-
+            
+            # We rely on Pinecone's vector similarity to rank by aesthetics/occasions,
+            
             candidates.append({
                 "id": match.id,
-                "name": full_product.get("name") or meta.get("name"),
-                "category": front_cat,
-                "price": float(full_product.get("price") or meta.get("price")),
-                "image_url": full_product.get("image_url") or meta.get("image_url"),
+                "name": full_product.get("name") or match.metadata.get("name"),
+                "category": slot,
+                "price": float(full_product.get("price") or match.metadata.get("price")),
+                "image_url": full_product.get("image_url") or match.metadata.get("image_url"),
                 "score": float(match.score)
             })
 
+        # Sort by score descending
         candidates.sort(key=lambda x: x["score"], reverse=True)
         
-        limit = 3
+        limit = 4
         offset = page * limit
         paginated_candidates = candidates[offset : offset + limit]
 
