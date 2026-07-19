@@ -344,11 +344,10 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
       {/* Background Gradients */}
       {activeTab === "chat" && (
         <>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#ff3f6c]/30 via-[#ff3f6c]/5 to-[#fff2ed] pointer-events-none" />
-          {/* Subtle flower petal pattern below gradient using radial gradients as a premium CSS approach */}
-          <div className="absolute bottom-0 left-0 right-0 h-1/2 opacity-20 pointer-events-none"
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,#FFE9EE_0%,#FFFFFF_100%)] pointer-events-none" />
+          <div className="absolute top-0 left-0 right-0 h-64 opacity-10 pointer-events-none"
                style={{
-                 backgroundImage: "radial-gradient(ellipse at 50% 50%, #ff6b8b 0%, transparent 70%), radial-gradient(ellipse at 20% 80%, #ff3f6c 0%, transparent 70%)",
+                 backgroundImage: "radial-gradient(circle at 50% 0%, #FF3F6C 0%, transparent 70%)",
                }}
           />
         </>
@@ -370,16 +369,17 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
           <div className="px-3 py-2 flex items-center justify-between w-full">
             <Link
               href="/"
-              className="w-10 h-10 bg-white/50 backdrop-blur-md flex items-center justify-center rounded-full hover:bg-white/80 transition-colors shadow-sm"
+              className="w-10 h-10 bg-[#F7F7F8] border border-[#E5E5E8] flex items-center justify-center rounded-full hover:bg-white transition-colors shadow-sm"
               aria-label="Back to home"
             >
-              <ChevronLeft className="w-6 h-6 text-[#282c3f]" />
+              <ChevronLeft className="w-6 h-6 text-[#3E4152]" />
             </Link>
             
-            <div className="flex-1 flex justify-center">
-              <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] italic tracking-tight drop-shadow-sm px-4" style={{ fontFamily: "cursive" }}>
+            <div className="flex-1 flex justify-center items-center gap-1">
+              <h1 className="text-3xl font-extrabold text-[#282C3F] italic tracking-tight" style={{ fontFamily: "cursive" }}>
                 Genie
               </h1>
+              <Sparkles size={18} className="text-[#FF3F6C] mb-2" />
             </div>
             
             <div className="w-10 h-10" /> {/* Spacer for centering */}
@@ -580,7 +580,7 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
           )}
 
           <div
-            className="relative z-20 shrink-0 bg-[#ff3f6c] border-t border-[#ff3f6c] p-3 shadow-[0_-4px_15px_rgba(255,63,108,0.2)]"
+            className="relative z-20 shrink-0 bg-transparent p-3"
             style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
           >
             <div className="flex flex-wrap gap-2 mb-2">
@@ -590,15 +590,15 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
                   type="button"
                   onClick={() => setComposer(chip)}
                   disabled={!userGender || !preferencesConfirmed}
-                  className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-white/20 text-white border border-white/25 shadow-xs disabled:opacity-50 cursor-pointer"
+                  className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-[#FFFFFF] text-[#FF3F6C] border border-[#FF3F6C] shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   {chip}
                 </button>
               ))}
             </div>
             <form onSubmit={handleSubmit} className="flex gap-2 items-center">
-              <div className="flex-1 flex items-center bg-white rounded-xl px-3 py-2.5 shadow-inner min-h-11">
-                <Sparkles className="w-4 h-4 text-[#ff3f6c] shrink-0 mr-2" />
+              <div className="flex-1 flex items-center bg-white rounded-xl px-3 py-2.5 shadow-sm border border-[#E5E5E8] min-h-11">
+                <Sparkles className="w-4 h-4 text-[#FF3F6C] shrink-0 mr-2" />
                 <input
                   type="text"
                   value={composer}
@@ -611,16 +611,16 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
                         ? "Please select what you're styling today..." 
                         : 'e.g. "Bhai ki shaadi sherwani under 5k"'
                   }
-                  className="flex-1 min-w-0 bg-transparent text-[13px] outline-none placeholder-[#ff3f6c]/60 text-[#282c3f] disabled:opacity-50"
+                  className="flex-1 min-w-0 bg-transparent text-[13px] outline-none placeholder-[#9496a2] text-[#282c3f] disabled:opacity-50"
                 />
               </div>
               <button
                 type="submit"
                 disabled={isParsing || isDemoLoading || !composer.trim() || !userGender || !preferencesConfirmed}
-                className="min-h-11 min-w-11 flex items-center justify-center rounded-xl bg-white shadow-sm cursor-pointer"
+                className="min-h-11 min-w-11 flex items-center justify-center rounded-xl bg-[#FF3F6C] shadow-sm cursor-pointer"
                 aria-label="Send"
               >
-                {isParsing || isDemoLoading ? <span className="w-5 h-5 border-2 border-[#ff3f6c] border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-5 h-5 text-[#ffa000]" fill="#ffa000" />}
+                {isParsing || isDemoLoading ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-5 h-5 text-white" fill="#ffffff" />}
               </button>
             </form>
           </div>
