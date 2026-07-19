@@ -393,6 +393,10 @@ export function useGenieNlpSubmit() {
         if (curateResponse.ok) {
           const curatedResult = await curateResponse.json();
           const curatedItems = curatedResult.outfit || [];
+          
+          if (curatedResult.swap_boxes) {
+            useGenieStore.getState().setInitialSwapBoxes(curatedResult.swap_boxes);
+          }
 
           curatedItems.forEach((item: any) => {
             const category = item.category as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";

@@ -16,10 +16,12 @@ import {
   ChevronLeft,
   ChevronDown,
   ChevronUp,
+  BookmarkPlus,
 } from "lucide-react";
 import { client, handle_file } from "@gradio/client";
 import { useGenieStore, GenieItem } from "../store/genieStore";
 import { fetchImageAsBlob } from "../utils/imageUtils";
+import PinToBoardModal from "./OutfitCircle/PinToBoardModal";
 
 const STARTER_MODELS = [
   {
@@ -72,8 +74,10 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
-  const [isBottomBarVisible, setIsBottomBarVisible] = useState(true);
+  const [isSwapLoading, setIsSwapLoading] = useState(false);
+  const [drawerState, setDrawerState] = useState<'hidden' | 'half' | 'full'>('half');
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({
     TOP: "S",
@@ -83,7 +87,6 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
   });
 
   const [swapAlternatives, setSwapAlternatives] = useState<any[]>([]);
-  const [isSwapLoading, setIsSwapLoading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -92,10 +95,26 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
   const isOverBudget = usedBudget > maxBudget;
   const shownImage = displayImage ?? baseUserImage;
 
+  const initialSwapBoxes = useGenieStore((state) => state.initialSwapBoxes);
+
   const loadAlternatives = useCallback(
     async (slotCategory: string) => {
       setIsSwapLoading(true);
       try {
+        // Use the initial swap boxes from the first curate request if they exist
+        if (initialSwapBoxes && initialSwapBoxes[slotCategory]) {
+          const mapped = initialSwapBoxes[slotCategory].map((alt: any) => ({
+            id: alt.id,
+            name: alt.name,
+            price: alt.price,
+            image: alt.image_url,
+          }));
+          setSwapAlternatives(mapped);
+          setIsSwapLoading(false);
+          return;
+        }
+
+        // Fallback to API if we don't have initial swap boxes
         const currentOutfitIds = (Object.keys(canvasItems) as Array<keyof typeof canvasItems>)
           .filter((key) => key !== slotCategory)
           .map((key) => canvasItems[key]?.id)
@@ -138,7 +157,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
         setIsSwapLoading(false);
       }
     },
-    [canvasItems, maxBudget, parsedContext, userGender]
+    [canvasItems, maxBudget, parsedContext, userGender, initialSwapBoxes]
   );
 
   useEffect(() => {
@@ -357,9 +376,6 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
       image: alt.image,
     };
     swapItem(activeSwapCategory, item);
-    if (activeSwapCategory === "TOP" || activeSwapCategory === "BOTTOM") {
-      await handleGarmentClick(alt.image, activeSwapCategory, alt.id);
-    }
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -376,13 +392,12 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
   };
 
   return (
-    <div className="relative w-full h-[100dvh] bg-black overflow-hidden flex flex-col text-white">
+    <div className="relative w-full h-[100dvh] bg-[#FFFFFF] overflow-hidden flex flex-col text-[#282C3F]">
       {/* 1. FULL SCREEN BACKGROUND IMAGE */}
       {shownImage ? (
         <div className="absolute inset-0 z-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={shownImage} alt="Virtual try-on model" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70 pointer-events-none" />
         </div>
       ) : (
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#ff3f6c] to-[#ff6b8b] opacity-80" />
@@ -403,26 +418,34 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
       <div className="absolute top-[env(safe-area-inset-top,1rem)] left-0 right-0 z-40 flex justify-between items-start px-4 pt-4 pointer-events-none">
         <div className="flex gap-2">
           {onBack ? (
-            <button onClick={onBack} className="pointer-events-auto bg-white/20 backdrop-blur-xl border border-white/20 p-2.5 rounded-full text-white shadow-lg cursor-pointer hover:bg-white/30 transition-all">
+            <button onClick={onBack} className="pointer-events-auto bg-[#F7F7F8] border border-[#E5E5E8] p-2.5 rounded-full text-[#3E4152] shadow-sm cursor-pointer hover:bg-white transition-all">
               <ChevronLeft size={20} />
             </button>
           ) : <div />}
           
           <button
             onClick={() => setShowCheckoutModal(true)}
-            className="pointer-events-auto bg-white/20 backdrop-blur-xl border border-white/20 p-2.5 rounded-full text-white shadow-lg cursor-pointer hover:bg-white/30 transition-all"
+            className="pointer-events-auto bg-[#F7F7F8] border border-[#E5E5E8] p-2.5 rounded-full text-[#3E4152] shadow-sm cursor-pointer hover:bg-white transition-all"
             title="Checkout"
           >
             <ShoppingBag size={20} />
           </button>
+          
+          <button
+            onClick={() => setShowPinModal(true)}
+            className="pointer-events-auto bg-[#F7F7F8] border border-[#E5E5E8] p-2.5 rounded-full text-[#3E4152] shadow-sm cursor-pointer hover:bg-white transition-all"
+            title="Save to Board"
+          >
+            <BookmarkPlus size={20} />
+          </button>
         </div>
 
         {/* Smaller Budget Pill */}
-        <div className="pointer-events-auto bg-white/10 backdrop-blur-xl border border-white/20 rounded-full px-3 py-1.5 flex flex-col gap-1 shadow-lg max-w-[120px]">
-          <span className="text-[10px] font-black tracking-wide text-white text-center">₹{usedBudget} / {maxBudget}</span>
-          <div className="w-full h-1 bg-black/30 rounded-full overflow-hidden">
+        <div className="pointer-events-auto bg-[#F7F7F8] border border-[#E5E5E8] rounded-full px-3 py-1.5 flex flex-col gap-1 shadow-sm max-w-[120px]">
+          <span className="text-[10px] font-black tracking-wide text-[#282C3F] text-center">₹{usedBudget} / {maxBudget}</span>
+          <div className="w-full h-1 bg-[#F1F1F3] rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-500 rounded-full ${isOverBudget ? "bg-red-500" : "bg-[#ff3f6c]"}`}
+              className={`h-full transition-all duration-500 rounded-full ${isOverBudget ? "bg-red-500" : "bg-[#FF3F6C]"}`}
               style={{ width: `${budgetPercentage}%` }}
             />
           </div>
@@ -455,7 +478,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
           {displayImage && displayImage !== baseUserImage && (
             <button
               onClick={() => setDisplayImage(baseUserImage)}
-              className="w-10 h-10 bg-white/20 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-lg text-white cursor-pointer hover:bg-white/30"
+              className="w-10 h-10 bg-[#F7F7F8] border border-[#E5E5E8] rounded-full flex items-center justify-center shadow-sm text-[#3E4152] cursor-pointer hover:bg-white"
               title="Remove Garments"
             >
               <X size={16} />
@@ -463,7 +486,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
           )}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-10 h-10 bg-white/20 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-lg text-white cursor-pointer hover:bg-white/30"
+            className="w-10 h-10 bg-[#F7F7F8] border border-[#E5E5E8] rounded-full flex items-center justify-center shadow-sm text-[#3E4152] cursor-pointer hover:bg-white"
             title="Change Photo"
           >
             <Camera size={16} />
@@ -471,154 +494,207 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
         </div>
       )}
 
-      {/* 4. FLOATING BOTTOM BAR (Glassmorphism) */}
+      {/* 4. FLOATING BOTTOM BAR (3-State Drawer) */}
       {shownImage && (
         <div className="absolute bottom-0 left-0 right-0 z-40 flex flex-col items-center pointer-events-none">
-          <button
-            onClick={() => setIsBottomBarVisible(!isBottomBarVisible)}
-            className="pointer-events-auto mb-2 bg-black/40 backdrop-blur-md border border-white/20 rounded-full p-1.5 text-white shadow-lg cursor-pointer hover:bg-black/60 transition-all"
-            title={isBottomBarVisible ? "Hide Outfit Panel" : "Show Outfit Panel"}
-          >
-            {isBottomBarVisible ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
-          </button>
+          {drawerState === 'hidden' && (
+            <button
+              onClick={() => setDrawerState('half')}
+              className="pointer-events-auto mb-2 bg-[#F7F7F8] border border-[#E5E5E8] rounded-full p-1.5 text-[#3E4152] shadow-sm cursor-pointer hover:bg-white transition-all"
+              title="Show Outfit Panel"
+            >
+              <ChevronUp size={20} />
+            </button>
+          )}
 
           <div
             className={`pointer-events-auto w-full transition-all duration-300 origin-bottom ${
-              isBottomBarVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full h-0 overflow-hidden"
+              drawerState === 'hidden' ? "opacity-0 translate-y-full h-0 overflow-hidden" : "opacity-100 translate-y-0"
             }`}
           >
-            <div className="w-full bg-white/10 backdrop-blur-2xl border-t border-white/20 rounded-t-[32px] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl flex flex-col gap-3">
-              {/* Header */}
-              <div className="flex justify-between items-center mb-1 px-2">
-                <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">
-                  Active Outfit
-                </p>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleTryOnAll();
-                  }}
-                  className="flex items-center gap-1 bg-[#ff3f6c] text-white text-[10px] font-extrabold px-3 py-1.5 rounded-xl shadow-lg cursor-pointer hover:bg-[#ff3f6c]/90 transition-all"
-                >
-                  <Sparkles size={12} className="text-[#ffff00]" fill="#ffff00" />
-                  Try On All
-                </button>
-              </div>
+            <div className={`w-full bg-[#F7F7F8] rounded-t-[20px] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] flex flex-col gap-3 transition-all duration-300 ${drawerState === 'full' ? 'h-[calc(100dvh-6rem)]' : 'h-auto'}`}>
+              
+              {/* Drawer Handle Controls */}
+              {drawerState !== 'hidden' && (
+                <div className="flex justify-center w-full mb-0">
+                  <div className="flex bg-[#E5E5E8] rounded-full p-0.5">
+                    {drawerState === 'half' ? (
+                      <>
+                        <button onClick={() => setDrawerState('full')} className="p-1 px-3 text-[#7E7E7E] hover:text-[#282C3F] cursor-pointer border-r border-[#D1D1D6]"><ChevronUp size={16} /></button>
+                        <button onClick={() => setDrawerState('hidden')} className="p-1 px-3 text-[#7E7E7E] hover:text-[#282C3F] cursor-pointer"><ChevronDown size={16} /></button>
+                      </>
+                    ) : (
+                      <button onClick={() => setDrawerState('half')} className="p-1 px-6 text-[#7E7E7E] hover:text-[#282C3F] cursor-pointer"><ChevronDown size={16} /></button>
+                    )}
+                  </div>
+                </div>
+              )}
 
-              {/* Selected Items Row */}
-              <div className="grid grid-cols-4 gap-2.5">
-          {(["TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"] as const).map((slot) => {
-            const item = canvasItems[slot];
-            const isActive = activeSwapCategory === slot;
-            const isLocked = lockedItems[slot];
-            return (
-              <div
-                key={slot}
-                onClick={() => setSwapCategory(slot)}
-                className={`relative flex flex-col p-2 rounded-2xl transition-all cursor-pointer aspect-[3/4] ${
-                  isActive
-                    ? "bg-white/20 border border-white/40 shadow-xl"
-                    : "bg-black/20 border border-white/10 hover:bg-white/10"
-                }`}
-              >
-                <div className="flex justify-between items-center w-full mb-2">
-                  <span className="text-[8px] font-bold text-white/60 uppercase tracking-widest">
-                    {slot.slice(0, 3)}
-                  </span>
+              <div className="flex flex-col h-full gap-3 overflow-hidden">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-1 px-2 shrink-0">
+                  <p className="text-[10px] font-black text-[#282C3F] uppercase tracking-widest">
+                    Active Outfit
+                  </p>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleLock(slot);
+                      handleTryOnAll();
                     }}
-                    className="text-white/40 hover:text-white transition-colors cursor-pointer"
+                    className="flex items-center gap-1 bg-[#FF3F6C] text-white text-[10px] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer hover:bg-[#FF3F6C]/90 transition-all"
                   >
-                    {isLocked ? <Lock size={10} className="text-emerald-400" /> : <Unlock size={10} />}
+                    <Sparkles size={12} className="text-[#ffff00]" fill="#ffff00" />
+                    Try On All
                   </button>
                 </div>
 
-                <div className="flex-1 flex items-center justify-center relative w-full h-full rounded-xl overflow-hidden bg-black/20 border border-white/10">
-                  {item ? (
-                    <>
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeItem(slot);
-                        }}
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white shadow-sm cursor-pointer z-10"
+                {/* Selected Items Row */}
+                <div className="grid grid-cols-4 gap-2.5 shrink-0">
+                  {(["TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"] as const).map((slot) => {
+                    const item = canvasItems[slot];
+                    const isActive = activeSwapCategory === slot;
+                    const isLocked = lockedItems[slot];
+                    return (
+                      <div
+                        key={slot}
+                        onClick={() => setSwapCategory(slot)}
+                        className={`relative flex flex-col p-2 rounded-[14px] transition-all cursor-pointer aspect-[3/4] ${
+                          isActive
+                            ? "bg-[#FFE9EE] border border-[#FF3F6C] scale-[1.02]"
+                            : "bg-[#FFFFFF] border border-[#E5E5E8] shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+                        }`}
                       >
-                         <X size={10} strokeWidth={3} />
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (slot !== "TOP" && slot !== "BOTTOM") {
-                            setErrorToast("Virtual try-on is currently optimized for tops and bottoms.");
-                            setTimeout(() => setErrorToast(null), 4000);
-                            return;
-                          }
-                          handleGarmentClick(item.image, slot, item.id);
-                        }}
-                        className="absolute bottom-1 right-1 w-6 h-6 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-[#ff3f6c] shadow-lg cursor-pointer"
-                      >
-                         <Shirt size={10} />
-                      </button>
-                    </>
-                  ) : (
-                    <span className="text-[8px] text-white/30 font-bold uppercase tracking-widest">Empty</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                        <div className="flex justify-between items-center w-full mb-2">
+                          <div className="flex items-center gap-1">
+                            <span className="text-[8px] font-bold text-[#7E7E7E] uppercase tracking-widest">
+                              {slot.slice(0, 3)}
+                            </span>
+                            <ChevronUp size={10} className={`transition-transform duration-300 ${isActive ? 'rotate-180 text-[#FF3F6C]' : 'text-[#7E7E7E]'}`} />
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleLock(slot);
+                            }}
+                            className="text-[#3E4152] hover:text-[#282C3F] transition-colors cursor-pointer"
+                          >
+                            {isLocked ? <Lock size={10} className="text-[#FF3F6C]" /> : <Unlock size={10} />}
+                          </button>
+                        </div>
 
-        {/* Swap Tray */}
-        {activeSwapCategory && (
-          <div className="mt-3 bg-black/20 rounded-2xl p-3 border border-white/10">
-            <div className="flex justify-between items-center mb-2 px-1">
-              <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">
-                {isSwapLoading ? "Searching alternates..." : `${activeSwapCategory.toLowerCase()} swaps`}
-              </span>
-            </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory">
-              {isSwapLoading ? (
-                <div className="w-full flex items-center justify-center py-4 text-[10px] font-bold text-white/50">
-                  <Loader2 className="w-4 h-4 animate-spin mr-2 text-[#ff3f6c]" />
-                  Curating alternates...
-                </div>
-              ) : swapAlternatives.length === 0 ? (
-                <div className="w-full py-4 text-center text-[10px] text-white/40 font-bold">
-                  No alternatives within budget.
-                </div>
-              ) : (
-                swapAlternatives.map((alt) => {
-                  const isCurrent = canvasItems[activeSwapCategory]?.id === alt.id;
-                  return (
-                    <div
-                      key={alt.id}
-                      onClick={() => handleAlternativeClick(alt)}
-                      className={`flex items-center gap-2.5 p-1.5 pr-3 rounded-2xl cursor-pointer snap-start shrink-0 min-w-[170px] transition-all backdrop-blur-md ${
-                        isCurrent
-                          ? "bg-white/20 border border-white/40 shadow-xl"
-                          : "bg-white/5 border border-white/10 hover:bg-white/10"
-                      }`}
-                    >
-                      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={alt.image} alt={alt.name} className="w-full h-full object-cover" />
+                        <div className="flex-1 flex items-center justify-center relative w-full h-full rounded-xl overflow-hidden bg-[#F1F1F3] border border-[#E5E5E8]">
+                          {item ? (
+                            <>
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeItem(slot);
+                                }}
+                                className="absolute -top-1 -right-1 w-5 h-5 bg-white border border-[#E5E5E8] rounded-full flex items-center justify-center text-[#3E4152] shadow-sm cursor-pointer z-10"
+                              >
+                                 <X size={10} strokeWidth={3} />
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-[8px] text-[#7E7E7E] font-bold uppercase tracking-widest">Empty</span>
+                          )}
+                        </div>
+                        {item && drawerState !== 'hidden' && (
+                          <div className="mt-1.5 text-center">
+                            <span className="text-[10px] text-[#FF3F6C] font-black">₹{item.price}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[9px] font-bold text-white truncate">{alt.name}</p>
-                        <p className="text-[8px] text-[#ff3f6c] font-black mt-0.5">₹{alt.price}</p>
-                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Swap Tray */}
+                {activeSwapCategory && (
+                  <div className={`flex flex-col mt-3 bg-transparent rounded-[14px] p-0 ${drawerState === 'full' ? 'flex-1 min-h-0' : ''}`}>
+                    <div className="flex justify-between items-center mb-2 px-1 shrink-0">
+                      <span className="text-[9px] font-black text-[#282C3F] uppercase tracking-widest">
+                        {isSwapLoading ? "Searching alternates..." : `${activeSwapCategory.toLowerCase()} swaps`}
+                      </span>
                     </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
+                    
+                    {drawerState === 'half' ? (
+                      // HALF STATE: Horizontal Scroll, Square Images, Price only
+                      <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory">
+                        {isSwapLoading ? (
+                          <div className="w-full flex items-center justify-center py-4 text-[10px] font-bold text-[#7E7E7E]">
+                            <Loader2 className="w-4 h-4 animate-spin mr-2 text-[#FF3F6C]" />
+                            Curating alternates...
+                          </div>
+                        ) : swapAlternatives.length === 0 ? (
+                          <div className="w-full py-4 text-center text-[10px] text-[#7E7E7E] font-bold">
+                            No alternatives within budget.
+                          </div>
+                        ) : (
+                          swapAlternatives.map((alt) => {
+                            const isCurrent = canvasItems[activeSwapCategory]?.id === alt.id;
+                            return (
+                              <div
+                                key={alt.id}
+                                onClick={() => handleAlternativeClick(alt)}
+                                className={`relative rounded-[14px] cursor-pointer snap-start shrink-0 w-28 h-28 transition-all overflow-hidden bg-white ${
+                                  isCurrent ? "border-2 border-[#FF3F6C] scale-[1.02]" : "border border-[#E5E5E8]"
+                                }`}
+                              >
+                                {isCurrent && <div className="absolute inset-0 bg-[#FFE9EE]/30 mix-blend-multiply z-10 pointer-events-none" />}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={alt.image} alt="swap" className="w-full h-full object-cover" />
+                                <div className="absolute bottom-0 inset-x-0 bg-[linear-gradient(180deg,transparent_40%,rgba(0,0,0,0.55)_100%)] pt-6 pb-1.5 px-1 text-center z-20">
+                                  <p className="text-[11px] text-white font-black drop-shadow-md">₹{alt.price}</p>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    ) : (
+                      // FULL STATE: Vertical Grid, 3:4 Images, Full Text
+                      <div className="flex-1 overflow-y-auto pr-1 scrollbar-none">
+                        {isSwapLoading ? (
+                          <div className="w-full flex items-center justify-center py-10 text-[12px] font-bold text-[#7E7E7E]">
+                            <Loader2 className="w-5 h-5 animate-spin mr-2 text-[#FF3F6C]" />
+                            Curating alternates...
+                          </div>
+                        ) : swapAlternatives.length === 0 ? (
+                          <div className="w-full py-10 text-center text-[12px] text-[#7E7E7E] font-bold">
+                            No alternatives within budget.
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3 pb-2">
+                            {swapAlternatives.map((alt) => {
+                              const isCurrent = canvasItems[activeSwapCategory]?.id === alt.id;
+                              return (
+                                <div
+                                  key={alt.id}
+                                  onClick={() => handleAlternativeClick(alt)}
+                                  className={`relative flex flex-col p-2 rounded-[14px] cursor-pointer transition-all ${
+                                    isCurrent
+                                      ? "bg-[#FFE9EE] border-2 border-[#FF3F6C]"
+                                      : "bg-white border border-[#E5E5E8] shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+                                  }`}
+                                >
+                                  <div className="w-full aspect-[3/4] rounded-xl overflow-hidden mb-2 relative">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={alt.image} alt={alt.name} className="w-full h-full object-cover" />
+                                  </div>
+                                  <p className="text-[10px] font-normal text-[#282C3F] line-clamp-2 leading-tight">{alt.name}</p>
+                                  <p className="text-[10px] text-[#FF3F6C] font-bold mt-1">₹{alt.price}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -745,6 +821,19 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
             </button>
           </div>
         </div>
+      )}
+
+      {/* Pin to Board Modal */}
+      {showPinModal && (
+        <PinToBoardModal
+          products={Object.values(canvasItems).filter(item => item).map(item => ({
+            product_id: item.id,
+            product_name: item.name,
+            product_image_url: item.image,
+            product_price: item.price
+          }))}
+          onClose={() => setShowPinModal(false)}
+        />
       )}
     </div>
   );
