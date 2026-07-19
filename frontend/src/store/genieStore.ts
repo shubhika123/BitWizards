@@ -30,6 +30,7 @@ interface GenieState {
   maxBudget: number;
   activeSwapCategory: "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY" | null;
   parsedContext: GenieParsedContext | null;
+  initialSwapBoxes: Record<string, GenieItem[]> | null;
 
   /**
    * Virtual Try-On state
@@ -53,6 +54,7 @@ interface GenieState {
   removeItem: (category: string) => void;
   getUsedBudget: () => number;
   setParsedContext: (context: GenieParsedContext | null) => void;
+  setInitialSwapBoxes: (boxes: Record<string, GenieItem[]> | null) => void;
   setMaxBudget: (budget: number) => void;
 
   setBaseUserImage: (image: string | null) => void;
@@ -67,36 +69,7 @@ interface GenieState {
 }
 
 export const useGenieStore = create<GenieState>((set, get) => ({
-  canvasItems: {
-    TOP: {
-      id: "top_1",
-      category: "TOP",
-      name: "Anita Dongre Kurta",
-      price: 1890,
-      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80",
-    },
-    BOTTOM: {
-      id: "bottom_1",
-      category: "BOTTOM",
-      name: "W Palazzo Ivory",
-      price: 890,
-      image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80",
-    },
-    FOOTWEAR: {
-      id: "footwear_1",
-      category: "FOOTWEAR",
-      name: "Kolhapuri Juttis",
-      price: 890,
-      image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=400&q=80",
-    },
-    ACCESSORY: {
-      id: "accessory_1",
-      category: "ACCESSORY",
-      name: "Fossil Rose Gold",
-      price: 680,
-      image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=400&q=80",
-    },
-  },
+  canvasItems: {},
   lockedItems: {
     TOP: false,
     BOTTOM: false,
@@ -106,6 +79,7 @@ export const useGenieStore = create<GenieState>((set, get) => ({
   maxBudget: 5000,
   activeSwapCategory: null,
   parsedContext: null,
+  initialSwapBoxes: null,
   userGender: null,
   stylePreferences: [],
   baseUserImage: null,
@@ -124,12 +98,39 @@ export const useGenieStore = create<GenieState>((set, get) => ({
   setSwapCategory: (category) => set({ activeSwapCategory: category }),
 
   swapItem: (category, newItem) =>
-    set((state) => ({
-      canvasItems: {
+    set((state) => {
+      const oldItem = state.canvasItems[category];
+      const newCanvasItems = {
         ...state.canvasItems,
         [category]: newItem,
-      },
-    })),
+      };
+
+      let newInitialSwapBoxes = state.initialSwapBoxes;
+      if (state.initialSwapBoxes && state.initialSwapBoxes[category] && oldItem) {
+        // Remove the newly selected item from the swap box
+        const updatedCategoryBoxes = state.initialSwapBoxes[category].filter(
+          (item: any) => item.id !== newItem.id
+        );
+        // Add the old item into the swap box so it can be picked again
+        updatedCategoryBoxes.unshift({
+          id: oldItem.id,
+          category: oldItem.category,
+          name: oldItem.name,
+          price: oldItem.price,
+          image_url: oldItem.image,
+        } as any);
+
+        newInitialSwapBoxes = {
+          ...state.initialSwapBoxes,
+          [category]: updatedCategoryBoxes,
+        };
+      }
+
+      return {
+        canvasItems: newCanvasItems,
+        initialSwapBoxes: newInitialSwapBoxes,
+      };
+    }),
 
   removeItem: (category) =>
     set((state) => {
@@ -144,6 +145,8 @@ export const useGenieStore = create<GenieState>((set, get) => ({
   },
 
   setParsedContext: (context) => set({ parsedContext: context }),
+  setInitialSwapBoxes: (boxes) => set({ initialSwapBoxes: boxes }),
+
   setMaxBudget: (budget) => set({ maxBudget: budget }),
 
   setUserGender: (gender) => set({ userGender: gender }),
