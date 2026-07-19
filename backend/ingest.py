@@ -80,7 +80,8 @@ def main():
             "occasions": [str(o).lower().strip() for o in occasions],
             "aesthetic_tags": [str(t).lower().strip() for t in aesthetic_tags],
             "colors": [str(c).lower().strip() for c in colors],
-            "gender": product.get("gender", "Unisex")
+            "gender": product.get("gender", "Unisex"),
+            "keywords": [str(k).lower().strip() for k in product.get("keywords", [])],
         }
         
         upsert_data.append((p_id, vector, metadata))

@@ -21,6 +21,7 @@ export interface GenieParsedContext {
   isLocalPreferred: boolean;
   confidence: "high" | "medium" | "low";
   ambiguousFields: string[];
+  targetItems?: string[];
 }
 
 interface GenieState {
@@ -100,7 +101,7 @@ export const useGenieStore = create<GenieState>((set, get) => ({
     TOP: false,
     BOTTOM: false,
     FOOTWEAR: false,
-    ACCESSORY: true,
+    ACCESSORY: false,
   },
   maxBudget: 5000,
   activeSwapCategory: null,

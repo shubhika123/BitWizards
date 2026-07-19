@@ -111,7 +111,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
         };
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/genie/curate/alternatives`,
+          `${process.env.NEXT_PUBLIC_API_URL || ""}/api/genie/curate/alternatives`,
           {
             method: "POST",
             headers: {
@@ -154,22 +154,22 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
     }
 
     // --- DEMO MODE TRY-ON BYPASS ---
-    if (itemId && DEMO_TRYON_IDS.has(itemId)) {
-      console.log("[DEMO MODE] Instant try-on preview for:", itemId);
-      setIsLoading(true);
-      // Simulate a brief loading delay to make it feel like AI is working
-      await new Promise((r) => setTimeout(r, 1500));
-      
-      // If it is the Haldi outfit, show the pre-rendered model result image
-      if (itemId === "top_prompt1" || itemId === "bottom_prompt1" || itemId === "accessory_prompt1") {
-        setDisplayImage("/catalog/prompt1_result.png");
-      } else {
-        setDisplayImage(garmentImagePath);
-      }
-      
-      setIsLoading(false);
-      return;
-    }
+    // if (itemId && DEMO_TRYON_IDS.has(itemId)) {
+    //   console.log("[DEMO MODE] Instant try-on preview for:", itemId);
+    //   setIsLoading(true);
+    //   // Simulate a brief loading delay to make it feel like AI is working
+    //   await new Promise((r) => setTimeout(r, 1500));
+    //   
+    //   // If it is the Haldi outfit, show the pre-rendered model result image
+    //   if (itemId === "top_prompt1" || itemId === "bottom_prompt1" || itemId === "accessory_prompt1") {
+    //     setDisplayImage("/catalog/prompt1_result.png");
+    //   } else {
+    //     setDisplayImage(garmentImagePath);
+    //   }
+    //   
+    //   setIsLoading(false);
+    //   return;
+    // }
     // --- END DEMO MODE ---
 
     setIsLoading(true);
@@ -263,6 +263,40 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
     }
   };
 
+  const generatePrunaTryOn = async (
+    baseUserImageBase64: string,
+    outfitItemImageUrls: string[]
+  ): Promise<string> => {
+    const payload = {
+      person_image: baseUserImageBase64,  // stays base64 — comes from user's browser camera/file upload
+      garment_images: outfitItemImageUrls, // send paths directly — backend reads them from disk
+    };
+
+    console.log("[TryOn] Sending to backend:", {
+      person_image: "base64 (length=" + baseUserImageBase64.length + ")",
+      garment_images: outfitItemImageUrls,
+    });
+
+    const response = await fetch("/api/genie/try-on", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Virtual Try-On Backend Error (${response.status}): ${errorData}`);
+    }
+
+    const data = await response.json();
+    console.log("[TryOn] Backend response:", data);
+
+    if (!data.image_url) {
+      throw new Error("Backend did not return an image_url");
+    }
+    return data.image_url;
+  };
+
   const handleTryOnAll = async () => {
     if (!baseUserImage) {
       fileInputRef.current?.click();
@@ -273,35 +307,41 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
     setErrorToast(null);
 
     try {
-      // Simulate a loading delay
-      await new Promise((r) => setTimeout(r, 2000));
+      // const hasHaldi = Object.values(canvasItems).some(
+      //   (item) => item && (item.id === "top_prompt1" || item.id === "bottom_prompt1" || item.id === "accessory_prompt1")
+      // );
 
-      // Check if we have any Haldi Special items on canvas
-      const hasHaldi = Object.values(canvasItems).some(
-        (item) => item && (item.id === "top_prompt1" || item.id === "bottom_prompt1" || item.id === "accessory_prompt1")
-      );
+      // if (hasHaldi) {
+      //   await new Promise((r) => setTimeout(r, 2000));
+      //   setDisplayImage("/catalog/prompt1_result.png");
+      //   return;
+      // }
 
-      if (hasHaldi) {
-        setDisplayImage("/catalog/prompt1_result.png");
-      } else {
-        // Fallback or run first available topwear / bottomwear try-on
-        const topItem = canvasItems.TOP;
-        const bottomItem = canvasItems.BOTTOM;
-        
-        if (topItem && DEMO_TRYON_IDS.has(topItem.id)) {
-          setDisplayImage(topItem.image);
-        } else if (topItem) {
-          // Trigger actual try-on API for top
-          await handleGarmentClick(topItem.image, "TOP", topItem.id);
-        } else if (bottomItem) {
-          setDisplayImage(bottomItem.image);
-        } else {
-          setErrorToast("Please select at least one top or bottom to try on.");
-          setTimeout(() => setErrorToast(null), 4000);
-        }
+      const outfitItemImageUrls = Object.values(canvasItems)
+        .filter((item) => item && item.image)
+        .map((item) => item!.image);
+
+      if (outfitItemImageUrls.length === 0) {
+        setErrorToast("Please select at least one item to try on.");
+        setTimeout(() => setErrorToast(null), 4000);
+        return;
       }
+
+      const prunaResultUrl = await generatePrunaTryOn(baseUserImage, outfitItemImageUrls);
+      setDisplayImage(prunaResultUrl);
+
     } catch (err) {
-      console.error("Try on all failed:", err);
+      console.error("Try on all failed via Pruna API:", err);
+      setErrorToast("Pruna AI generation failed. Falling back to Topwear preview...");
+      setTimeout(() => setErrorToast(null), 4000);
+
+      const topItem = canvasItems.TOP;
+      if (topItem) {
+          setDisplayImage(topItem.image);
+      } else {
+          const firstAvailable = Object.values(canvasItems).find((item) => item && item.image);
+          if (firstAvailable) setDisplayImage(firstAvailable.image);
+      }
     } finally {
       setIsLoading(false);
     }

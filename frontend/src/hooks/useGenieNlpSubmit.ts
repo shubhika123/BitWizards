@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useGenieStore, GenieParsedContext } from "../store/genieStore";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 // =============================================================================
 // HACKATHON DEMO MODE — Pre-baked outfits for pitch-safe demos
@@ -140,6 +140,7 @@ function buildFallbackContext(prompt: string): GenieParsedContext {
     isLocalPreferred: false,
     confidence: "low",
     ambiguousFields: ["occasionCategory", "primaryColor"],
+    targetItems: [],
   };
 
   if (
@@ -349,6 +350,7 @@ export function useGenieNlpSubmit() {
             isLocalPreferred: data.is_local_preferred,
             confidence: data.confidence,
             ambiguousFields: data.ambiguous_fields || [],
+            targetItems: data.target_items || [],
           };
           setParsedContext(currentContext);
           if (data.max_budget) setMaxBudget(data.max_budget);
@@ -375,6 +377,7 @@ export function useGenieNlpSubmit() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            query: currentContext?.query || "",
             occasion_category: currentContext?.occasionCategory || "Casual Wear",
             user_gender: userGender,
             primary_color: currentContext?.primaryColor || null,
@@ -383,6 +386,7 @@ export function useGenieNlpSubmit() {
             max_budget: currentContext?.maxBudget || maxBudget,
             is_local_preferred: currentContext?.isLocalPreferred || false,
             locked_item_ids: lockedItemIds,
+            target_items: currentContext?.targetItems || [],
           }),
         });
 
