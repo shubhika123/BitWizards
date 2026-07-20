@@ -7,39 +7,24 @@ import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, 
 import { categories } from "../lib/Categories";
 import { useAuthStore } from "../store/authStore";
 
-// State mapping lookup for target Indian cities
+// State mapping lookup for target Indian cities celebrative of festivals
 const cityToStateMap: Record<string, string> = {
-  "warangal": "Telangana",
-  "karimnagar": "Telangana",
-  "nizamabad": "Telangana",
-  "jaipur": "Rajasthan",
-  "udaipur": "Rajasthan",
-  "kota": "Rajasthan",
-  "coimbatore": "Tamil Nadu",
-  "madurai": "Tamil Nadu",
-  "salem": "Tamil Nadu",
-  "vizag": "Andhra Pradesh",
-  "vijayawada": "Andhra Pradesh",
+  "amritsar": "Punjab",
+  "ludhiana": "Punjab",
   "belgaum": "Karnataka",
+  "coimbatore": "Tamil Nadu",
+  "kolkata": "West Bengal",
+  "madurai": "Tamil Nadu",
+  "mumbai": "Maharashtra",
   "mysuru": "Karnataka",
-  "kochi": "Kerala",
-  "thrissur": "Kerala",
-  "kozhikode": "Kerala",
-  "sambalpur": "Odisha",
-  "jharsuguda": "Odisha",
-  "bargarh": "Odisha",
   "patna": "Bihar",
-  "mathura": "Uttar Pradesh",
-  "kolhapur": "Maharashtra",
-  "hubballi": "Karnataka",
-  "dharwad": "Karnataka",
-  "bengaluru": "Karnataka",
-  "bangalore": "Karnataka",
-  "delhi": "Delhi"
+  "salem": "Tamil Nadu",
+  "vijayawada": "Andhra Pradesh",
+  "vizag": "Andhra Pradesh"
 };
 
 const getCityState = (city: string) => {
-  if (!city) return "Bengaluru, Karnataka";
+  if (!city) return "Patna, Bihar";
   const normalized = city.trim().toLowerCase();
   const state = cityToStateMap[normalized];
   if (state) {
@@ -56,7 +41,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide(prev => {
-        const next = (prev + 1) % 3;
+        const next = (prev + 1) % 4;
         if (carouselRef.current) {
           carouselRef.current.scrollTo({ left: next * carouselRef.current.clientWidth, behavior: 'smooth' });
         }
@@ -246,11 +231,38 @@ export default function Home() {
               </div>
             </Link>
 
+            {/* Slide 4: Outfit Circle */}
+            <Link 
+              href="/OutfitCircle" 
+              className="w-full h-full shrink-0 snap-center relative block select-none"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=600&q=80" 
+                alt="Outfit Circle" 
+                className="w-full h-full object-cover filter brightness-[0.85]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left pointer-events-none">
+                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-[#14b8a6] self-start px-2 py-0.5 rounded-md uppercase shadow-sm">GROUP COLLAB</span>
+                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans drop-shadow-md">
+                  OUTFIT CIRCLE
+                </h2>
+                <h3 className="text-[#ffd700] text-[11px] font-extrabold mt-1.5 uppercase tracking-wide drop-shadow-md">
+                  VOTE, CHAT & STEAL FRIENDS' LOOKS
+                </h3>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#ffd166] flex items-center justify-between px-4">
+                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider">COLLABORATE FOR NEHA'S WEDDING!</span>
+                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1">
+                  JOIN BOARD <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </Link>
+
           </div>
           
           {/* Circular Pagination dots floating on top */}
           <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-2 z-10 select-none pointer-events-none">
-            {[0, 1, 2].map((idx) => (
+            {[0, 1, 2, 3].map((idx) => (
               <span 
                 key={idx}
                 className={`w-2.5 h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx ? "bg-white w-5" : "bg-white/40"}`}

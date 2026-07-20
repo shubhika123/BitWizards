@@ -22,8 +22,24 @@ export default function LoginScreen() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
 
   const [error, setError] = useState("");
+
+  const citiesList = [
+    "Amritsar",
+    "Belgaum",
+    "Coimbatore",
+    "Kolkata",
+    "Ludhiana",
+    "Madurai",
+    "Mumbai",
+    "Mysuru",
+    "Patna",
+    "Salem",
+    "Vijayawada",
+    "Vizag"
+  ];
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,13 +107,7 @@ export default function LoginScreen() {
 
   return (
     <div className="fixed inset-0 bg-[#f5f5f6] flex flex-col items-center justify-center z-50 p-4 select-none">
-      
-      {/* 1. Mock Mode Info Alert */}
-      {isMock && (
-        <div className="mb-4 bg-amber-500/10 border border-amber-300/30 px-3.5 py-1.5 rounded-full text-amber-600 text-[9px] font-extrabold tracking-wider shadow-2xs">
-          MOCK AUTH ACTIVE
-        </div>
-      )}
+
 
       {/* Main Checkout Box */}
       <div className="bg-white border border-[#eaeaec] rounded-xs shadow-xs w-full max-w-[360px] overflow-hidden flex flex-col">
@@ -272,48 +282,53 @@ export default function LoginScreen() {
                   <input
                     type="number"
                     placeholder="23"
+                    min="1"
+                    max="122"
                     value={age}
-                    onChange={(e) => setAge(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") { setAge(""); return; }
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num) && num >= 1 && num <= 122) setAge(String(num));
+                    }}
                     className="w-full border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
                     disabled={loading}
                   />
                 </div>
-                <div className="flex flex-col text-left gap-1.5 w-full">
+                <div className="flex flex-col text-left gap-1.5 w-full relative">
                   <label className="text-[9.5px] text-gray-500 font-extrabold uppercase tracking-widest pl-0.5">City</label>
-                  <select
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 bg-white transition-colors rounded-sm font-semibold cursor-pointer h-[32px]"
-                    disabled={loading}
+                  <div 
+                    onClick={() => !loading && setShowCityDropdown(!showCityDropdown)}
+                    className="w-full border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 bg-white transition-colors rounded-sm font-semibold cursor-pointer h-[32px] flex items-center justify-between select-none"
                   >
-                    <option value="">Select City*</option>
-                    <option value="Belgaum">Belgaum</option>
-                    <option value="Bengaluru">Bengaluru</option>
-                    <option value="Bargarh">Bargarh</option>
-                    <option value="Coimbatore">Coimbatore</option>
-                    <option value="Delhi">Delhi</option>
-                    <option value="Dharwad">Dharwad</option>
-                    <option value="Hubballi">Hubballi</option>
-                    <option value="Jaipur">Jaipur</option>
-                    <option value="Jharsuguda">Jharsuguda</option>
-                    <option value="Karimnagar">Karimnagar</option>
-                    <option value="Kochi">Kochi</option>
-                    <option value="Kolhapur">Kolhapur</option>
-                    <option value="Kota">Kota</option>
-                    <option value="Kozhikode">Kozhikode</option>
-                    <option value="Madurai">Madurai</option>
-                    <option value="Mathura">Mathura</option>
-                    <option value="Mysuru">Mysuru</option>
-                    <option value="Nizamabad">Nizamabad</option>
-                    <option value="Patna">Patna</option>
-                    <option value="Salem">Salem</option>
-                    <option value="Sambalpur">Sambalpur</option>
-                    <option value="Thrissur">Thrissur</option>
-                    <option value="Udaipur">Udaipur</option>
-                    <option value="Vijayawada">Vijayawada</option>
-                    <option value="Vizag">Vizag</option>
-                    <option value="Warangal">Warangal</option>
-                  </select>
+                    <span className={city ? "text-gray-700" : "text-gray-400"}>
+                      {city || "Select City*"}
+                    </span>
+                    <span className="text-gray-400 text-[8px] transition-transform duration-200" style={{ transform: showCityDropdown ? 'rotate(180deg)' : 'none' }}>▼</span>
+                  </div>
+
+                  {showCityDropdown && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setShowCityDropdown(false)}
+                      />
+                      <div className="absolute bottom-[34px] left-0 right-0 bg-white border border-gray-200 rounded-sm shadow-md max-h-[160px] overflow-y-auto z-50 py-1.5 text-xs text-gray-700">
+                        {citiesList.map((c) => (
+                          <div
+                            key={c}
+                            onClick={() => {
+                              setCity(c);
+                              setShowCityDropdown(false);
+                            }}
+                            className={`px-3 py-2 cursor-pointer transition-colors hover:bg-pink-50 hover:text-[#ff3f6c] font-semibold text-left ${city === c ? "text-[#ff3f6c] bg-pink-50/50" : ""}`}
+                          >
+                            {c}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
