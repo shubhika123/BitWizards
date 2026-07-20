@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import { useGenieStore, GenieParsedContext } from "../store/genieStore";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 // =============================================================================
 // HACKATHON DEMO MODE — Pre-baked outfits for pitch-safe demos
@@ -140,6 +140,7 @@ function buildFallbackContext(prompt: string): GenieParsedContext {
     isLocalPreferred: false,
     confidence: "low",
     ambiguousFields: ["occasionCategory", "primaryColor"],
+    targetItems: [],
   };
 
   if (
@@ -283,6 +284,15 @@ export function useGenieNlpSubmit() {
   const [isParsing, setIsParsing] = useState(false);
   const [lastParsedContext, setLastParsedContext] = useState<GenieParsedContext | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const abort = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsParsing(false);
+  }, []);
 
   const submitQuery = useCallback(
     async (query: string): Promise<GenieParsedContext | null> => {
@@ -325,6 +335,9 @@ export function useGenieNlpSubmit() {
       }
       // --- END DEMO MODE ---
 
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
       let currentContext: GenieParsedContext | null = null;
 
       try {
@@ -332,6 +345,7 @@ export function useGenieNlpSubmit() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query: trimmed }),
+          signal,
         });
 
         if (response.ok) {
@@ -349,13 +363,18 @@ export function useGenieNlpSubmit() {
             isLocalPreferred: data.is_local_preferred,
             confidence: data.confidence,
             ambiguousFields: data.ambiguous_fields || [],
+            targetItems: data.target_items || [],
           };
           setParsedContext(currentContext);
           if (data.max_budget) setMaxBudget(data.max_budget);
         } else {
           throw new Error("Failed to call backend parser");
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log("Request aborted");
+          return null;
+        }
         console.warn("Backend parsing failed, using client-side fallback.", err);
         currentContext = buildFallbackContext(trimmed);
         setParsedContext(currentContext);
@@ -375,6 +394,7 @@ export function useGenieNlpSubmit() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            query: currentContext?.query || "",
             occasion_category: currentContext?.occasionCategory || "Casual Wear",
             user_gender: userGender,
             primary_color: currentContext?.primaryColor || null,
@@ -383,12 +403,18 @@ export function useGenieNlpSubmit() {
             max_budget: currentContext?.maxBudget || maxBudget,
             is_local_preferred: currentContext?.isLocalPreferred || false,
             locked_item_ids: lockedItemIds,
+            target_items: currentContext?.targetItems || [],
           }),
+          signal,
         });
 
         if (curateResponse.ok) {
           const curatedResult = await curateResponse.json();
           const curatedItems = curatedResult.outfit || [];
+          
+          if (curatedResult.swap_boxes) {
+            useGenieStore.getState().setInitialSwapBoxes(curatedResult.swap_boxes);
+          }
 
           curatedItems.forEach((item: any) => {
             const category = item.category as "TOP" | "BOTTOM" | "FOOTWEAR" | "ACCESSORY";
@@ -408,7 +434,11 @@ export function useGenieNlpSubmit() {
             }
           });
         }
-      } catch (curateErr) {
+      } catch (curateErr: any) {
+        if (curateErr.name === 'AbortError') {
+          console.log("Curation aborted");
+          return null;
+        }
         console.warn("Curation API call failed, no client-side mock swap available in hook.", curateErr);
       } finally {
         setIsParsing(false);
@@ -420,5 +450,5 @@ export function useGenieNlpSubmit() {
     [setParsedContext, setMaxBudget, canvasItems, lockedItems, maxBudget, swapItem, removeItem, stylePreferences]
   );
 
-  return { submitQuery, isParsing, lastParsedContext, error, setError };
+  return { submitQuery, isParsing, lastParsedContext, error, setError, abort };
 }

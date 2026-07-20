@@ -22,8 +22,24 @@ export default function LoginScreen() {
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
   const [username, setUsername] = useState("");
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
 
   const [error, setError] = useState("");
+
+  const citiesList = [
+    "Amritsar",
+    "Belgaum",
+    "Coimbatore",
+    "Kolkata",
+    "Ludhiana",
+    "Madurai",
+    "Mumbai",
+    "Mysuru",
+    "Patna",
+    "Salem",
+    "Vijayawada",
+    "Vizag"
+  ];
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +106,7 @@ export default function LoginScreen() {
 
   return (
     <div className="fixed inset-0 bg-[#f5f5f6] flex flex-col items-center justify-center z-50 p-4 select-none">
+
 
       {isMock && (
         <div className="mb-4 bg-amber-500/10 border border-amber-300/30 px-3.5 py-1.5 rounded-full text-amber-600 text-[9px] font-extrabold tracking-wider shadow-2xs">
@@ -242,7 +259,7 @@ export default function LoginScreen() {
                 <p className="text-gray-400 text-[10px] mt-0.5">Please provide registration details</p>
               </div>
 
-              <div className="flex flex-col text-left gap-1">
+              <div className="flex flex-col text-left gap-1.5 w-full">
                 <label className="text-[9.5px] text-gray-500 font-extrabold uppercase tracking-widest pl-0.5">Full Name</label>
                 <input
                   type="text"
@@ -252,6 +269,7 @@ export default function LoginScreen() {
                   className="border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
                   disabled={loading}
                 />
+                <span className="text-[9px] text-gray-400 mt-0.5">This is what friends will use to invite you to boards.</span>
               </div>
 
               <div className="flex flex-col text-left gap-1">
@@ -267,28 +285,59 @@ export default function LoginScreen() {
                 <span className="text-[9px] text-gray-400 mt-0.5">This is what friends will use to invite you to boards.</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3.5">
-                <div className="flex flex-col text-left gap-1">
+              <div className="grid grid-cols-2 gap-3.5 w-full">
+                <div className="flex flex-col text-left gap-1.5 w-full">
                   <label className="text-[9.5px] text-gray-500 font-extrabold uppercase tracking-widest pl-0.5">Age</label>
                   <input
                     type="number"
                     placeholder="23"
+                    min="1"
+                    max="122"
                     value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    className="border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") { setAge(""); return; }
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num) && num >= 1 && num <= 122) setAge(String(num));
+                    }}
+                    className="w-full border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
                     disabled={loading}
                   />
                 </div>
-                <div className="flex flex-col text-left gap-1">
+                <div className="flex flex-col text-left gap-1.5 w-full relative">
                   <label className="text-[9.5px] text-gray-500 font-extrabold uppercase tracking-widest pl-0.5">City</label>
-                  <input
-                    type="text"
-                    placeholder="Bengaluru"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 transition-colors rounded-sm"
-                    disabled={loading}
-                  />
+                  <div 
+                    onClick={() => !loading && setShowCityDropdown(!showCityDropdown)}
+                    className="w-full border border-gray-200 focus:border-[#ff3f6c] outline-none px-3 py-2 text-xs text-gray-700 bg-white transition-colors rounded-sm font-semibold cursor-pointer h-[32px] flex items-center justify-between select-none"
+                  >
+                    <span className={city ? "text-gray-700" : "text-gray-400"}>
+                      {city || "Select City*"}
+                    </span>
+                    <span className="text-gray-400 text-[8px] transition-transform duration-200" style={{ transform: showCityDropdown ? 'rotate(180deg)' : 'none' }}>▼</span>
+                  </div>
+
+                  {showCityDropdown && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setShowCityDropdown(false)}
+                      />
+                      <div className="absolute bottom-[34px] left-0 right-0 bg-white border border-gray-200 rounded-sm shadow-md max-h-[160px] overflow-y-auto z-50 py-1.5 text-xs text-gray-700">
+                        {citiesList.map((c) => (
+                          <div
+                            key={c}
+                            onClick={() => {
+                              setCity(c);
+                              setShowCityDropdown(false);
+                            }}
+                            className={`px-3 py-2 cursor-pointer transition-colors hover:bg-pink-50 hover:text-[#ff3f6c] font-semibold text-left ${city === c ? "text-[#ff3f6c] bg-pink-50/50" : ""}`}
+                          >
+                            {c}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

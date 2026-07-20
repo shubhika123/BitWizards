@@ -1,5 +1,7 @@
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any, Optional
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
 from app.models.GenieSchema import (
     NLPParseRequest,
@@ -8,8 +10,17 @@ from app.models.GenieSchema import (
     GenieAlternativesRequest,
     GenieSwapRequest
 )
+import logging
+import traceback
 from app.services.gemini import GeminiService
 from app.services.curation_engine import CurationEngine
+from app.services.pruna import PrunaService
+
+route_logger = logging.getLogger("genie.try-on")
+
+class TryOnRequest(BaseModel):
+    person_image: str
+    garment_images: List[str]
 
 router = APIRouter(prefix="/genie", tags=["genie"])
 
@@ -29,6 +40,7 @@ class GenieCurateResponse(BaseModel):
     swap_boxes: Optional[Dict[str, List[Dict[str, Any]]]] = None
     budget_exceeded: bool
     local_consent_prompt: Optional[str] = None
+    nlp_parsed_data: Optional[Dict[str, Any]] = None
 
 
 @router.post("/parse", response_model=NLPParseResponse)
@@ -56,7 +68,8 @@ def curate_genie_outfit(req: GenieCurateRequest):
         outfit=result["outfit"],
         swap_boxes=result.get("swap_boxes"),
         budget_exceeded=result["budget_exceeded"],
-        local_consent_prompt=result.get("local_consent_prompt")
+        local_consent_prompt=result.get("local_consent_prompt"),
+        nlp_parsed_data=req.model_dump() if hasattr(req, "model_dump") else req.dict()
     )
 
 
@@ -76,3 +89,30 @@ def get_genie_alternatives(req: GenieAlternativesRequest):
 
     alternatives = CurationEngine.get_slot_alternatives(req)
     return alternatives
+
+
+@router.post("/try-on")
+def generate_virtual_try_on(req: TryOnRequest):
+    """
+    Executes a Pruna AI virtual try-on request.
+    Takes base64 encoded person and garment images.
+    """
+    route_logger.info("[Route] POST /genie/try-on received")
+    route_logger.info(f"[Route] person_image length = {len(req.person_image) if req.person_image else 0}")
+    route_logger.info(f"[Route] garment_images count = {len(req.garment_images)}")
+    for i, g in enumerate(req.garment_images):
+        route_logger.info(f"[Route]   garment[{i}] = {g[:80]}")
+
+    try:
+        route_logger.info("[Route] Calling PrunaService.generate_try_on...")
+        image_url = PrunaService.generate_try_on(req.person_image, req.garment_images)
+        route_logger.info(f"[Route] generate_try_on returned: type={type(image_url).__name__}, value={image_url}")
+
+        response_payload = {"image_url": image_url}
+        route_logger.info(f"[Route] Returning payload: {response_payload}")
+        return response_payload
+
+    except Exception as e:
+        route_logger.error(f"[Route] ❌ EXCEPTION caught: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Virtual try-on failed: {str(e)}")

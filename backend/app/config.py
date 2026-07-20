@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     SUPABASE_KEY: Optional[str] = os.getenv("SUPABASE_KEY", "")
     OPENWEATHER_API_KEY: Optional[str] = os.getenv("OPENWEATHER_API_KEY", "")
     PINECONE_API_KEY: Optional[str] = os.getenv("PINECONE_API_KEY", "")
+    PRUNA_API_KEY: Optional[str] = os.getenv("PRUNA_API_KEY", "")
     
     PORT: int = int(os.getenv("PORT", 8000))
     HOST: str = os.getenv("HOST", "0.0.0.0")
