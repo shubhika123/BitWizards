@@ -3,8 +3,12 @@ import { useState } from "react";
 import { Check, ShoppingBag, Play, HelpCircle, Truck, Tag, MessageSquare, Volume2 } from "lucide-react";
 import PollWidget from "./PollWidget";
 import { purchaseProduct } from "../../lib/OutfitCircleApi";
+import { useAuthStore } from "../../store/authStore";
 
-export default function PinCard({ pin, userId }: { pin: any; userId: number }) {
+export default function PinCard({ pin, userId: propUserId }: { pin: any; userId?: number }) {
+  const { user } = useAuthStore();
+  const userId = propUserId || user?.user_id || 1;
+
   const [purchases, setPurchases] = useState<any[]>(Array.isArray(pin.purchases) ? pin.purchases : []);
   const [buying, setBuying] = useState(false);
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
