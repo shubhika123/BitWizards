@@ -31,14 +31,21 @@ export default function MyProfile() {
   const [coins, setCoins] = useState(0);
 
   const loadCoins = () => {
-    const savedCoins = localStorage.getItem("myntra_contest_coins");
+    if (!user) {
+      setCoins(0);
+      return;
+    }
+    const savedCoins = localStorage.getItem(`myntra_contest_coins_${user.uid}`);
     setCoins(savedCoins ? Number(savedCoins) : 0);
   };
+
+  useEffect(() => {
+    loadCoins();
+  }, [user]);
 
   // Initialize auth session and load settings
   useEffect(() => {
     initAuth();
-    loadCoins();
 
     const saved = localStorage.getItem("dummySettings");
     if (saved) {
