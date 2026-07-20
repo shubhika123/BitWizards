@@ -22,6 +22,7 @@ class NLPParseResponse(BaseModel):
     is_local_preferred: bool = False
     confidence: str  # high, medium, low
     ambiguous_fields: List[str] = []
+    target_items: List[str] = []
 
 class GenieCurateRequest(BaseModel):
     query: Optional[str] = ""
@@ -38,6 +39,7 @@ class GenieCurateRequest(BaseModel):
     confidence: Optional[str] = "low"
     ambiguous_fields: List[str] = Field(default_factory=list)
     locked_item_ids: List[str] = Field(default_factory=list)
+    target_items: List[str] = Field(default_factory=list)
 
     model_config = ConfigDict(extra="ignore")
 
