@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import { useGenieStore, GenieParsedContext } from "../store/genieStore";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -284,6 +284,15 @@ export function useGenieNlpSubmit() {
   const [isParsing, setIsParsing] = useState(false);
   const [lastParsedContext, setLastParsedContext] = useState<GenieParsedContext | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const abort = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsParsing(false);
+  }, []);
 
   const submitQuery = useCallback(
     async (query: string): Promise<GenieParsedContext | null> => {
@@ -326,6 +335,9 @@ export function useGenieNlpSubmit() {
       }
       // --- END DEMO MODE ---
 
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
       let currentContext: GenieParsedContext | null = null;
 
       try {
@@ -333,6 +345,7 @@ export function useGenieNlpSubmit() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query: trimmed }),
+          signal,
         });
 
         if (response.ok) {
@@ -357,7 +370,11 @@ export function useGenieNlpSubmit() {
         } else {
           throw new Error("Failed to call backend parser");
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.log("Request aborted");
+          return null;
+        }
         console.warn("Backend parsing failed, using client-side fallback.", err);
         currentContext = buildFallbackContext(trimmed);
         setParsedContext(currentContext);
@@ -388,6 +405,7 @@ export function useGenieNlpSubmit() {
             locked_item_ids: lockedItemIds,
             target_items: currentContext?.targetItems || [],
           }),
+          signal,
         });
 
         if (curateResponse.ok) {
@@ -416,7 +434,11 @@ export function useGenieNlpSubmit() {
             }
           });
         }
-      } catch (curateErr) {
+      } catch (curateErr: any) {
+        if (curateErr.name === 'AbortError') {
+          console.log("Curation aborted");
+          return null;
+        }
         console.warn("Curation API call failed, no client-side mock swap available in hook.", curateErr);
       } finally {
         setIsParsing(false);
@@ -428,5 +450,5 @@ export function useGenieNlpSubmit() {
     [setParsedContext, setMaxBudget, canvasItems, lockedItems, maxBudget, swapItem, removeItem, stylePreferences]
   );
 
-  return { submitQuery, isParsing, lastParsedContext, error, setError };
+  return { submitQuery, isParsing, lastParsedContext, error, setError, abort };
 }
