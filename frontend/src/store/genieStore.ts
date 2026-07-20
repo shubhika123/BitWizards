@@ -100,6 +100,10 @@ export const useGenieStore = create<GenieState>((set, get) => ({
   swapItem: (category, newItem) =>
     set((state) => {
       const oldItem = state.canvasItems[category];
+      if (oldItem && oldItem.id === newItem.id) {
+          return state;
+      }
+      
       const newCanvasItems = {
         ...state.canvasItems,
         [category]: newItem,
@@ -107,9 +111,9 @@ export const useGenieStore = create<GenieState>((set, get) => ({
 
       let newInitialSwapBoxes = state.initialSwapBoxes;
       if (state.initialSwapBoxes && state.initialSwapBoxes[category] && oldItem) {
-        // Remove the newly selected item from the swap box
+        // Remove both the newly selected item and the old item from the swap box
         const updatedCategoryBoxes = state.initialSwapBoxes[category].filter(
-          (item: any) => item.id !== newItem.id
+          (item: any) => item.id !== newItem.id && item.id !== oldItem.id
         );
         // Add the old item into the swap box so it can be picked again
         updatedCategoryBoxes.unshift({

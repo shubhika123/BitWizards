@@ -15,6 +15,7 @@ import {
   Shirt,
   Camera,
   BookmarkPlus,
+  Square,
 } from "lucide-react";
 import PinToBoardModal from "../OutfitCircle/PinToBoardModal";
 // Removed GenieAmbientBackground as we are using a custom CSS gradient
@@ -30,6 +31,8 @@ export type ChatMessage =
       text: string;
       time: string;
       context?: GenieParsedContext;
+      snapshotItems?: Record<string, any>;
+      snapshotPrefs?: string[];
     };
 
 function formatTime() {
@@ -68,14 +71,24 @@ function IntentChips({ context }: { context: GenieParsedContext }) {
   );
 }
 
-function InlineOutfitPreview({ onTryOnTwin }: { onTryOnTwin: () => void }) {
+function InlineOutfitPreview({ 
+  onTryOnTwin,
+  snapshotItems,
+  snapshotPrefs
+}: { 
+  onTryOnTwin: () => void;
+  snapshotItems?: Record<string, any>;
+  snapshotPrefs?: string[];
+}) {
   const { canvasItems, stylePreferences, setDisplayImage } = useGenieStore();
+  const items = snapshotItems || canvasItems;
+  const prefs = snapshotPrefs || stylePreferences;
   const slots = ["TOP", "BOTTOM", "FOOTWEAR", "ACCESSORY"] as const;
 
   const totalBudgetSpent = slots.reduce((acc, slot) => {
     // Only calculate if the slot is in stylePreferences
-    if (stylePreferences.includes(slot) && canvasItems[slot]) {
-      return acc + (canvasItems[slot]?.price || 0);
+    if (prefs.includes(slot) && items[slot]) {
+      return acc + (items[slot]?.price || 0);
     }
     return acc;
   }, 0);
@@ -84,9 +97,9 @@ function InlineOutfitPreview({ onTryOnTwin }: { onTryOnTwin: () => void }) {
 
   // Map canvas items to ProductToPin format
   const productsToPin = slots
-    .filter((slot) => stylePreferences.includes(slot) && canvasItems[slot])
+    .filter((slot) => prefs.includes(slot) && items[slot])
     .map((slot) => {
-      const item = canvasItems[slot]!;
+      const item = items[slot]!;
       return {
         product_id: item.id,
         product_name: item.name,
@@ -112,9 +125,9 @@ function InlineOutfitPreview({ onTryOnTwin }: { onTryOnTwin: () => void }) {
       <div className="grid grid-cols-2 gap-3 mt-2">
         {slots.map((slot) => {
           // If the user didn't ask for this slot, don't show it!
-          if (!stylePreferences.includes(slot)) return null;
+          if (!prefs.includes(slot)) return null;
 
-          const item = canvasItems[slot];
+          const item = items[slot];
           if (!item) return null;
           return (
             <div key={slot} className="flex flex-col items-center text-center bg-[#f5f5f6]/50 rounded-xl p-1.5 border border-[#eaeaec]/50">
@@ -163,7 +176,7 @@ type GenieChatScreenProps = {
 };
 
 export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenProps) {
-  const { submitQuery, isParsing } = useGenieNlpSubmit();
+  const { submitQuery, isParsing, abort } = useGenieNlpSubmit();
   const { userGender, setUserGender, stylePreferences, setStylePreferences, removeItem, canvasItems, setDisplayImage, baseUserImage, setBaseUserImage } = useGenieStore();
   const [composer, setComposer] = useState(initialComposerValue);
   const [activeTab, setActiveTab] = useState<"chat" | "twin">("chat");
@@ -241,12 +254,15 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
     setIsDemoLoading(false);
 
     if (context) {
+      const state = useGenieStore.getState();
       const genieMsg: ChatMessage = {
         id: `g-${Date.now()}`,
         role: "genie",
         text: buildGenieReplyText(context),
         time: formatTime(),
         context,
+        snapshotItems: state.canvasItems,
+        snapshotPrefs: state.stylePreferences,
       };
       setMessages((m) => [...m, genieMsg]);
     }
@@ -255,6 +271,11 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     void sendMessage(composer);
+  };
+
+  const handleStop = () => {
+    abort();
+    setIsDemoLoading(false);
   };
 
   const handleGenderSelect = (gender: "Men" | "Women") => {
@@ -330,9 +351,12 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
       if (typeof reader.result === "string") {
         setBaseUserImage(reader.result);
         
-        // After upload, just open the Twin without triggering the try-on result yet
-        setIsTryOnLoading(false);
-        setActiveTab("twin");
+        // After upload, keep isTryOnLoading true so the "getting stuff ready" overlay shows
+        // for a few seconds before entering the Digital Twin
+        setTimeout(() => {
+          setIsTryOnLoading(false);
+          setActiveTab("twin");
+        }, 3000);
       }
       e.target.value = "";
     };
@@ -406,12 +430,24 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
                   {msg.role === "genie" && msg.context && (
                     <>
                       <IntentChips context={msg.context} />
-                      <InlineOutfitPreview onTryOnTwin={() => {
+                      <InlineOutfitPreview 
+                        snapshotItems={msg.snapshotItems}
+                        snapshotPrefs={msg.snapshotPrefs}
+                        onTryOnTwin={() => {
+                        if (msg.snapshotItems) {
+                          const store = useGenieStore.getState();
+                          Object.keys(msg.snapshotItems).forEach(cat => {
+                            const item = msg.snapshotItems![cat];
+                            if (item) store.swapItem(cat as any, item);
+                          });
+                          store.setStylePreferences(msg.snapshotPrefs || []);
+                        }
                         setIsTryOnLoading(true);
                         if (baseUserImage) {
                           // Already have image, just do the loading overlay then switch
                           setTimeout(() => {
-                            if (canvasItems["TOP"]?.id === "top_prompt1") {
+                            const activeTopId = (msg.snapshotItems || canvasItems)["TOP"]?.id;
+                            if (activeTopId === "top_prompt1") {
                               setDisplayImage("/catalog/prompt1_result.png");
                             }
                             setIsTryOnLoading(false);
@@ -604,6 +640,7 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
                   value={composer}
                   onChange={(e) => setComposer(e.target.value)}
                   disabled={isParsing || !userGender || !preferencesConfirmed}
+                  autoFocus
                   placeholder={
                     !userGender 
                       ? "Please select your gender above..." 
@@ -614,14 +651,25 @@ export function GenieChatScreen({ initialComposerValue = "" }: GenieChatScreenPr
                   className="flex-1 min-w-0 bg-transparent text-[13px] outline-none placeholder-[#9496a2] text-[#282c3f] disabled:opacity-50"
                 />
               </div>
-              <button
-                type="submit"
-                disabled={isParsing || isDemoLoading || !composer.trim() || !userGender || !preferencesConfirmed}
-                className="min-h-11 min-w-11 flex items-center justify-center rounded-xl bg-[#FF3F6C] shadow-sm cursor-pointer"
-                aria-label="Send"
-              >
-                {isParsing || isDemoLoading ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-5 h-5 text-white" fill="#ffffff" />}
-              </button>
+              {isParsing || isDemoLoading ? (
+                <button
+                  type="button"
+                  onClick={handleStop}
+                  className="min-h-11 min-w-11 flex items-center justify-center rounded-xl bg-[#282c3f] shadow-sm cursor-pointer hover:bg-[#1a1c29] transition-colors"
+                  aria-label="Stop"
+                >
+                  <Square className="w-4 h-4 text-white" fill="currentColor" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!composer.trim() || !userGender || !preferencesConfirmed}
+                  className="min-h-11 min-w-11 flex items-center justify-center rounded-xl bg-[#FF3F6C] shadow-sm cursor-pointer disabled:opacity-50 hover:bg-[#ff3f6c]/90 transition-colors"
+                  aria-label="Send"
+                >
+                  <Sparkles className="w-5 h-5 text-white" fill="#ffffff" />
+                </button>
+              )}
             </form>
           </div>
         </>
