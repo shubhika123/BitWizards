@@ -53,9 +53,8 @@ export default function Header() {
       <header className={`w-full sticky top-0 z-50 px-4 flex flex-col transition-colors duration-300 ${headerBg} py-3 gap-2.5 shrink-0`}>
         
         {/* ROW 1: Logo & Compact Actions */}
-        <div className="flex items-center justify-between w-full gap-4">
-          <div className="flex items-center gap-3">
-            {/* Logo */}
+        <div className="flex items-center justify-between w-full gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0">
               <img 
@@ -71,14 +70,14 @@ export default function Header() {
             {/* Festive Live Tag */}
             <Link 
               href="/Category/Rakhi"
-              className="flex items-center gap-1.5 px-3 py-0.5 bg-gradient-to-r from-[#fffbf0] via-[#fff1f2] to-[#fffbf0] border-2 border-double border-amber-300 rounded-full text-[#9f1239] text-[8px] font-black tracking-widest uppercase shadow-3xs select-none shrink-0 animate-pulse"
+              className="flex items-center gap-1 px-2.5 py-0.5 bg-gradient-to-r from-[#fffbf0] via-[#fff1f2] to-[#fffbf0] border-2 border-double border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs select-none min-w-0 animate-pulse"
             >
-              <span>🌸 RAKHI FESTIVAL LIVE 🌸</span>
+              <span className="truncate">🌸 RAKHI FESTIVAL LIVE 🌸</span>
             </Link>
           </div>
 
           {/* Compact Actions (Bell, Heart, Profile) */}
-          <div className="flex items-center gap-3 text-[#282c3f] pr-1">
+          <div className="flex items-center gap-2 text-[#282c3f] pr-1 shrink-0">
             {/* Bell (Notification) */}
             <div className="relative p-1 hover:text-[#ff3f6c] transition-colors cursor-pointer">
               <Bell className="w-4.5 h-4.5 stroke-[1.5]" />
