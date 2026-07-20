@@ -707,6 +707,12 @@ class MockDB:
         return None
 
     @classmethod
+    def get_boutiques(cls, city: Optional[str] = None) -> List[Dict[str, Any]]:
+        if not city:
+            return LOCAL_BOUTIQUES
+        return [b for b in LOCAL_BOUTIQUES if b["city"].lower() == city.lower()]
+
+    @classmethod
     def get_genie_products(cls) -> List[Dict[str, Any]]:
         category_map = {
             "Topwear": "TOP",
