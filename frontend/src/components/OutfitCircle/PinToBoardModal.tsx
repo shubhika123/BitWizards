@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { X, Plus, Check } from "lucide-react";
 import { getUserBoards, pinProduct, createBoard } from "../../lib/OutfitCircleApi";
 
-const CURRENT_USER_ID = 1; // replace with real auth context
-
 interface ProductToPin {
   product_id: string;
   product_name: string;
@@ -15,10 +13,14 @@ interface ProductToPin {
 
 export default function PinToBoardModal({
   product,
+  userId,
   onClose,
+  onPinned,
 }: {
   product: ProductToPin;
+  userId: number;
   onClose: () => void;
+  onPinned?: () => void;
 }) {
   const [boards, setBoards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,24 +29,25 @@ export default function PinToBoardModal({
   const [newBoardName, setNewBoardName] = useState("");
 
   const loadBoards = async () => {
-    const data = await getUserBoards(CURRENT_USER_ID);
+    const data = await getUserBoards(userId);
     setBoards(Array.isArray(data) ? data : []);
     setLoading(false);
   };
 
   useEffect(() => {
     loadBoards();
-  }, []);
+  }, [userId]);
 
   const handlePin = async (boardId: number) => {
-    await pinProduct({ board_id: boardId, pinned_by: CURRENT_USER_ID, ...product });
+    await pinProduct({ board_id: boardId, pinned_by: userId, ...product });
     setPinnedBoardId(boardId);
-    setTimeout(onClose, 700); // brief confirmation, then close
+    onPinned?.();
+    setTimeout(onClose, 700);
   };
 
   const handleCreateAndPin = async () => {
     if (!newBoardName.trim()) return;
-    const board = await createBoard(newBoardName.trim(), CURRENT_USER_ID);
+    const board = await createBoard(newBoardName.trim(), userId);
     await handlePin(board.board_id);
   };
 

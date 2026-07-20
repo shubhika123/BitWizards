@@ -71,42 +71,41 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="min-h-screen flex flex-col bg-white text-[#282c3f] font-sans antialiased overflow-x-hidden">
-        
+
         {/* Scrollable Children Container */}
         <div
-          className={`flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-transparent ${
-            isGenieRoute ? "pb-0" : "pb-16"
-          }`}
+          className={`flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-transparent ${isGenieRoute ? "pb-0" : "pb-16"
+            }`}
         >
           {children}
         </div>
 
         {!isGenieRoute && (
-        <nav className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-gray-150 flex items-center justify-around z-40 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] select-none shrink-0 px-2 pb-1">
-          {/* Home Tab */}
-          <Link href="/" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
-            <MyntraLogo className="w-5.5 h-5.5" />
-            <span className="text-[8.5px] font-extrabold tracking-wider uppercase">Home</span>
-          </Link>
+          <nav className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-gray-150 flex items-center justify-around z-40 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] select-none shrink-0 px-2 pb-1">
+            {/* Home Tab */}
+            <Link href="/" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
+              <MyntraLogo className="w-5.5 h-5.5" />
+              <span className="text-[8.5px] font-extrabold tracking-wider uppercase">Home</span>
+            </Link>
 
-          {/* Apna Bazaar Tab */}
-          <Link href="/local-bazaar" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/local-bazaar" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
-            <Store className="w-4.5 h-4.5" />
-            <span className="text-[8.5px] font-bold tracking-wider uppercase">Apna Bazaar</span>
-          </Link>
+            {/* Apna Bazaar Tab */}
+            <Link href="/local-bazaar" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/local-bazaar" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
+              <Store className="w-4.5 h-4.5" />
+              <span className="text-[8.5px] font-bold tracking-wider uppercase">Apna Bazaar</span>
+            </Link>
 
-          {/* Outfit Circle Tab */}
-          <Link href="/OutfitCircle" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/OutfitCircle" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
-            <Users className="w-4.5 h-4.5" />
-            <span className="text-[8.5px] font-bold tracking-wider uppercase">Circle</span>
-          </Link>
+            {/* Outfit Circle Tab */}
+            <Link href="/OutfitCircle" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/OutfitCircle" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
+              <Users className="w-4.5 h-4.5" />
+              <span className="text-[8.5px] font-bold tracking-wider uppercase">Circle</span>
+            </Link>
 
-          {/* Bag Tab */}
-          <Link href="/bag" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/bag" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
-            <ShoppingBag className="w-4.5 h-4.5" />
-            <span className="text-[8.5px] font-bold tracking-wider uppercase">Bag</span>
-          </Link>
-        </nav>
+            {/* Bag Tab */}
+            <Link href="/bag" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/bag" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
+              <ShoppingBag className="w-4.5 h-4.5" />
+              <span className="text-[8.5px] font-bold tracking-wider uppercase">Bag</span>
+            </Link>
+          </nav>
         )}
 
       </body>

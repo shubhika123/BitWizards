@@ -7,7 +7,8 @@ import {
   Search, 
   User, 
   Heart, 
-  Bell
+  Bell,
+  X
 } from "lucide-react";
 import { useGenieUiStore } from "../store/genieUiStore";
 import { GenieEntryButton } from "./genie/GenieEntryButton";
@@ -22,6 +23,117 @@ export default function Header() {
 
   const { user } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Daily Guessing Contest states
+  const [showContest, setShowContest] = useState(false);
+  const [guess, setGuess] = useState("");
+  const [contestStatus, setContestStatus] = useState<{
+    played: boolean;
+    guessValue?: number;
+    actualPrice?: number;
+    coinsWon?: number;
+    resultMsg?: string;
+  }>({ played: false });
+
+  const CONTEST_PRODUCTS = [
+    { id: "top_003", name: "Cotton Casual Kurti", price: 1290, image_url: "/catalog/top_003.jpg", category: "Ethnic Wear" },
+    { id: "top_001", name: "Heavy Peplum Kurti", price: 1890, image_url: "/catalog/top_001.jpg", category: "Ethnic Wear" },
+    { id: "bottom_003", name: "Ivory Palazzo Silk Pants", price: 890, image_url: "/catalog/bot_003.jpg", category: "Bottom Wear" },
+    { id: "top_007", name: "Cozy Woolen Cardigan", price: 1100, image_url: "/catalog/top_007.jpg", category: "Winter Wear" },
+    { id: "accessory_003", name: "Chronograph Leather Watch", price: 680, image_url: "/catalog/acc_003.jpg", category: "Accessories" },
+    { id: "footwear_001", name: "Handcrafted Kolhapuri Mojris", price: 890, image_url: "/catalog/foot_001.jpg", category: "Footwear" }
+  ];
+
+  const getTodayProduct = () => {
+    const today = new Date();
+    // Deterministic index per day
+    const dayIndex = (today.getFullYear() * 365 + today.getMonth() * 30 + today.getDate()) % CONTEST_PRODUCTS.length;
+    return CONTEST_PRODUCTS[dayIndex];
+  };
+
+  const todayProduct = getTodayProduct();
+
+  // Load contest state on mount or when modal opens
+  const checkContestState = () => {
+    const todayStr = new Date().toDateString();
+    const lastPlayedDate = localStorage.getItem("myntra_contest_last_played_date");
+    if (lastPlayedDate === todayStr) {
+      setContestStatus({
+        played: true,
+        guessValue: Number(localStorage.getItem("myntra_contest_last_guess")),
+        actualPrice: Number(localStorage.getItem("myntra_contest_last_actual")),
+        coinsWon: Number(localStorage.getItem("myntra_contest_last_won_coins")),
+        resultMsg: localStorage.getItem("myntra_contest_last_result_msg") || ""
+      });
+    } else {
+      setContestStatus({ played: false });
+    }
+  };
+
+  useEffect(() => {
+    checkContestState();
+  }, [showContest]);
+
+  const handleSubmitGuess = () => {
+    const numericGuess = Number(guess);
+    if (!guess.trim() || isNaN(numericGuess) || numericGuess <= 0) {
+      alert("Please enter a valid positive MRP price.");
+      return;
+    }
+
+    const actual = todayProduct.price;
+    const diffPct = Math.abs(numericGuess - actual) / actual;
+    
+    let won = 2;
+    let msg = "Incorrect guess! Keep trying.";
+    if (numericGuess === actual) {
+      won = 100;
+      msg = "🎯 EXACT MATCH! Magnificent!";
+    } else if (diffPct <= 0.05) {
+      won = 50;
+      msg = "🔥 SUPER CLOSE (within 5%)!";
+    } else if (diffPct <= 0.10) {
+      won = 20;
+      msg = "⭐ GREAT GUESS (within 10%)!";
+    } else if (diffPct <= 0.20) {
+      won = 10;
+      msg = "👍 CLOSE GUESS (within 20%)!";
+    } else {
+      won = 2;
+      msg = "Good effort! You earned a participation reward.";
+    }
+
+    const currentCoins = Number(localStorage.getItem("myntra_contest_coins") || "0");
+    const newCoins = currentCoins + won;
+    const todayStr = new Date().toDateString();
+
+    localStorage.setItem("myntra_contest_coins", String(newCoins));
+    localStorage.setItem("myntra_contest_last_played_date", todayStr);
+    localStorage.setItem("myntra_contest_last_guess", String(numericGuess));
+    localStorage.setItem("myntra_contest_last_actual", String(actual));
+    localStorage.setItem("myntra_contest_last_won_coins", String(won));
+    localStorage.setItem("myntra_contest_last_result_msg", msg);
+
+    // Store the guessed price for today's category
+    try {
+      const categoryGuesses = JSON.parse(localStorage.getItem("myntra_contest_category_guesses") || "{}");
+      categoryGuesses[todayProduct.category] = numericGuess;
+      localStorage.setItem("myntra_contest_category_guesses", JSON.stringify(categoryGuesses));
+    } catch (err) {
+      console.error("Failed to write category guess pricing:", err);
+    }
+
+    // Fire storage update
+    window.dispatchEvent(new Event("storage"));
+
+    setContestStatus({
+      played: true,
+      guessValue: numericGuess,
+      actualPrice: actual,
+      coinsWon: won,
+      resultMsg: msg
+    });
+  };
 
   useEffect(() => {
     setGenieButtonActive(isGenieRoute);
@@ -68,17 +180,19 @@ export default function Header() {
               />
             </Link>
 
-            {/* Festive Live Tag */}
-            <Link 
-              href="/Category/Rakhi"
-              className="flex items-center gap-1.5 px-3 py-0.5 bg-gradient-to-r from-[#fffbf0] via-[#fff1f2] to-[#fffbf0] border-2 border-double border-amber-300 rounded-full text-[#9f1239] text-[8px] font-black tracking-widest uppercase shadow-3xs select-none shrink-0 animate-pulse"
-            >
-              <span>🌸 RAKHI FESTIVAL LIVE 🌸</span>
-            </Link>
           </div>
 
           {/* Compact Actions (Bell, Heart, Profile) */}
           <div className="flex items-center gap-3 text-[#282c3f] pr-1">
+            {/* Daily Guess & Win Contest Trigger */}
+            <button
+              onClick={() => setShowContest(true)}
+              className="relative flex items-center gap-1 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 rounded-full px-3 py-1 text-[9px] font-extrabold uppercase tracking-wider text-amber-900 shadow-2xs hover:shadow-xs hover:border-amber-400 active:scale-95 transition-all cursor-pointer shrink-0"
+              title="Daily Price Guessing Contest"
+            >
+              <span>🎯 MRP Master</span>
+            </button>
+
             {/* Bell (Notification) */}
             <div className="relative p-1 hover:text-[#ff3f6c] transition-colors cursor-pointer">
               <Bell className="w-4.5 h-4.5 stroke-[1.5]" />
@@ -124,6 +238,100 @@ export default function Header() {
         </div>
       </header>
 
+      {showContest && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl relative border border-rose-100 flex flex-col gap-4 animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => {
+                setShowContest(false);
+                setGuess("");
+              }}
+              className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition cursor-pointer"
+            >
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+
+            <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+              <span className="text-lg">🎯</span>
+              <div>
+                <h3 className="text-sm font-black text-[#282c3f] uppercase tracking-wide">Daily Price Guessing Contest</h3>
+                <span className="text-[8px] font-black text-[#ff3f6c] uppercase tracking-widest block">New Day, New Challenge</span>
+              </div>
+            </div>
+
+            {/* Product Card for Guessing */}
+            <div className="flex flex-col items-center bg-gray-50 border border-gray-100 rounded-2xl p-4 gap-2">
+              <div className="w-32 h-32 rounded-xl overflow-hidden bg-white border border-gray-200 relative select-none">
+                <img
+                  src={todayProduct.image_url}
+                  alt={todayProduct.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/5 flex items-center justify-center font-black text-white text-3xl select-none pointer-events-none">
+                  ❓
+                </div>
+              </div>
+              <span className="text-xs font-black text-gray-800 tracking-wide text-center">{todayProduct.name}</span>
+              <span className="text-[9px] font-bold text-gray-400 uppercase">{todayProduct.category}</span>
+            </div>
+
+            {!contestStatus.played ? (
+              <div className="space-y-3">
+                <p className="text-[10px] text-gray-500 font-semibold leading-relaxed text-center">
+                  Guess the correct price of this item in ₹. Get closer to win up to 100 Myntra Coins!
+                </p>
+
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-2 text-xs font-black text-gray-400">₹</span>
+                    <input
+                      value={guess}
+                      onChange={(e) => setGuess(e.target.value)}
+                      placeholder="Enter price guess"
+                      type="number"
+                      className="w-full border border-gray-200 rounded-xl pl-6 pr-3 py-2 text-xs outline-none focus:border-[#ff3f6c] transition-all font-bold"
+                    />
+                  </div>
+                  <button
+                    onClick={handleSubmitGuess}
+                    className="bg-[#ff3f6c] text-white text-xs font-black px-4 py-2.5 rounded-xl uppercase tracking-wider hover:bg-[#e63560] active:scale-[0.98] transition-all"
+                  >
+                    Guess
+                  </button>
+                </div>
+
+                {/* Score Chart */}
+                <div className="bg-rose-50/50 border border-rose-100/50 rounded-xl p-2.5 text-[8.5px] font-semibold text-gray-500 grid grid-cols-2 gap-y-1">
+                  <div className="font-black text-[#ff3f6c]">🎯 Exact Match: +100 Coins</div>
+                  <div className="font-bold text-amber-700">🔥 Within 5%: +50 Coins</div>
+                  <div className="font-bold text-gray-600">⭐ Within 10%: +20 Coins</div>
+                  <div className="font-bold text-gray-500">👍 Within 20%: +10 Coins</div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 text-center">
+                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col items-center gap-1">
+                  <span className="text-[14px] font-black text-amber-800">{contestStatus.resultMsg}</span>
+                  <span className="text-[10px] font-bold text-amber-600">
+                    Your Guess: <b>₹{contestStatus.guessValue}</b> • Actual Price: <b>₹{contestStatus.actualPrice}</b>
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 border border-amber-300 text-amber-950 shadow-md">
+                  <span className="text-[8px] font-black uppercase tracking-wider block">Coins Claimed</span>
+                  <span className="text-xl font-black flex items-center gap-1 mt-0.5">
+                    🪙 +{contestStatus.coinsWon} Coins
+                  </span>
+                </div>
+
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">
+                  Thanks for playing today! New item drops tomorrow morning.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
