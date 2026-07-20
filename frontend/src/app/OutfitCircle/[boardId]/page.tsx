@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../../components/Header";
 import PinCard from "../../../components/OutfitCircle/PinCard";
-import { addMemberByUsername, getBoard } from "../../../lib/OutfitCircleApi";
-import { CheckCircle2, Clock3, LayoutGrid, MapPin, Plus, ShieldCheck, Sparkles, UserPlus, Users } from "lucide-react";
+import { addMemberByUsername, getBoard, updatePinCanvas } from "../../../lib/OutfitCircleApi";
+import { Clock3, MapPin, Plus, ShieldCheck, Sparkles, UserPlus, Users } from "lucide-react";
 
 export default function BoardDetailPage() {
   const params = useParams();
@@ -13,16 +13,50 @@ export default function BoardDetailPage() {
   const [inviteUsername, setInviteUsername] = useState("");
   const [addingMember, setAddingMember] = useState(false);
   const [inviteMessage, setInviteMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"board" | "members">("board");
+  const [activeTab, setActiveTab] = useState<"board" | "members" | "canvas">("board");
+
+  // Canvas Co-Styling state variables
+  const [selectedPinId, setSelectedPinId] = useState<number | null>(null);
+  const [pinsState, setPinsState] = useState<any[]>([]);
 
   const load = async () => {
     const boardData = await getBoard(boardId);
     setData(boardData);
+    if (boardData?.pins) {
+      setPinsState(boardData.pins);
+    }
   };
 
   useEffect(() => {
     void load();
   }, [boardId]);
+
+  const handleUpdatePinPosition = (pinId: number, field: string, amount: number) => {
+    setPinsState((prev) =>
+      prev.map((p) => {
+        if (p.pin_id === pinId) {
+          const val = (p[field] || (field === "canvas_scale" ? 1.0 : 0)) + amount;
+          return { ...p, [field]: val };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleSaveLayout = async (pin: any) => {
+    try {
+      await updatePinCanvas(pin.pin_id, {
+        canvas_x: pin.canvas_x || 120,
+        canvas_y: pin.canvas_y || 150,
+        canvas_scale: pin.canvas_scale || 1.0,
+      });
+      alert("Style layout synced to circle members!");
+      await load();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save layout.");
+    }
+  };
 
   const members = useMemo(() => (Array.isArray(data?.members) ? data.members : []), [data]);
   const pins = useMemo(() => (Array.isArray(data?.pins) ? data.pins : []), [data]);
@@ -84,23 +118,27 @@ export default function BoardDetailPage() {
         </div>
 
         <div className="mb-4 rounded-full bg-[#f5f5f6] p-1 border border-rose-100">
-          <div className="grid grid-cols-2 gap-1">
+          <div className="grid grid-cols-3 gap-1">
             <button
               onClick={() => setActiveTab("board")}
-              className={`rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
-                activeTab === "board"
-                  ? "bg-white text-[#ff3f6c] shadow-sm"
-                  : "text-gray-500"
+              className={`rounded-full px-2 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-all ${
+                activeTab === "board" ? "bg-white text-[#ff3f6c] shadow-sm" : "text-gray-500"
               }`}
             >
               Board
             </button>
             <button
+              onClick={() => setActiveTab("canvas")}
+              className={`rounded-full px-2 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-all ${
+                activeTab === "canvas" ? "bg-white text-[#ff3f6c] shadow-sm" : "text-gray-500"
+              }`}
+            >
+              AI Runway
+            </button>
+            <button
               onClick={() => setActiveTab("members")}
-              className={`rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
-                activeTab === "members"
-                  ? "bg-white text-[#ff3f6c] shadow-sm"
-                  : "text-gray-500"
+              className={`rounded-full px-2 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-all ${
+                activeTab === "members" ? "bg-white text-[#ff3f6c] shadow-sm" : "text-gray-500"
               }`}
             >
               Members
@@ -110,23 +148,6 @@ export default function BoardDetailPage() {
 
         {activeTab === "board" ? (
           <div className="space-y-4">
-            <div className="rounded-[24px] border border-rose-100 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <LayoutGrid className="w-4 h-4 text-[#ff3f6c]" />
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#282c3f]">Board Showcase</span>
-              </div>
-
-              <div className="rounded-[20px] bg-gradient-to-r from-[#fff5f6] to-[#fffaf2] border border-amber-100 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ff3f6c]">Classic Edit</div>
-                    <div className="text-sm font-black text-[#282c3f] mt-1">Curate your outfit story</div>
-                  </div>
-                  <div className="rounded-full bg-[#ff3f6c] text-white px-3 py-1 text-[10px] font-black">{pins.length} saved</div>
-                </div>
-              </div>
-            </div>
-
             <div className="rounded-[24px] border border-rose-100 bg-white p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-black text-gray-700 uppercase tracking-[0.2em]">Pinned Items</span>
@@ -149,7 +170,169 @@ export default function BoardDetailPage() {
               )}
             </div>
           </div>
-        ) : activeTab === "members" ? (
+        ) : activeTab === "canvas" ? (
+          <div className="rounded-[24px] border border-rose-100 bg-white p-4 shadow-sm mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-[#ff3f6c]" />
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#282c3f]">AI Digital Runway</span>
+            </div>
+            <p className="text-[9.5px] text-gray-500 font-bold mb-4 leading-relaxed">
+              Co-style outfits on your digital twins. Select a product below and use coordinates to align tops and palazzos.
+            </p>
+
+            {/* Virtual Runway Stage */}
+            <div className="h-80 w-full bg-gradient-to-b from-[#fff5f6] to-[#fff1f3] rounded-3xl relative overflow-hidden border border-rose-100 shadow-inner flex justify-center items-end pb-8">
+              {/* Grid Lines for scale */}
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffe4e6_1px,transparent_1px),linear-gradient(to_bottom,#ffe4e6_1px,transparent_1px)] bg-[size:20px_20px] opacity-40 pointer-events-none" />
+
+              {/* Digital Twin Avatars */}
+              <div className="absolute bottom-6 flex justify-around w-full px-4 z-10 pointer-events-none">
+                {members.slice(0, 3).map((m: any, idx: number) => (
+                  <div key={m.user_id} className="flex flex-col items-center">
+                    {/* Dummy Twin Mannequin */}
+                    <div className="h-28 w-12 rounded-full border-2 border-[#ff3f6c]/30 bg-white/70 backdrop-blur-sm shadow flex items-center justify-center relative">
+                      <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center text-[8px] font-black text-[#ff3f6c]">
+                        {getInitials(m.name, m.username)}
+                      </div>
+                      <div className="absolute -bottom-1 bg-[#282c3f] text-white text-[7px] px-1 rounded font-black uppercase">
+                        Twin {idx + 1}
+                      </div>
+                    </div>
+                    <span className="text-[8.5px] font-black text-gray-500 mt-1.5 truncate max-w-[60px]">
+                      @{m.username}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Positioned Pins on Canvas */}
+              {pinsState.map((pin: any) => {
+                const x = pin.canvas_x || 120;
+                const y = pin.canvas_y || 150;
+                const scale = pin.canvas_scale || 1.0;
+                const isSelected = selectedPinId === pin.pin_id;
+
+                return (
+                  <div
+                    key={pin.pin_id}
+                    onClick={() => setSelectedPinId(pin.pin_id)}
+                    style={{
+                      position: "absolute",
+                      left: `${x}px`,
+                      top: `${y}px`,
+                      transform: `scale(${scale})`,
+                      cursor: "pointer",
+                      zIndex: isSelected ? 50 : 20,
+                    }}
+                    className={`transition-all duration-75 ${
+                      isSelected
+                        ? "ring-2 ring-[#ff3f6c] ring-offset-2 rounded-xl p-1 bg-white/50 shadow-lg"
+                        : "hover:scale-[1.05]"
+                    }`}
+                  >
+                    <img
+                      src={pin.product_image_url}
+                      alt={pin.product_name}
+                      className="w-12 h-12 object-contain shrink-0"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Layout Adjuster Controls */}
+            {selectedPinId && (
+              <div className="mt-4 bg-gray-50 border border-gray-100 rounded-2xl p-3">
+                {(() => {
+                  const selPin = pinsState.find((p) => p.pin_id === selectedPinId);
+                  if (!selPin) return null;
+
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black text-gray-800 uppercase tracking-wide truncate max-w-[150px]">
+                          Styling: {selPin.product_name}
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSaveLayout(selPin)}
+                            className="bg-[#047857] text-white text-[8px] font-black uppercase px-2.5 py-1 rounded-full hover:bg-emerald-700 transition"
+                          >
+                            Save Layout
+                          </button>
+                          <button
+                            onClick={() => setSelectedPinId(null)}
+                            className="bg-gray-400 text-white text-[8px] font-black uppercase px-2.5 py-1 rounded-full hover:bg-gray-500 transition"
+                          >
+                            Deselect
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-[8px] font-black uppercase tracking-wider text-gray-400">Position Move</span>
+                          <div className="grid grid-cols-3 gap-1.5 w-24">
+                            <div />
+                            <button
+                              onClick={() => handleUpdatePinPosition(selectedPinId, "canvas_y", -10)}
+                              className="bg-white border rounded text-[10px] font-black hover:bg-gray-100 h-6 flex items-center justify-center"
+                            >
+                              ▲
+                            </button>
+                            <div />
+                            <button
+                              onClick={() => handleUpdatePinPosition(selectedPinId, "canvas_x", -10)}
+                              className="bg-white border rounded text-[10px] font-black hover:bg-gray-100 h-6 flex items-center justify-center"
+                            >
+                              ◀
+                            </button>
+                            <div className="h-6" />
+                            <button
+                              onClick={() => handleUpdatePinPosition(selectedPinId, "canvas_x", 10)}
+                              className="bg-white border rounded text-[10px] font-black hover:bg-gray-100 h-6 flex items-center justify-center"
+                            >
+                              ▶
+                            </button>
+                            <div />
+                            <button
+                              onClick={() => handleUpdatePinPosition(selectedPinId, "canvas_y", 10)}
+                              className="bg-white border rounded text-[10px] font-black hover:bg-gray-100 h-6 flex items-center justify-center"
+                            >
+                              ▼
+                            </button>
+                            <div />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          <span className="text-[8px] font-black uppercase tracking-wider text-gray-400">Resize Scaling</span>
+                          <div className="flex gap-2 items-center">
+                            <button
+                              onClick={() => handleUpdatePinPosition(selectedPinId, "canvas_scale", -0.1)}
+                              className="bg-white border px-3 py-1 text-[11px] font-black rounded hover:bg-gray-100 transition"
+                            >
+                              Smaller -
+                            </button>
+                            <span className="text-[9px] font-black text-gray-700">
+                              {(selPin.canvas_scale || 1.0).toFixed(1)}x
+                            </span>
+                            <button
+                              onClick={() => handleUpdatePinPosition(selectedPinId, "canvas_scale", 0.1)}
+                              className="bg-white border px-3 py-1 text-[11px] font-black rounded hover:bg-gray-100 transition"
+                            >
+                              Larger +
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        ) : (
           <div className="rounded-[24px] border border-rose-100 bg-white p-4 shadow-sm mb-4">
             <div className="flex items-center gap-2 mb-3">
               <Users className="w-4 h-4 text-[#ff3f6c]" />
@@ -224,7 +407,7 @@ export default function BoardDetailPage() {
               })}
             </div>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );

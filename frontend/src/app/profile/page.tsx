@@ -28,10 +28,18 @@ export default function MyProfile() {
   const [height, setHeight] = useState(162);
   const [weight, setWeight] = useState(58);
   const [size, setSize] = useState("S");
+  const [coins, setCoins] = useState(0);
+
+  const loadCoins = () => {
+    const savedCoins = localStorage.getItem("myntra_contest_coins");
+    setCoins(savedCoins ? Number(savedCoins) : 0);
+  };
 
   // Initialize auth session and load settings
   useEffect(() => {
     initAuth();
+    loadCoins();
+
     const saved = localStorage.getItem("dummySettings");
     if (saved) {
       try {
@@ -43,6 +51,11 @@ export default function MyProfile() {
         console.error(e);
       }
     }
+
+    window.addEventListener("storage", loadCoins);
+    return () => {
+      window.removeEventListener("storage", loadCoins);
+    };
   }, []);
 
   // Save preferences to localStorage
@@ -65,6 +78,11 @@ export default function MyProfile() {
           <span className="font-extrabold text-sm text-gray-800 tracking-wide">My Profile</span>
         </div>
         <div className="flex items-center gap-2">
+          {/* Daily Contest Coins */}
+          <div className="bg-amber-50 text-amber-800 border border-amber-100 rounded-full px-2.5 py-1 flex items-center gap-1 text-[10px] font-black shadow-3xs">
+            <span>🪙</span>
+            {coins} Coins
+          </div>
           <div className="bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-full px-3 py-1 flex items-center gap-1.5 text-[10.5px] font-black shadow-3xs">
             <span className="w-4 h-3 bg-emerald-600 rounded-xs text-white text-[6px] flex items-center justify-center font-bold">₹</span>
             ₹0
@@ -199,35 +217,31 @@ export default function MyProfile() {
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400" />
           </div>
-        </div>
-
-        {/* 5. Rewards & Coupons Section */}
+        </div>        {/* 5. Rewards & Coupons Section */}
         <div className="mx-3.5 mt-4 bg-white rounded-2xl border border-gray-150 shadow-sm p-4 flex flex-col gap-3.5 shrink-0 select-none">
           <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Rewards & Coupons</h4>
           
           {/* Horizontal widgets */}
           <div className="flex gap-2.5 w-full">
+            {/* Contest Coins */}
+            <div className="flex-1 bg-amber-50/50 border border-amber-150 rounded-xl p-2.5 flex flex-col hover:bg-amber-50 cursor-pointer transition-colors justify-between">
+              <span className="text-[8px] font-black text-amber-700 uppercase tracking-wider">Guess Coins</span>
+              <span className="text-[11px] font-black text-amber-950 mt-1">🪙 {coins}</span>
+            </div>
             {/* MynCash */}
-            <div className="flex-1 bg-gray-50 border border-gray-150 rounded-xl p-2.5 flex items-center justify-between hover:bg-gray-100 cursor-pointer transition-colors">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold text-gray-600">MynCash</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+            <div className="flex-1 bg-gray-50 border border-gray-150 rounded-xl p-2.5 flex flex-col hover:bg-gray-100 cursor-pointer transition-colors justify-between">
+              <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider">MynCash</span>
+              <span className="text-[11px] font-black text-gray-800 mt-1">₹0</span>
             </div>
             {/* Coupons */}
-            <div className="flex-1 bg-gray-50 border border-gray-150 rounded-xl p-2.5 flex items-center justify-between hover:bg-gray-100 cursor-pointer transition-colors">
-              <span className="text-[10px] font-bold text-gray-600">Coupons</span>
-              <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-            </div>
-            {/* My Prizes */}
-            <div className="flex-1 bg-gray-50 border border-gray-150 rounded-xl p-2.5 flex items-center justify-between hover:bg-gray-100 cursor-pointer transition-colors">
-              <span className="text-[10px] font-bold text-gray-600">My Prizes</span>
-              <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+            <div className="flex-1 bg-gray-50 border border-gray-150 rounded-xl p-2.5 flex flex-col hover:bg-gray-100 cursor-pointer transition-colors justify-between">
+              <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider">Coupons</span>
+              <span className="text-[11px] font-black text-gray-800 mt-1">4 Active</span>
             </div>
           </div>
-
+ 
           <div className="w-full h-[1px] bg-gray-100"></div>
-
+ 
           {/* Gift Cards */}
           <div className="flex items-center justify-between hover:bg-gray-50 cursor-pointer p-1 rounded-lg transition-colors text-xs font-bold text-gray-700">
             <div className="flex items-center gap-3">

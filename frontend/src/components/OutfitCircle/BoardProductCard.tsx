@@ -2,19 +2,20 @@
 import { useState } from "react";
 import { ShoppingBag, Check } from "lucide-react";
 import { purchaseProduct, PinnedProduct } from "../../lib/OutfitCircleApi";
-
-const CURRENT_USER_ID = 1; // replace with real auth context
+import { useAuthStore } from "../../store/authStore";
 
 export default function BoardProductCard({ pin }: { pin: PinnedProduct }) {
+  const { user } = useAuthStore();
+  const currentUserId = user?.user_id ?? null;
   const [purchases, setPurchases] = useState(pin.purchases ?? []);
   const [buying, setBuying] = useState(false);
 
-  const youBought = purchases.some((p) => p.user_id === CURRENT_USER_ID);
+  const youBought = currentUserId != null && purchases.some((p) => p.user_id === currentUserId);
 
   const handleBuy = async () => {
-    if (youBought || buying) return;
+    if (youBought || buying || currentUserId == null) return;
     setBuying(true);
-    const updated = await purchaseProduct(pin.pin_id, CURRENT_USER_ID);
+    const updated = await purchaseProduct(pin.pin_id, currentUserId);
     setPurchases(updated.purchases ?? []);
     setBuying(false);
     if (pin.product_url) window.open(pin.product_url, "_blank");
@@ -42,6 +43,11 @@ export default function BoardProductCard({ pin }: { pin: PinnedProduct }) {
         <p className="text-xs font-bold text-[#282c3f] line-clamp-2">
           {pin.product_name}
         </p>
+        {pin.pinned_by_name && (
+          <p className="text-[9px] text-gray-400 font-bold mt-0.5">
+            Pinned by {pin.pinned_by_name}
+          </p>
+        )}
         {pin.product_price !== undefined && (
           <p className="text-sm font-black text-[#282c3f] mt-1">
             ₹{pin.product_price}
@@ -50,7 +56,7 @@ export default function BoardProductCard({ pin }: { pin: PinnedProduct }) {
 
         <button
           onClick={handleBuy}
-          disabled={youBought || buying}
+          disabled={youBought || buying || currentUserId == null}
           className={`w-full mt-2 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[10px] font-black uppercase transition-colors ${
             youBought
               ? "bg-emerald-50 text-emerald-600 cursor-default"

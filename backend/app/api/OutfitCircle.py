@@ -1,5 +1,5 @@
 # routers/outfit_circle.py
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Body
 from sqlmodel import Session, select
 from typing import List, Optional
 from pydantic import BaseModel
@@ -15,15 +15,16 @@ from app.database import get_session
 from app.models.OutfitCircleSchema import OutfitBoard, BoardMember, PinnedProduct, Poll, PollOption, PollVote
 router = APIRouter(prefix="/outfit-circle", tags=["Outfit Circle"])
 
-# ...baaki saara code jo pehle diya tha, same rahega
-
-
 # ---------- Request/Response Schemas ----------
 
 class CreateBoardRequest(BaseModel):
     name: str
     created_by: int
     member_ids: List[int] = []  # friends to add at creation
+    circle_type: str = "classic"  # "classic", "gully", "college", "creator"
+    city: Optional[str] = None
+    description: Optional[str] = None
+    creator_avatar_url: Optional[str] = None
 
 
 class PinProductRequest(BaseModel):
@@ -34,6 +35,26 @@ class PinProductRequest(BaseModel):
     product_image_url: str
     product_price: Optional[float] = None
     product_url: Optional[str] = None
+
+    # Reimagined columns
+    fit_video_url: Optional[str] = None
+    fit_review_text: Optional[str] = None
+    fit_height: Optional[float] = None
+    fit_weight: Optional[float] = None
+    fit_size_purchased: Optional[str] = None
+    fit_audio_review_url: Optional[str] = None
+    fit_feedback_badges: Optional[str] = None
+
+    group_buy_eligible: bool = False
+    group_buy_discount_rate: Optional[float] = 0.0
+    min_orders_required: Optional[int] = 3
+    is_local_bazaar_item: bool = False
+    bazaar_shop_name: Optional[str] = None
+
+    canvas_x: Optional[float] = None
+    canvas_y: Optional[float] = None
+    canvas_scale: Optional[float] = None
+    canvas_z_index: Optional[int] = None
 
 
 class CreatePollRequest(BaseModel):
@@ -50,11 +71,80 @@ class VoteRequest(BaseModel):
     user_id: int
 
 
+class RegisterUserRequest(BaseModel):
+    username: str
+    name: str
+
+
+@router.post("/users/register")
+def register_outfit_circle_user(payload: RegisterUserRequest, session: Session = Depends(get_session)):
+    normalized_username = payload.username.strip()
+    if not normalized_username:
+        raise HTTPException(status_code=400, detail="Username is required")
+
+    existing = session.exec(select(User).where(User.username == normalized_username)).first()
+
+    if existing:
+        # If this row was only a placeholder created earlier by someone inviting this
+        # username before the person signed up, claim it instead of blocking registration.
+        if existing.password_hash == "invite_pending_user":
+            existing.name = payload.name
+            existing.password_hash = "phone_auth_user"
+            session.add(existing)
+            session.commit()
+            session.refresh(existing)
+            return {"user_id": existing.user_id, "name": existing.name, "username": existing.username}
+        raise HTTPException(status_code=400, detail="Username already taken")
+
+    user = User(
+        name=payload.name,
+        username=normalized_username,
+        password_hash="phone_auth_user",
+        latitude=Decimal("0.00000000"),
+        longitude=Decimal("0.00000000"),
+        address=None,
+        pincode=None,
+        muted_festivals=None,
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return {"user_id": user.user_id, "name": user.name, "username": user.username}
+
+@router.post("/pins/{pin_id}/purchase")
+def purchase_pin(pin_id: int, user_id: int = Body(..., embed=True), session: Session = Depends(get_session)):
+    pin = session.get(PinnedProduct, pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin not found")
+
+    existing = session.exec(
+        select(PinPurchase).where(PinPurchase.pin_id == pin_id, PinPurchase.user_id == user_id)
+    ).first()
+
+    if not existing:
+        session.add(PinPurchase(pin_id=pin_id, user_id=user_id))
+        session.commit()
+
+    purchases = session.exec(select(PinPurchase).where(PinPurchase.pin_id == pin_id)).all()
+
+    result = []
+    for p in purchases:
+        buyer = session.get(User, p.user_id)
+        result.append({"user_id": p.user_id, "user_name": buyer.name if buyer else None})
+
+    return {"purchases": result}
 # ---------- Board ----------
 
 @router.post("/boards")
 def create_board(payload: CreateBoardRequest, session: Session = Depends(get_session)):
-    board = OutfitBoard(name=payload.name, created_by=payload.created_by)
+    board = OutfitBoard(
+        name=payload.name,
+        created_by=payload.created_by,
+        circle_type=payload.circle_type,
+        city=payload.city,
+        description=payload.description,
+        creator_avatar_url=payload.creator_avatar_url
+    )
     session.add(board)
     session.commit()
     session.refresh(board)
@@ -114,7 +204,14 @@ def get_board(board_id: int, session: Session = Depends(get_session)):
         for m, name, username in rows
     ]
 
-    pins = session.exec(select(PinnedProduct).where(PinnedProduct.board_id == board_id)).all()
+    pins_raw = session.exec(select(PinnedProduct).where(PinnedProduct.board_id == board_id)).all()
+
+    pins = []
+    for pin in pins_raw:
+        pinner = session.get(User, pin.pinned_by)
+        pin_dict = pin.dict()
+        pin_dict["pinned_by_name"] = pinner.name if pinner else None
+        pins.append(pin_dict)
 
     return {"board": board, "members": members, "pins": pins}
 
@@ -191,11 +288,16 @@ def pin_product(payload: PinProductRequest, session: Session = Depends(get_sessi
     session.refresh(pin)
     return pin
 
-
 @router.get("/boards/{board_id}/pins")
 def get_board_pins(board_id: int, session: Session = Depends(get_session)):
-    return session.exec(select(PinnedProduct).where(PinnedProduct.board_id == board_id)).all()
-
+    pins_raw = session.exec(select(PinnedProduct).where(PinnedProduct.board_id == board_id)).all()
+    result = []
+    for pin in pins_raw:
+        pinner = session.get(User, pin.pinned_by)
+        pin_dict = pin.dict()
+        pin_dict["pinned_by_name"] = pinner.name if pinner else None
+        result.append(pin_dict)
+    return result
 
 @router.delete("/pins/{pin_id}")
 def unpin_product(pin_id: int, session: Session = Depends(get_session)):
@@ -307,3 +409,80 @@ def add_member_by_username(board_id: int, username: str, session: Session = Depe
     session.commit()
     session.refresh(member)
     return {"detail": "Invite sent", "member": member, "user": user}
+
+@router.get("/users/by-username/{username}")
+def get_user_by_username(username: str, session: Session = Depends(get_session)):
+    normalized = username.strip()
+    if not normalized:
+        raise HTTPException(status_code=400, detail="Username is required")
+
+    user = session.exec(select(User).where(User.username == normalized)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"user_id": user.user_id, "name": user.name, "username": user.username}
+
+
+# ---------- Gully / Community Circles Endpoints ----------
+
+@router.get("/boards/gully")
+def get_gully_boards(city: Optional[str] = None, session: Session = Depends(get_session)):
+    """
+    Retrieve all gully/community/creator circles. Optionally filters by city.
+    """
+    query = select(OutfitBoard).where(OutfitBoard.circle_type != "classic")
+    if city:
+        query = query.where(OutfitBoard.city == city)
+    
+    boards = session.exec(query).all()
+    result = []
+    
+    for b in boards:
+        creator = session.get(User, b.created_by)
+        member_count = len(session.exec(select(BoardMember).where(BoardMember.board_id == b.board_id)).all())
+        pin_count = len(session.exec(select(PinnedProduct).where(PinnedProduct.board_id == b.board_id)).all())
+        result.append({
+            "board_id": b.board_id,
+            "name": b.name,
+            "created_by": b.created_by,
+            "created_by_name": creator.name if creator else "Admin",
+            "created_at": b.created_at,
+            "circle_type": b.circle_type,
+            "city": b.city,
+            "description": b.description,
+            "creator_avatar_url": b.creator_avatar_url,
+            "members_count": member_count,
+            "pins_count": pin_count
+        })
+    return result
+
+
+class UpdatePinCanvasRequest(BaseModel):
+    canvas_x: Optional[float] = None
+    canvas_y: Optional[float] = None
+    canvas_scale: Optional[float] = None
+    canvas_z_index: Optional[int] = None
+
+
+@router.put("/pins/{pin_id}/canvas")
+def update_pin_canvas(pin_id: int, payload: UpdatePinCanvasRequest, session: Session = Depends(get_session)):
+    """
+    Update a pin's placement coordinates on the digital twin canvas.
+    """
+    pin = session.get(PinnedProduct, pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin not found")
+
+    if payload.canvas_x is not None:
+        pin.canvas_x = payload.canvas_x
+    if payload.canvas_y is not None:
+        pin.canvas_y = payload.canvas_y
+    if payload.canvas_scale is not None:
+        pin.canvas_scale = payload.canvas_scale
+    if payload.canvas_z_index is not None:
+        pin.canvas_z_index = payload.canvas_z_index
+
+    session.add(pin)
+    session.commit()
+    session.refresh(pin)
+    return pin
