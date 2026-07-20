@@ -22,6 +22,7 @@ import { client, handle_file } from "@gradio/client";
 import { useGenieStore, GenieItem } from "../store/genieStore";
 import { fetchImageAsBlob } from "../utils/imageUtils";
 import PinToBoardModal from "./OutfitCircle/PinToBoardModal";
+import { PromoCarousel } from "./PromoCarousel";
 
 const STARTER_MODELS = [
   {
@@ -73,6 +74,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
   } = useGenieStore();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isTryOnAllLoading, setIsTryOnAllLoading] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
   const [isSwapLoading, setIsSwapLoading] = useState(false);
   const [drawerState, setDrawerState] = useState<'hidden' | 'half' | 'full'>('half');
@@ -95,6 +97,20 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
   const isOverBudget = usedBudget > maxBudget;
   const shownImage = displayImage ?? baseUserImage;
 
+  const [overBudgetWarning, setOverBudgetWarning] = useState<number | null>(null);
+  const prevUsedBudgetRef = useRef(usedBudget);
+
+  useEffect(() => {
+    // If budget increased and we are over budget
+    if (usedBudget > prevUsedBudgetRef.current && usedBudget > maxBudget) {
+      setOverBudgetWarning(usedBudget - maxBudget);
+      const timer = setTimeout(() => setOverBudgetWarning(null), 4000);
+      prevUsedBudgetRef.current = usedBudget;
+      return () => clearTimeout(timer);
+    }
+    prevUsedBudgetRef.current = usedBudget;
+  }, [usedBudget, maxBudget]);
+
   const initialSwapBoxes = useGenieStore((state) => state.initialSwapBoxes);
 
   const loadAlternatives = useCallback(
@@ -109,7 +125,10 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
             price: alt.price,
             image: alt.image_url,
           }));
-          setSwapAlternatives(mapped);
+          const currentCategory = useGenieStore.getState().activeSwapCategory;
+          if (currentCategory === slotCategory) {
+            setSwapAlternatives(mapped);
+          }
           setIsSwapLoading(false);
           return;
         }
@@ -148,7 +167,11 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
             price: alt.price,
             image: alt.image_url,
           }));
-          setSwapAlternatives(mapped);
+          
+          const currentCategory = useGenieStore.getState().activeSwapCategory;
+          if (currentCategory === slotCategory) {
+            setSwapAlternatives(mapped);
+          }
         }
       } catch (err) {
         console.error("Failed to load alternatives:", err);
@@ -322,7 +345,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
       return;
     }
 
-    setIsLoading(true);
+    setIsTryOnAllLoading(true);
     setErrorToast(null);
 
     try {
@@ -346,7 +369,11 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
         return;
       }
 
-      const prunaResultUrl = await generatePrunaTryOn(baseUserImage, outfitItemImageUrls);
+      // TEMP MOCK: Wait 30 seconds to test the loading overlay banner
+      await new Promise(resolve => setTimeout(resolve, 30000));
+      const prunaResultUrl = baseUserImage; // Just use original image as fallback for testing
+      
+      // const prunaResultUrl = await generatePrunaTryOn(baseUserImage, outfitItemImageUrls);
       setDisplayImage(prunaResultUrl);
 
     } catch (err) {
@@ -362,7 +389,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
           if (firstAvailable) setDisplayImage(firstAvailable.image);
       }
     } finally {
-      setIsLoading(false);
+      setIsTryOnAllLoading(false);
     }
   };
 
@@ -403,9 +430,12 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#ff3f6c] to-[#ff6b8b] opacity-80" />
       )}
 
-      {/* Inference overlay loader */}
-      {isLoading && (
-        <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-3">
+      {/* Full Outfit Inference overlay loader (Carousel) */}
+      <PromoCarousel isGenerating={isTryOnAllLoading} />
+
+      {/* Single item Inference overlay loader */}
+      {isLoading && !isTryOnAllLoading && (
+        <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-3 animate-in fade-in duration-300">
           <div className="relative flex items-center justify-center">
             <div className="w-14 h-14 rounded-full border-4 border-white/20 border-t-white animate-spin" />
             <Sparkles size={18} className="absolute text-white animate-pulse" />
@@ -441,7 +471,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
         </div>
 
         {/* Smaller Budget Pill */}
-        <div className="pointer-events-auto bg-[#F7F7F8] border border-[#E5E5E8] rounded-full px-3 py-1.5 flex flex-col gap-1 shadow-sm max-w-[120px]">
+        <div className="pointer-events-auto bg-[#F7F7F8] border border-[#E5E5E8] rounded-full px-3 py-1.5 flex flex-col gap-1 shadow-sm max-w-[120px] relative">
           <span className="text-[10px] font-black tracking-wide text-[#282C3F] text-center">₹{usedBudget} / {maxBudget}</span>
           <div className="w-full h-1 bg-[#F1F1F3] rounded-full overflow-hidden">
             <div
@@ -449,6 +479,14 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
               style={{ width: `${budgetPercentage}%` }}
             />
           </div>
+
+          {/* Over-Budget Popup */}
+          {overBudgetWarning !== null && (
+            <div className="absolute top-[120%] left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-md whitespace-nowrap shadow-md animate-in fade-in slide-in-from-top-1 duration-300 z-50 flex items-center gap-1">
+              <div className="absolute -top-[3px] left-1/2 -translate-x-1/2 w-2 h-2 bg-red-500 rotate-45" />
+              <span>⚠️ +₹{overBudgetWarning} Over Budget</span>
+            </div>
+          )}
         </div>
       </div>
 
