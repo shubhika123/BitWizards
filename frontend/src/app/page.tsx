@@ -41,7 +41,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide(prev => {
-        const next = (prev + 1) % 4;
+        const next = (prev + 1) % 3;
         if (carouselRef.current) {
           carouselRef.current.scrollTo({ left: next * carouselRef.current.clientWidth, behavior: 'smooth' });
         }
@@ -179,36 +179,6 @@ export default function Home() {
               </div>
             </Link>
 
-            {/* Slide 2: Bharat Festive Feed */}
-            <Link 
-              href="/bharat-feed" 
-              className="w-full h-full shrink-0 snap-center relative block select-none"
-            >
-              <img 
-                src="/genie/bharatfeed.png" 
-                alt="Festive Feed"
-                className="w-full h-full object-contain bg-[#fff9f3]"
-                onError={(e) => {
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80";
-                  e.currentTarget.className = "w-full h-full object-cover filter brightness-[0.82]";
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end pb-12 px-4.5 text-left pointer-events-none">
-                <span className="text-white text-[10px] font-black tracking-widest leading-none bg-[#ff3f6c] self-start px-2 py-0.5 rounded-md uppercase shadow-sm">FESTIVE BOOST</span>
-                <h2 className="text-white text-2xl font-black mt-2 leading-none uppercase tracking-tighter font-sans drop-shadow-md">
-                  BHARAT FEED
-                </h2>
-                <h3 className="text-[#ffd700] text-[11px] font-extrabold mt-1.5 uppercase tracking-wide drop-shadow-md">
-                  REGIONAL TRADITIONS UNDER ₹999
-                </h3>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#ffd166] flex items-center justify-between px-4">
-                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider">CELEBRATE THE ROOTS!</span>
-                <span className="text-[#282c3f] text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1">
-                  EXPLORE MELAS <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
-            </Link>
 
             {/* Slide 3: Apna Bazaar */}
             <Link 
@@ -262,7 +232,7 @@ export default function Home() {
           
           {/* Circular Pagination dots floating on top */}
           <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-2 z-10 select-none pointer-events-none">
-            {[0, 1, 2, 3].map((idx) => (
+            {[0, 1, 2].map((idx) => (
               <span 
                 key={idx}
                 className={`w-2.5 h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx ? "bg-white w-5" : "bg-white/40"}`}
