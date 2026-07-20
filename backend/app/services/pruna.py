@@ -87,7 +87,7 @@ class PrunaService:
             garment_image_inputs: list of either local public paths ('/catalog/...') or base64 strings
         """
         # MOCK FOR TESTING - Un-comment below line to re-enable actual API calls
-        return "/digital-twin/base-avatar.png"
+        # return "/digital-twin/base-avatar.png"
         
         if not settings.PRUNA_API_KEY:
             raise ValueError("PRUNA_API_KEY is not configured in backend .env")
