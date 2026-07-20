@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Plus, Check } from "lucide-react";
 import { getUserBoards, pinProduct, createBoard } from "../../lib/OutfitCircleApi";
+import { useAuthStore } from "../../store/authStore";
 
 interface ProductToPin {
   product_id: string;
@@ -14,24 +15,21 @@ interface ProductToPin {
 
 export default function PinToBoardModal({
   product,
-<<<<<<< HEAD
-  userId,
-=======
   products,
->>>>>>> b9903d536626042459928effaeaf4bf2ed5924ba
+  userId: propUserId,
   onClose,
   onPinned,
 }: {
-<<<<<<< HEAD
-  product: ProductToPin;
-  userId: number;
-=======
   product?: ProductToPin;
   products?: ProductToPin[];
->>>>>>> b9903d536626042459928effaeaf4bf2ed5924ba
+  userId?: number;
   onClose: () => void;
   onPinned?: () => void;
 }) {
+  const { user } = useAuthStore();
+  const userId = propUserId || user?.user_id || 1;
+  const CURRENT_USER_ID = userId;
+
   const [boards, setBoards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pinnedBoardId, setPinnedBoardId] = useState<number | null>(null);
@@ -49,9 +47,6 @@ export default function PinToBoardModal({
   }, [userId]);
 
   const handlePin = async (boardId: number) => {
-<<<<<<< HEAD
-    await pinProduct({ board_id: boardId, pinned_by: userId, ...product });
-=======
     const itemsToPin = products || (product ? [product] : []);
     if (itemsToPin.length === 0) return;
 
@@ -61,7 +56,6 @@ export default function PinToBoardModal({
       )
     );
     
->>>>>>> b9903d536626042459928effaeaf4bf2ed5924ba
     setPinnedBoardId(boardId);
     onPinned?.();
     setTimeout(onClose, 700);
