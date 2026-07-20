@@ -369,11 +369,7 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
         return;
       }
 
-      // TEMP MOCK: Wait 30 seconds to test the loading overlay banner
-      await new Promise(resolve => setTimeout(resolve, 30000));
-      const prunaResultUrl = baseUserImage; // Just use original image as fallback for testing
-      
-      // const prunaResultUrl = await generatePrunaTryOn(baseUserImage, outfitItemImageUrls);
+      const prunaResultUrl = await generatePrunaTryOn(baseUserImage, outfitItemImageUrls);
       setDisplayImage(prunaResultUrl);
 
     } catch (err) {
