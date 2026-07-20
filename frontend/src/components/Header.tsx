@@ -13,6 +13,7 @@ import {
 import { useGenieUiStore } from "../store/genieUiStore";
 import { GenieEntryButton } from "./genie/GenieEntryButton";
 import { useAuthStore } from "../store/authStore";
+import { categories } from "../lib/Categories";
 
 export default function Header() {
   const pathname = usePathname();
@@ -35,35 +36,42 @@ export default function Header() {
     resultMsg?: string;
   }>({ played: false });
 
-  const CONTEST_PRODUCTS = [
-    { id: "top_003", name: "Cotton Casual Kurti", price: 1290, image_url: "/catalog/top_003.jpg", category: "Ethnic Wear" },
-    { id: "top_001", name: "Heavy Peplum Kurti", price: 1890, image_url: "/catalog/top_001.jpg", category: "Ethnic Wear" },
-    { id: "bottom_003", name: "Ivory Palazzo Silk Pants", price: 890, image_url: "/catalog/bot_003.jpg", category: "Bottom Wear" },
-    { id: "top_007", name: "Cozy Woolen Cardigan", price: 1100, image_url: "/catalog/top_007.jpg", category: "Winter Wear" },
-    { id: "accessory_003", name: "Chronograph Leather Watch", price: 680, image_url: "/catalog/acc_003.jpg", category: "Accessories" },
-    { id: "footwear_001", name: "Handcrafted Kolhapuri Mojris", price: 890, image_url: "/catalog/foot_001.jpg", category: "Footwear" }
-  ];
+  // Dynamically build contest products from categories catalog to guarantee working images & matched prices
+  const allCatalogProducts = categories.flatMap(cat => 
+    cat.products.map(p => ({
+      id: p.product_id,
+      name: p.product_name,
+      price: p.product_price,
+      image_url: p.product_image_url,
+      category: cat.name
+    }))
+  );
 
   const getTodayProduct = () => {
     const today = new Date();
     // Deterministic index per day
-    const dayIndex = (today.getFullYear() * 365 + today.getMonth() * 30 + today.getDate()) % CONTEST_PRODUCTS.length;
-    return CONTEST_PRODUCTS[dayIndex];
+    const dayIndex = (today.getFullYear() * 365 + today.getMonth() * 30 + today.getDate()) % allCatalogProducts.length;
+    return allCatalogProducts[dayIndex];
   };
 
   const todayProduct = getTodayProduct();
 
   // Load contest state on mount or when modal opens
   const checkContestState = () => {
+    if (!user) {
+      setContestStatus({ played: false });
+      return;
+    }
     const todayStr = new Date().toDateString();
-    const lastPlayedDate = localStorage.getItem("myntra_contest_last_played_date");
+    const userKey = user.uid;
+    const lastPlayedDate = localStorage.getItem(`myntra_contest_last_played_date_${userKey}`);
     if (lastPlayedDate === todayStr) {
       setContestStatus({
         played: true,
-        guessValue: Number(localStorage.getItem("myntra_contest_last_guess")),
-        actualPrice: Number(localStorage.getItem("myntra_contest_last_actual")),
-        coinsWon: Number(localStorage.getItem("myntra_contest_last_won_coins")),
-        resultMsg: localStorage.getItem("myntra_contest_last_result_msg") || ""
+        guessValue: Number(localStorage.getItem(`myntra_contest_last_guess_${userKey}`)),
+        actualPrice: Number(localStorage.getItem(`myntra_contest_last_actual_${userKey}`)),
+        coinsWon: Number(localStorage.getItem(`myntra_contest_last_won_coins_${userKey}`)),
+        resultMsg: localStorage.getItem(`myntra_contest_last_result_msg_${userKey}`) || ""
       });
     } else {
       setContestStatus({ played: false });
@@ -72,9 +80,13 @@ export default function Header() {
 
   useEffect(() => {
     checkContestState();
-  }, [showContest]);
+  }, [showContest, user]);
 
   const handleSubmitGuess = () => {
+    if (!user) {
+      alert("Please log in to participate in the contest.");
+      return;
+    }
     const numericGuess = Number(guess);
     if (!guess.trim() || isNaN(numericGuess) || numericGuess <= 0) {
       alert("Please enter a valid positive MRP price.");
@@ -103,22 +115,23 @@ export default function Header() {
       msg = "Good effort! You earned a participation reward.";
     }
 
-    const currentCoins = Number(localStorage.getItem("myntra_contest_coins") || "0");
+    const userKey = user.uid;
+    const currentCoins = Number(localStorage.getItem(`myntra_contest_coins_${userKey}`) || "0");
     const newCoins = currentCoins + won;
     const todayStr = new Date().toDateString();
 
-    localStorage.setItem("myntra_contest_coins", String(newCoins));
-    localStorage.setItem("myntra_contest_last_played_date", todayStr);
-    localStorage.setItem("myntra_contest_last_guess", String(numericGuess));
-    localStorage.setItem("myntra_contest_last_actual", String(actual));
-    localStorage.setItem("myntra_contest_last_won_coins", String(won));
-    localStorage.setItem("myntra_contest_last_result_msg", msg);
+    localStorage.setItem(`myntra_contest_coins_${userKey}`, String(newCoins));
+    localStorage.setItem(`myntra_contest_last_played_date_${userKey}`, todayStr);
+    localStorage.setItem(`myntra_contest_last_guess_${userKey}`, String(numericGuess));
+    localStorage.setItem(`myntra_contest_last_actual_${userKey}`, String(actual));
+    localStorage.setItem(`myntra_contest_last_won_coins_${userKey}`, String(won));
+    localStorage.setItem(`myntra_contest_last_result_msg_${userKey}`, msg);
 
     // Store the guessed price for today's category
     try {
-      const categoryGuesses = JSON.parse(localStorage.getItem("myntra_contest_category_guesses") || "{}");
+      const categoryGuesses = JSON.parse(localStorage.getItem(`myntra_contest_category_guesses_${userKey}`) || "{}");
       categoryGuesses[todayProduct.category] = numericGuess;
-      localStorage.setItem("myntra_contest_category_guesses", JSON.stringify(categoryGuesses));
+      localStorage.setItem(`myntra_contest_category_guesses_${userKey}`, JSON.stringify(categoryGuesses));
     } catch (err) {
       console.error("Failed to write category guess pricing:", err);
     }

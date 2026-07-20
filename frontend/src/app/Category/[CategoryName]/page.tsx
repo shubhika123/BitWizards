@@ -4,19 +4,23 @@ import React, { useState, useEffect } from "react";
 import Header from "../../../components/Header";
 import PinButton from "../../../components/OutfitCircle/PinButton";
 import { categories } from "../../../lib/Categories";
+import { useAuthStore } from "../../../store/authStore";
 
 export default function CategoryPage() {
   const params = useParams();
   const categoryName = decodeURIComponent(params.CategoryName as string);
   const category = categories.find((c) => c.name === categoryName);
 
+  const { user } = useAuthStore();
   const [isPersonalized, setIsPersonalized] = useState(true);
   const [guessedPrice, setGuessedPrice] = useState<number | null>(null);
 
   useEffect(() => {
     const getGuessedPrice = () => {
+      if (!user) return null;
       try {
-        const categoryGuesses = JSON.parse(localStorage.getItem("myntra_contest_category_guesses") || "{}");
+        const userKey = user.uid;
+        const categoryGuesses = JSON.parse(localStorage.getItem(`myntra_contest_category_guesses_${userKey}`) || "{}");
         // Exact match
         if (categoryGuesses[categoryName]) return Number(categoryGuesses[categoryName]);
         // Substring matching
@@ -33,7 +37,7 @@ export default function CategoryPage() {
 
     setGuessedPrice(getGuessedPrice());
     setIsPersonalized(true);
-  }, [categoryName]);
+  }, [categoryName, user]);
 
   if (!category) return <div className="p-4 text-sm">Category not found</div>;
 
