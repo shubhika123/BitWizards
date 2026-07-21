@@ -16,6 +16,15 @@ import { useAuthStore } from "../store/authStore";
 import { categories } from "../lib/Categories";
 import { submitContestGuess, getContestStatus } from "../lib/OutfitCircleApi";
 
+const MyntraLogo = ({ className = "w-7 h-7" }: { className?: string }) => (
+  <svg viewBox="10 5 80 70" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22 68 C14 68 12 55 18 35 C24 15 31 10 35 10 C39 10 41 16 38 30 C34 50 30 68 22 68 Z" fill="#E71B5A" opacity="0.95" />
+    <path d="M48 68 C40 68 30 50 35 10 C39 10 42 20 44 35 C46 50 56 68 48 68 Z" fill="#F15A24" opacity="0.9" />
+    <path d="M52 68 C44 68 42 55 48 35 C54 15 61 10 65 10 C69 10 71 16 68 30 C64 50 60 68 52 68 Z" fill="#F37021" opacity="0.9" />
+    <path d="M78 68 C70 68 60 50 65 10 C69 10 72 20 74 35 C76 50 86 68 78 68 Z" fill="#E71B5A" opacity="0.95" />
+  </svg>
+);
+
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
@@ -120,7 +129,7 @@ export default function Header() {
     }
 
     try {
-      await submitContestGuess({
+      const res = await submitContestGuess({
         user_id: user.user_id,
         product_name: todayProduct.name,
         category: todayProduct.category,
@@ -177,34 +186,27 @@ export default function Header() {
         
         {/* ROW 1: Logo & Compact Actions */}
         <div className="flex items-center justify-between w-full gap-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            {/* Logo */}
-            <Link href="/" className="flex items-center shrink-0">
-              <img 
-                src="/logo.png" 
-                alt="Myntra Logo" 
-                className="h-8 w-auto object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = "https://images.indianexpress.com/2021/01/myntra-logo.jpg";
-                }}
-              />
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Logo - Myntra 'M' SVG */}
+            <Link href="/" className="flex items-center shrink-0 p-0.5 hover:opacity-90 transition-opacity">
+              <MyntraLogo className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 drop-shadow-3xs" />
             </Link>
 
             {/* Festive Live Tag */}
             <Link 
               href="/Category/Rakhi"
-              className="flex items-center gap-1 px-2.5 py-0.5 bg-gradient-to-r from-[#fffbf0] via-[#fff1f2] to-[#fffbf0] border-2 border-double border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs select-none min-w-0 animate-pulse"
+              className="hidden min-[440px]:flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-[#fffbf0] via-[#fff1f2] to-[#fffbf0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs select-none shrink-0 animate-pulse"
             >
-              <span className="truncate">🌸 RAKHI FESTIVAL LIVE 🌸</span>
+              <span className="truncate max-w-[110px] sm:max-w-none">🌸 RAKHI LIVE 🌸</span>
             </Link>
           </div>
 
-          {/* Compact Actions (Bell, Heart, Profile) */}
-          <div className="flex items-center gap-3 text-[#282c3f] pr-1">
+          {/* Compact Actions (MRP Master, Bell, Heart, Profile) */}
+          <div className="flex items-center gap-2 sm:gap-3 text-[#282c3f] pr-1 shrink-0">
             {/* Daily Guess & Win Contest Trigger */}
             <button
               onClick={() => setShowContest(true)}
-              className="relative flex items-center gap-1 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 rounded-full px-3 py-1 text-[9px] font-extrabold uppercase tracking-wider text-amber-900 shadow-2xs hover:shadow-xs hover:border-amber-400 active:scale-95 transition-all cursor-pointer shrink-0"
+              className="relative flex items-center gap-1 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-amber-900 shadow-2xs hover:shadow-xs hover:border-amber-400 active:scale-95 transition-all cursor-pointer shrink-0"
               title="Daily Price Guessing Contest"
             >
               <span>🎯 MRP Master</span>
