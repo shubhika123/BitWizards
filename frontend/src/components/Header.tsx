@@ -14,6 +14,7 @@ import { useGenieUiStore } from "../store/genieUiStore";
 import { GenieEntryButton } from "./genie/GenieEntryButton";
 import { useAuthStore } from "../store/authStore";
 import { categories } from "../lib/Categories";
+import { submitContestGuess, getContestStatus } from "../lib/OutfitCircleApi";
 
 export default function Header() {
   const pathname = usePathname();
@@ -56,24 +57,27 @@ export default function Header() {
 
   const todayProduct = getTodayProduct();
 
-  // Load contest state on mount or when modal opens
-  const checkContestState = () => {
-    if (!user) {
+  // Load contest state on mount or when modal opens from MySQL API
+  const checkContestState = async () => {
+    if (!user?.user_id) {
       setContestStatus({ played: false });
       return;
     }
-    const todayStr = new Date().toDateString();
-    const userKey = user.uid;
-    const lastPlayedDate = localStorage.getItem(`myntra_contest_last_played_date_${userKey}`);
-    if (lastPlayedDate === todayStr) {
-      setContestStatus({
-        played: true,
-        guessValue: Number(localStorage.getItem(`myntra_contest_last_guess_${userKey}`)),
-        actualPrice: Number(localStorage.getItem(`myntra_contest_last_actual_${userKey}`)),
-        coinsWon: Number(localStorage.getItem(`myntra_contest_last_won_coins_${userKey}`)),
-        resultMsg: localStorage.getItem(`myntra_contest_last_result_msg_${userKey}`) || ""
-      });
-    } else {
+    try {
+      const res = await getContestStatus(user.user_id);
+      if (res?.played_today && res.latest_today) {
+        setContestStatus({
+          played: true,
+          guessValue: res.latest_today.guessed_price,
+          actualPrice: res.latest_today.actual_price,
+          coinsWon: res.latest_today.coins_won,
+          resultMsg: res.latest_today.result_msg
+        });
+      } else {
+        setContestStatus({ played: false });
+      }
+    } catch (e) {
+      console.error("Failed to check contest status from MySQL:", e);
       setContestStatus({ played: false });
     }
   };
@@ -82,8 +86,8 @@ export default function Header() {
     checkContestState();
   }, [showContest, user]);
 
-  const handleSubmitGuess = () => {
-    if (!user) {
+  const handleSubmitGuess = async () => {
+    if (!user?.user_id) {
       alert("Please log in to participate in the contest.");
       return;
     }
@@ -115,37 +119,31 @@ export default function Header() {
       msg = "Good effort! You earned a participation reward.";
     }
 
-    const userKey = user.uid;
-    const currentCoins = Number(localStorage.getItem(`myntra_contest_coins_${userKey}`) || "0");
-    const newCoins = currentCoins + won;
-    const todayStr = new Date().toDateString();
-
-    localStorage.setItem(`myntra_contest_coins_${userKey}`, String(newCoins));
-    localStorage.setItem(`myntra_contest_last_played_date_${userKey}`, todayStr);
-    localStorage.setItem(`myntra_contest_last_guess_${userKey}`, String(numericGuess));
-    localStorage.setItem(`myntra_contest_last_actual_${userKey}`, String(actual));
-    localStorage.setItem(`myntra_contest_last_won_coins_${userKey}`, String(won));
-    localStorage.setItem(`myntra_contest_last_result_msg_${userKey}`, msg);
-
-    // Store the guessed price for today's category
     try {
-      const categoryGuesses = JSON.parse(localStorage.getItem(`myntra_contest_category_guesses_${userKey}`) || "{}");
-      categoryGuesses[todayProduct.category] = numericGuess;
-      localStorage.setItem(`myntra_contest_category_guesses_${userKey}`, JSON.stringify(categoryGuesses));
+      await submitContestGuess({
+        user_id: user.user_id,
+        product_name: todayProduct.name,
+        category: todayProduct.category,
+        guessed_price: numericGuess,
+        actual_price: actual,
+        coins_won: won,
+        result_msg: msg
+      });
+
+      // Fire storage event to notify homepage/profile
+      window.dispatchEvent(new Event("storage"));
+
+      setContestStatus({
+        played: true,
+        guessValue: numericGuess,
+        actualPrice: actual,
+        coinsWon: won,
+        resultMsg: msg
+      });
     } catch (err) {
-      console.error("Failed to write category guess pricing:", err);
+      console.error("Failed to save contest guess in MySQL:", err);
+      alert("Unable to record your guess. Please try again.");
     }
-
-    // Fire storage update
-    window.dispatchEvent(new Event("storage"));
-
-    setContestStatus({
-      played: true,
-      guessValue: numericGuess,
-      actualPrice: actual,
-      coinsWon: won,
-      resultMsg: msg
-    });
   };
 
   useEffect(() => {

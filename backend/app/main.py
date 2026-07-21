@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.api import feed, search, bazaar, social, genie
 from app.api.OutfitCircle import router as outfit_circle_router
+from app.api.contest import router as contest_router
 
 # Configure logging so pipeline steps are visible in the uvicorn terminal
 logging.basicConfig(
@@ -43,6 +44,7 @@ app.include_router(search.router, prefix="/api")
 app.include_router(bazaar.router, prefix="/api")
 app.include_router(social.router, prefix="/api")
 app.include_router(genie.router, prefix="/api")
+app.include_router(contest_router)
 
 @app.get("/")
 def read_root():

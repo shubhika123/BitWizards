@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck, Heart, Gem, Gift } from "lucide-react";
 import { categories } from "../lib/Categories";
 import { useAuthStore } from "../store/authStore";
+import { getContestHistory } from "../lib/OutfitCircleApi";
 
 // State mapping lookup for target Indian cities celebrative of festivals
 const cityToStateMap: Record<string, string> = {
@@ -37,6 +38,65 @@ export default function Home() {
   const { user } = useAuthStore();
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  const [personalizedGuesses, setPersonalizedGuesses] = useState<Array<{
+    category: string;
+    price: number;
+    matchingProducts: any[];
+  }>>([]);
+
+  const loadPersonalizedFeed = async () => {
+    if (!user?.user_id) {
+      setPersonalizedGuesses([]);
+      return;
+    }
+
+    try {
+      const res = await getContestHistory(user.user_id);
+      const categoryGuesses = res?.category_guesses || {};
+      const entries = Object.entries(categoryGuesses) as [string, number][];
+
+      const results = entries.map(([catName, price]) => {
+        // Find matching category in Categories.ts
+        const cat = categories.find((c) => 
+          c.name.toLowerCase().includes(catName.toLowerCase()) || 
+          catName.toLowerCase().includes(c.name.toLowerCase())
+        );
+
+        if (!cat) return null;
+
+        // Filter items under or equal to price, sort highest value first
+        const matching = cat.products
+          .filter((p) => p.product_price <= Number(price))
+          .sort((a, b) => b.product_price - a.product_price);
+
+        // Fallback if no products are strictly <= price: pick closest items
+        const displayProducts = matching.length > 0 ? matching : [...cat.products].sort((a, b) => Math.abs(a.product_price - Number(price)) - Math.abs(b.product_price - Number(price)));
+
+        return {
+          category: cat.name,
+          price: Number(price),
+          matchingProducts: displayProducts.slice(0, 6)
+        };
+      }).filter(Boolean) as Array<{ category: string; price: number; matchingProducts: any[] }>;
+
+      setPersonalizedGuesses(results);
+    } catch (e) {
+      console.error("Error building personalized homepage shelf from MySQL:", e);
+      setPersonalizedGuesses([]);
+    }
+  };
+
+  useEffect(() => {
+    loadPersonalizedFeed();
+  }, [user]);
+
+  useEffect(() => {
+    window.addEventListener("storage", loadPersonalizedFeed);
+    return () => {
+      window.removeEventListener("storage", loadPersonalizedFeed);
+    };
+  }, [user]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -242,6 +302,59 @@ export default function Home() {
         </div>
 
         <RakshaBandhanBanner />
+
+        {/* 🎯 PERSONALIZED SHELF BASED ON USER'S CONTEST GUESSES */}
+        {personalizedGuesses.length > 0 && (
+          <div className="space-y-4 my-2 select-none">
+            {personalizedGuesses.map((guessItem, idx) => (
+              <div 
+                key={idx} 
+                className="mx-3.5 bg-gradient-to-b from-[#fff5f7] via-white to-white rounded-2xl border border-rose-150 p-3.5 shadow-2xs text-left"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[8px] font-black bg-[#ff3f6c] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        🎯 Based on your Guess
+                      </span>
+                      <span className="text-[8.5px] font-extrabold text-rose-500 uppercase tracking-widest">MRP Master</span>
+                    </div>
+                    <h3 className="text-xs font-black text-[#282c3f] uppercase tracking-wide mt-1">
+                      {guessItem.category} Under ₹{guessItem.price}
+                    </h3>
+                  </div>
+                  <Link 
+                    href={`/Category/${encodeURIComponent(guessItem.category)}`}
+                    className="text-[9.5px] font-black text-[#ff3f6c] flex items-center gap-0.5 hover:underline"
+                  >
+                    View All <ChevronRight className="w-3 h-3" />
+                  </Link>
+                </div>
+
+                {/* Horizontal Scrollable Product Cards matching budget */}
+                <div className="flex gap-3 overflow-x-auto scrollbar-none py-0.5">
+                  {guessItem.matchingProducts.map((prod) => (
+                    <div 
+                      key={prod.product_id}
+                      className="w-34 shrink-0 bg-white border border-gray-150 rounded-xl overflow-hidden shadow-3xs flex flex-col justify-between group hover:shadow-sm transition-shadow"
+                    >
+                      <div className="h-36 bg-gray-50 relative overflow-hidden">
+                        <img src={prod.product_image_url} alt={prod.product_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <span className="absolute bottom-1.5 left-1.5 bg-emerald-600 text-white text-[7.5px] font-black px-1.5 py-0.5 rounded shadow-3xs">
+                          Under ₹{guessItem.price}
+                        </span>
+                      </div>
+                      <div className="p-2 flex flex-col justify-between flex-1">
+                        <span className="text-[9.5px] font-extrabold text-[#282c3f] truncate block">{prod.product_name}</span>
+                        <span className="text-[10px] font-black text-[#ff3f6c] mt-1 block">₹{prod.product_price}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* 4. Main Campaign Banner */}
         <div className="mt-4 bg-[#fff9f3] border-y border-orange-100 overflow-hidden shadow-xs flex items-center justify-between relative">
