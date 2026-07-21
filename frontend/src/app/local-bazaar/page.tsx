@@ -3,21 +3,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../../store/authStore";
-import { 
-  MapPin, 
-  Search, 
-  Heart, 
-  ShoppingBag, 
-  Sparkles, 
-  ChevronRight, 
-  Check, 
-  Sliders, 
-  ShieldCheck, 
-  Clock, 
-  Percent, 
-  ArrowLeft, 
-  MessageSquare, 
-  User, 
+import {
+  MapPin,
+  Search,
+  Heart,
+  ShoppingBag,
+  Sparkles,
+  ChevronRight,
+  Check,
+  Sliders,
+  ShieldCheck,
+  Clock,
+  Percent,
+  ArrowLeft,
+  MessageSquare,
+  User,
   Send,
   Zap,
   Bookmark,
@@ -66,7 +66,7 @@ interface Boutique {
 
 const getLocalBazaarData = (city: string) => {
   const normCity = city.trim().toLowerCase();
-  
+
   if (normCity === "vizag" || normCity === "vijayawada") {
     const generatedBoutiques: Boutique[] = [
       { id: "b_vratam_1", name: "Sri Lakshmi Pooja Stores", rating: 4.8, distance: 1.2, speciality: "Puja Samagri • Sarees • Prasad Decors • Flowers • Decorations & More", verified: true, x: 42, y: 38 },
@@ -81,7 +81,7 @@ const getLocalBazaarData = (city: string) => {
         category: "Puja Essentials",
         price: 799,
         originalPrice: 950,
-        image: "/lakshmi_kalasam_pooja.png",
+        image: "https://m.media-amazon.com/images/I/51wMWN91eiL._SX300_SY300_QL70_FMwebp_.jpg",
         trustScore: 99,
         distance: 1.2,
         deliveryTime: "2 hrs delivery",
@@ -96,11 +96,11 @@ const getLocalBazaarData = (city: string) => {
       },
       {
         id: "vratam_prod_2",
-        name: "Kanchipuram Silk Saree",
+        name: "Traditional Kanchipuram Silk Saree, Off-White with Pink Border, Zari Woven Temple Design",
         category: "Sarees",
-        price: 999,
+        price: 1150,
         originalPrice: 1250,
-        image: "/silk_sarees_stack.png",
+        image: "https://m.media-amazon.com/images/I/517JAdUb1ML.jpg",
         trustScore: 98,
         distance: 2.1,
         deliveryTime: "Same-Day Delivery",
@@ -115,11 +115,11 @@ const getLocalBazaarData = (city: string) => {
       },
       {
         id: "vratam_prod_3",
-        name: "Fresh Jasmine Garland",
-        category: "Flowers",
-        price: 199,
-        originalPrice: 299,
-        image: "/fresh_pooja_flowers.png",
+        name: "11 Sacred Lakshmi Pooja Samagri Kit",
+        category: "Pooja Items",
+        price: 470,
+        originalPrice: 900,
+        image: "https://m.media-amazon.com/images/I/51rFfzqTQSL._SY300_SX300_QL70_FMwebp_.jpg",
         trustScore: 97,
         distance: 3.3,
         deliveryTime: "Same-Day Delivery",
@@ -134,11 +134,11 @@ const getLocalBazaarData = (city: string) => {
       },
       {
         id: "vratam_prod_4",
-        name: "Gold-plated Lakshmi Haram",
+        name: "Sampoorn Pooja Samagri Kit",
         category: "Accessories",
-        price: 1499,
+        price: 650,
         originalPrice: 1999,
-        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=250&q=80",
+        image: "https://servdharm.com/cdn/shop/files/SampoornPoojaSamagriKit_3_1200x.png?v=1712585276",
         trustScore: 96,
         distance: 2.1,
         deliveryTime: "Same-Day Delivery",
@@ -150,6 +150,44 @@ const getLocalBazaarData = (city: string) => {
         returnRate: 2,
         yearsOnMyntra: 3,
         description: "Exquisite gold-plated traditional necklace featuring detailed Goddess Lakshmi motifs."
+      },
+      {
+        id: "vratam_prod_4",
+        name: "Women's Kanjivaram Soft Saree",
+        category: "Saree",
+        price: 1450,
+        originalPrice: 2000,
+        image: "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcT2SCEqTP8jto_mGLzWLRCrchWaSGocz0WTqJjXFfIN2VaGCdo44SM5ynFEAj2v3Y6suSwb5GBFzJ0L33fDqvsEgAzAjEun8pzguJny0iyDT6XEf2xLl48Oqw",
+        trustScore: 96,
+        distance: 2.1,
+        deliveryTime: "Same-Day Delivery",
+        pickupTime: "15 mins",
+        boutique: "Venkateshwara Saree House",
+        location: city,
+        rating: 4.7,
+        onTimeDelivery: 98,
+        returnRate: 2,
+        yearsOnMyntra: 3,
+        description: "Women's Kanjivaram Soft Lichi Silk Saree With Blouse Piece"
+      },
+      {
+        id: "vratam_prod_4",
+        name: "Vahan Pooja Kit - Sacred Essentials for Divine Blessings",
+        category: "Pooja Kit",
+        price: 1450,
+        originalPrice: 2000,
+        image: "https://www.pujashree.com/cdn/shop/files/ChatGPTImageApr20_2026_09_39_23PM_900x.png?v=1776701406",
+        trustScore: 96,
+        distance: 2.1,
+        deliveryTime: "Same-Day Delivery",
+        pickupTime: "15 mins",
+        boutique: "Venkateshwara Saree House",
+        location: city,
+        rating: 4.7,
+        onTimeDelivery: 98,
+        returnRate: 2,
+        yearsOnMyntra: 3,
+        description: " Women's Kanjivaram Soft Lichi Silk Saree With Blouse Piece"
       }
     ];
 
@@ -701,54 +739,54 @@ const getLocalBazaarData = (city: string) => {
       description: "Authentic brass pooja Vilakkus, incense burners, and fresh garlands."
     });
   } else {
-  
-  // Add Clothing products
-  theme.clothing.forEach((clothingName, index) => {
-    generatedProducts.push({
-      id: `cloth_${index}`,
-      name: clothingName,
-      category: "Ethnic Wear",
-      price: 1200 + (index * 400),
-      originalPrice: 2000 + (index * 600),
-      image: index % 2 === 0 
-        ? "https://images.pexels.com/photos/25328651/pexels-photo-25328651.jpeg"
-        : "https://images.pexels.com/photos/36311379/pexels-photo-36311379.jpeg",
-      trustScore: 92 + (index * 2),
-      distance: 1.2 + (index * 0.9),
-      deliveryTime: index % 2 === 0 ? "2 Hours" : "3 Hours",
-      pickupTime: "25 mins",
-      boutique: generatedBoutiques[index % 3].name,
-      location: city,
-      rating: 4.6 + (index * 0.1),
-      onTimeDelivery: 96 + index,
-      returnRate: 4 - index,
-      yearsOnMyntra: 2 + index,
-      description: `Beautiful hand-crafted ${clothingName} designed for traditional and festive celebrations.`
-    });
-  });
 
-  // Add Accessories products
-  theme.accessories.forEach((accName, index) => {
-    generatedProducts.push({
-      id: `acc_${index}`,
-      name: accName,
-      category: "Accessories",
-      price: 499 + (index * 200),
-      originalPrice: 799 + (index * 300),
-      image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=250&q=80",
-      trustScore: 94 + index,
-      distance: 1.5 + (index * 1.2),
-      deliveryTime: "Same Day",
-      pickupTime: "15 mins",
-      boutique: generatedBoutiques[(index + 1) % 3].name,
-      location: city,
-      rating: 4.7,
-      onTimeDelivery: 98,
-      returnRate: 3,
-      yearsOnMyntra: 3,
-      description: `Elegant traditional ${accName} to pair beautifully with your festive outfits.`
+    // Add Clothing products
+    theme.clothing.forEach((clothingName, index) => {
+      generatedProducts.push({
+        id: `cloth_${index}`,
+        name: clothingName,
+        category: "Ethnic Wear",
+        price: 1200 + (index * 400),
+        originalPrice: 2000 + (index * 600),
+        image: index % 2 === 0
+          ? "https://images.pexels.com/photos/25328651/pexels-photo-25328651.jpeg"
+          : "https://images.pexels.com/photos/36311379/pexels-photo-36311379.jpeg",
+        trustScore: 92 + (index * 2),
+        distance: 1.2 + (index * 0.9),
+        deliveryTime: index % 2 === 0 ? "2 Hours" : "3 Hours",
+        pickupTime: "25 mins",
+        boutique: generatedBoutiques[index % 3].name,
+        location: city,
+        rating: 4.6 + (index * 0.1),
+        onTimeDelivery: 96 + index,
+        returnRate: 4 - index,
+        yearsOnMyntra: 2 + index,
+        description: `Beautiful hand-crafted ${clothingName} designed for traditional and festive celebrations.`
+      });
     });
-  });
+
+    // Add Accessories products
+    theme.accessories.forEach((accName, index) => {
+      generatedProducts.push({
+        id: `acc_${index}`,
+        name: accName,
+        category: "Accessories",
+        price: 499 + (index * 200),
+        originalPrice: 799 + (index * 300),
+        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=250&q=80",
+        trustScore: 94 + index,
+        distance: 1.5 + (index * 1.2),
+        deliveryTime: "Same Day",
+        pickupTime: "15 mins",
+        boutique: generatedBoutiques[(index + 1) % 3].name,
+        location: city,
+        rating: 4.7,
+        onTimeDelivery: 98,
+        returnRate: 3,
+        yearsOnMyntra: 3,
+        description: `Elegant traditional ${accName} to pair beautifully with your festive outfits.`
+      });
+    });
 
   }
 
@@ -1069,7 +1107,7 @@ export default function LocalBazaar() {
     "Vijayawada",
     "Vizag"
   ];
-  
+
   // Bargain states
   const [proposedBid, setProposedBid] = useState<number>(1000);
   const [negotiatedPrice, setNegotiatedPrice] = useState<number>(1299);
@@ -1094,7 +1132,7 @@ export default function LocalBazaar() {
   useEffect(() => {
     const fetchActiveFestival = async () => {
       try {
-        const url = `/api/festivals/active?city=${encodeURIComponent(activeCity)}` + 
+        const url = `/api/festivals/active?city=${encodeURIComponent(activeCity)}` +
           (simulatedDate ? `&simulated_date=${encodeURIComponent(simulatedDate)}` : "");
         const res = await fetch(url);
         if (!res.ok) throw new Error("HTTP error");
@@ -1159,10 +1197,10 @@ export default function LocalBazaar() {
       setIsMusicMuted(audio.muted);
       audioRef.current = audio;
     }
-    
+
     const audio = audioRef.current;
     audio.muted = isMusicMuted;
-    
+
     audio.play().then(() => {
       setIsMusicPlaying(true);
       localStorage.setItem(enabledKey, "true");
@@ -1177,11 +1215,11 @@ export default function LocalBazaar() {
       startMusic();
       return;
     }
-    
+
     const isVaralakshmi = themeColors.name === "Varalakshmi Vratam";
     const src = isVaralakshmi ? "/varalakshmi_ambience.mp3" : "/chhath_ambience.mp3";
     const enabledKey = isVaralakshmi ? "varalakshmi_music_enabled" : "chhath_music_enabled";
-    
+
     if (audioRef.current.src && !audioRef.current.src.endsWith(src)) {
       startMusic();
       return;
@@ -1209,7 +1247,7 @@ export default function LocalBazaar() {
     const nextMuted = !isMusicMuted;
     setIsMusicMuted(nextMuted);
     localStorage.setItem(mutedKey, String(nextMuted));
-    
+
     if (nextMuted) {
       fadeVolume(0, 300);
       setTimeout(() => {
@@ -1282,8 +1320,8 @@ export default function LocalBazaar() {
     : filteredBoutiques;
   const filteredProducts = allProducts.filter(
     p => p.distance <= selectedRadius &&
-       p.location.toLowerCase() === activeCity.toLowerCase() &&
-       (activeCategory === "All" || p.category === activeCategory)
+      p.location.toLowerCase() === activeCity.toLowerCase() &&
+      (activeCategory === "All" || p.category === activeCategory)
   );
 
   // Bargain Bid Acceptance Probability Meter
@@ -1326,10 +1364,10 @@ export default function LocalBazaar() {
         setIsTyping(false);
         setChatMessages(prev => [
           ...prev,
-          { 
-            sender: "shop", 
-            text: data.message, 
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+          {
+            sender: "shop",
+            text: data.message,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
         ]);
         setNegotiatedPrice(data.final_price);
@@ -1355,11 +1393,11 @@ export default function LocalBazaar() {
   const handleUserCounterBid = async (price: number) => {
     if (!selectedProduct) return;
     setIsTyping(true);
-    
-    const userMsg = { 
-      sender: "user" as const, 
-      text: `How about ₹${price}?`, 
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+
+    const userMsg = {
+      sender: "user" as const,
+      text: `How about ₹${price}?`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     setChatMessages(prev => [...prev, userMsg]);
 
@@ -1380,10 +1418,10 @@ export default function LocalBazaar() {
         setIsTyping(false);
         setChatMessages(prev => [
           ...prev,
-          { 
-            sender: "shop", 
-            text: data.message, 
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+          {
+            sender: "shop",
+            text: data.message,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
         ]);
         setNegotiatedPrice(data.final_price);
@@ -1410,7 +1448,7 @@ export default function LocalBazaar() {
     const userMessage = { sender: "user" as const, text: `Accepting ₹${price}. Perfect!`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     setChatMessages(prev => [...prev, userMessage]);
     setIsTyping(true);
-    
+
     setTimeout(() => {
       setIsTyping(false);
       setChatMessages(prev => [
@@ -1448,7 +1486,7 @@ export default function LocalBazaar() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans relative pb-8 bg-gradient-to-b ${themeColors.bgGradient}`}>
-      
+
       {/* STEP 1: Discover Nearby Products */}
       {step === 1 && (
         <>
@@ -1486,9 +1524,9 @@ export default function LocalBazaar() {
                     </span>
                   )}
                 </div>
-                
+
                 <div className="relative">
-                  <button 
+                  <button
                     onClick={() => !user?.city && setShowCityDropdown(!showCityDropdown)}
                     style={{ borderColor: themeColors.hexColor, color: themeColors.hexColor }}
                     className="border bg-white px-3 py-1 rounded-full text-[9px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95 transition-all shadow-3xs"
@@ -1498,8 +1536,8 @@ export default function LocalBazaar() {
 
                   {!user?.city && showCityDropdown && (
                     <>
-                      <div 
-                        className="fixed inset-0 z-40" 
+                      <div
+                        className="fixed inset-0 z-40"
                         onClick={() => setShowCityDropdown(false)}
                       />
                       <div className="absolute top-[28px] right-0 bg-white border rounded-lg shadow-lg max-h-[160px] overflow-y-auto z-50 py-1 text-[10.5px] font-bold text-gray-700 w-36" style={{ borderColor: `${themeColors.hexColor}33` }}>
@@ -1527,7 +1565,7 @@ export default function LocalBazaar() {
                 <div className="flex items-center gap-2 relative">
                   <MapPin className="w-5 h-5 text-[#ff3f6c]" />
                   <div className="flex flex-col text-left">
-                    <div 
+                    <div
                       onClick={() => !user?.city && setShowCityDropdown(!showCityDropdown)}
                       className="font-extrabold text-[12px] text-gray-800 flex items-center gap-1 cursor-pointer select-none"
                     >
@@ -1541,8 +1579,8 @@ export default function LocalBazaar() {
 
                   {!user?.city && showCityDropdown && (
                     <>
-                      <div 
-                        className="fixed inset-0 z-40" 
+                      <div
+                        className="fixed inset-0 z-40"
                         onClick={() => setShowCityDropdown(false)}
                       />
                       <div className="absolute top-[38px] left-4 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[160px] overflow-y-auto z-50 py-1 text-[10.5px] font-bold text-gray-700 w-36">
@@ -1564,7 +1602,7 @@ export default function LocalBazaar() {
                   )}
                 </div>
 
-                <button 
+                <button
                   onClick={() => setSelectedRadius(5)}
                   className="border border-[#ff3f6c] text-[#ff3f6c] bg-white px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase flex items-center gap-1 hover:bg-rose-50 active:scale-95 transition-all shadow-3xs cursor-pointer"
                 >
@@ -1581,9 +1619,9 @@ export default function LocalBazaar() {
               {/* Background Ganesha Image on Right half */}
               <div className="absolute right-0 top-0 bottom-0 w-[55%] overflow-hidden pointer-events-none rounded-r-2xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#fffdf5] via-[#fffdf5]/85 to-transparent z-10 w-[30%]" />
-                <img 
-                  src={themeColors.bannerImg} 
-                  alt={themeColors.name} 
+                <img
+                  src={themeColors.bannerImg}
+                  alt={themeColors.name}
                   className="w-full h-full object-cover object-right scale-102"
                 />
               </div>
@@ -1626,8 +1664,8 @@ export default function LocalBazaar() {
                   { name: "Gifts", img: "/pooja_essentials_category.png", value: "Gifts" },
                   { name: "More", img: null, value: "All" }
                 ].map((item, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     onClick={() => setActiveCategory(item.value)}
                     className="flex flex-col items-center gap-0.5 cursor-pointer shrink-0"
                   >
@@ -1653,9 +1691,9 @@ export default function LocalBazaar() {
               {/* Slider Dots */}
               <div className="mt-2 flex gap-1 items-center justify-center z-20 w-full">
                 {[0, 1, 2, 3, 4].map((idx) => (
-                  <span 
-                    key={idx} 
-                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-[#ea580c] w-2" : "bg-gray-300"}`} 
+                  <span
+                    key={idx}
+                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-[#ea580c] w-2" : "bg-gray-300"}`}
                   />
                 ))}
               </div>
@@ -1665,9 +1703,9 @@ export default function LocalBazaar() {
               {/* Background Sun Image on Right half */}
               <div className="absolute right-0 top-0 bottom-0 w-[55%] overflow-hidden pointer-events-none rounded-r-2xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#2d1a3c] via-[#2d1a3c]/60 to-transparent z-10 w-[30%]" />
-                <img 
-                  src={themeColors.bannerImg} 
-                  alt={themeColors.name} 
+                <img
+                  src={themeColors.bannerImg}
+                  alt={themeColors.name}
                   className="w-full h-full object-cover object-right scale-102"
                 />
               </div>
@@ -1687,11 +1725,10 @@ export default function LocalBazaar() {
                 </p>
                 <button
                   onClick={togglePlayPause}
-                  className={`mt-2 px-3 py-1.5 text-[#2d1a3c] text-[8.5px] font-black rounded-full shadow-md flex items-center gap-1.5 active:scale-95 transition-all w-fit cursor-pointer border-none ${
-                    isMusicPlaying 
-                      ? "bg-emerald-300 hover:bg-emerald-400" 
-                      : "bg-[#ffd700] hover:bg-yellow-400"
-                  }`}
+                  className={`mt-2 px-3 py-1.5 text-[#2d1a3c] text-[8.5px] font-black rounded-full shadow-md flex items-center gap-1.5 active:scale-95 transition-all w-fit cursor-pointer border-none ${isMusicPlaying
+                    ? "bg-emerald-300 hover:bg-emerald-400"
+                    : "bg-[#ffd700] hover:bg-yellow-400"
+                    }`}
                 >
                   <span>{isMusicPlaying ? "Ambience Active 🎵" : "Celebrate Chhath ☀️"}</span>
                   <Sparkles className="w-2.5 h-2.5 animate-pulse" />
@@ -1706,8 +1743,8 @@ export default function LocalBazaar() {
                   { name: "Accessories", img: "/traditional_food_category.png", value: "Accessories" },
                   { name: "Gifts", img: "/pooja_essentials_category.png", value: "Gifts" }
                 ].map((item, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     onClick={() => setActiveCategory(item.value)}
                     className="flex items-center gap-1.5 cursor-pointer shrink-0"
                   >
@@ -1724,9 +1761,9 @@ export default function LocalBazaar() {
               {/* Slider Dots */}
               <div className="mt-2.5 flex gap-1 items-center justify-center z-20 w-full">
                 {[0, 1, 2, 3].map((idx) => (
-                  <span 
-                    key={idx} 
-                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-[#ff3f6c] w-2" : "bg-white/30"}`} 
+                  <span
+                    key={idx}
+                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-[#ff3f6c] w-2" : "bg-white/30"}`}
                   />
                 ))}
               </div>
@@ -1736,9 +1773,9 @@ export default function LocalBazaar() {
               {/* Background Lakshmi Image on Right half */}
               <div className="absolute right-0 top-0 bottom-0 w-[55%] overflow-hidden pointer-events-none rounded-r-2xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#3b1154] via-[#3b1154]/60 to-transparent z-10 w-[30%]" />
-                <img 
-                  src={themeColors.bannerImg} 
-                  alt={themeColors.name} 
+                <img
+                  src={themeColors.bannerImg}
+                  alt={themeColors.name}
                   className="w-full h-full object-cover object-right scale-102"
                 />
               </div>
@@ -1759,11 +1796,10 @@ export default function LocalBazaar() {
                 </p>
                 <button
                   onClick={togglePlayPause}
-                  className={`mt-2 px-3 py-1.5 text-purple-950 text-[8.5px] font-black rounded-full shadow-md flex items-center gap-1.5 active:scale-95 transition-all w-fit cursor-pointer border-none ${
-                    isMusicPlaying 
-                      ? "bg-emerald-300 hover:bg-emerald-400 text-slate-900" 
-                      : "bg-[#ffd700] hover:bg-yellow-400"
-                  }`}
+                  className={`mt-2 px-3 py-1.5 text-purple-950 text-[8.5px] font-black rounded-full shadow-md flex items-center gap-1.5 active:scale-95 transition-all w-fit cursor-pointer border-none ${isMusicPlaying
+                    ? "bg-emerald-300 hover:bg-emerald-400 text-slate-900"
+                    : "bg-[#ffd700] hover:bg-yellow-400"
+                    }`}
                 >
                   <span>{isMusicPlaying ? "Ambience Active 🎵" : "Celebrate Varalakshmi 🪷"}</span>
                   <Sparkles className="w-2.5 h-2.5 animate-pulse" />
@@ -1779,8 +1815,8 @@ export default function LocalBazaar() {
                   { name: "Gifts", img: "/pooja_essentials_category.png", value: "Gifts" },
                   { name: "More", img: null, value: "All" }
                 ].map((item, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     onClick={() => setActiveCategory(item.value)}
                     className="flex flex-col items-center gap-0.5 cursor-pointer shrink-0"
                   >
@@ -1806,9 +1842,9 @@ export default function LocalBazaar() {
               {/* Slider Dots */}
               <div className="mt-2 flex gap-1 items-center justify-center z-20 w-full">
                 {[0, 1, 2, 3].map((idx) => (
-                  <span 
-                    key={idx} 
-                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-purple-500 w-2" : "bg-white/30"}`} 
+                  <span
+                    key={idx}
+                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-purple-500 w-2" : "bg-white/30"}`}
                   />
                 ))}
               </div>
@@ -1818,9 +1854,9 @@ export default function LocalBazaar() {
               {/* Background bonfire image on Right */}
               <div className="absolute right-0 top-0 bottom-0 w-[60%] overflow-hidden pointer-events-none rounded-r-2xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#1a0a00] via-[#1a0a00]/55 to-transparent z-10 w-[35%]" />
-                <img 
-                  src={themeColors.bannerImg} 
-                  alt={themeColors.name} 
+                <img
+                  src={themeColors.bannerImg}
+                  alt={themeColors.name}
                   className="w-full h-full object-cover object-center scale-102"
                 />
               </div>
@@ -1855,8 +1891,8 @@ export default function LocalBazaar() {
                   { name: "Accessories", img: "/pooja_essentials_category.png", value: "Accessories" },
                   { name: "More", img: null, value: "All" }
                 ].map((item, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     onClick={() => setActiveCategory(item.value)}
                     className="flex flex-col items-center gap-0.5 cursor-pointer shrink-0"
                   >
@@ -1882,9 +1918,9 @@ export default function LocalBazaar() {
               {/* Slider Dots */}
               <div className="mt-2 flex gap-1 items-center justify-center z-20 w-full">
                 {[0, 1, 2, 3].map((idx) => (
-                  <span 
-                    key={idx} 
-                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-orange-500 w-2" : "bg-white/30"}`} 
+                  <span
+                    key={idx}
+                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-orange-500 w-2" : "bg-white/30"}`}
                   />
                 ))}
               </div>
@@ -1894,9 +1930,9 @@ export default function LocalBazaar() {
               {/* Background Durga Image on Right half */}
               <div className="absolute right-0 top-0 bottom-0 w-[55%] overflow-hidden pointer-events-none rounded-r-2xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#7c1d2e] via-[#7c1d2e]/60 to-transparent z-10 w-[30%]" />
-                <img 
-                  src={themeColors.bannerImg} 
-                  alt={themeColors.name} 
+                <img
+                  src={themeColors.bannerImg}
+                  alt={themeColors.name}
                   className="w-full h-full object-cover object-center scale-102"
                 />
               </div>
@@ -1926,8 +1962,8 @@ export default function LocalBazaar() {
                   { name: "Decor", img: "/pooja_setup_category.png", value: "Decor" },
                   { name: "More", img: null, value: "All" }
                 ].map((item, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     onClick={() => setActiveCategory(item.value)}
                     className="flex flex-col items-center gap-0.5 cursor-pointer shrink-0"
                   >
@@ -1961,9 +1997,9 @@ export default function LocalBazaar() {
               {/* Slider Dots */}
               <div className="mt-2 flex gap-1 items-center justify-center z-20 w-full">
                 {[0, 1, 2, 3].map((idx) => (
-                  <span 
-                    key={idx} 
-                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-red-500 w-2" : "bg-white/30"}`} 
+                  <span
+                    key={idx}
+                    className={`w-1 h-1 rounded-full transition-all ${idx === 0 ? "bg-red-500 w-2" : "bg-white/30"}`}
                   />
                 ))}
               </div>
@@ -1973,9 +2009,9 @@ export default function LocalBazaar() {
               {/* Background Image on Right half */}
               <div className="absolute right-0 top-0 bottom-0 w-[58%] overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#fffdf5] via-[#fffdf5]/80 to-transparent z-10 w-[30%]" />
-                <img 
-                  src={themeColors.bannerImg} 
-                  alt={themeColors.name} 
+                <img
+                  src={themeColors.bannerImg}
+                  alt={themeColors.name}
                   className="w-full h-full object-cover object-center scale-102"
                 />
               </div>
@@ -2010,9 +2046,9 @@ export default function LocalBazaar() {
               {/* Slider Dots */}
               <div className="absolute bottom-3 left-4.5 z-20 flex gap-1 items-center">
                 {[0, 1, 2, 3].map((idx) => (
-                  <span 
-                    key={idx} 
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${idx === 0 ? "bg-[#ff3f6c] w-3" : "bg-gray-300"}`} 
+                  <span
+                    key={idx}
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${idx === 0 ? "bg-[#ff3f6c] w-3" : "bg-gray-300"}`}
                   />
                 ))}
               </div>
@@ -2059,7 +2095,7 @@ export default function LocalBazaar() {
                 </svg>
 
                 {/* Shaded geofence circle overlay based on radius slider */}
-                <div 
+                <div
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed transition-all duration-500 ease-out"
                   style={{
                     width: `${selectedRadius * 26}px`,
@@ -2091,27 +2127,25 @@ export default function LocalBazaar() {
                       onMouseEnter={() => setHoveredBoutique(b.name)}
                       onMouseLeave={() => setHoveredBoutique(null)}
                     >
-                      <div 
+                      <div
                         onClick={() => {
                           if (isActive) {
                             setSelectedBoutique(b.name === selectedBoutique ? null : b.name);
                           }
                         }}
-                        className={`relative flex items-center justify-center p-1.5 rounded-full shadow-md border cursor-pointer transition-all ${
-                          isActive 
-                            ? (selectedBoutique === b.name 
-                                ? (isGanesh ? "bg-[#fff3e0] border-[#ea580c] text-[#ea580c] scale-110" : "bg-[#e2f0d9] border-[#2d5a27] text-[#2d5a27] scale-110") 
-                                : (isGanesh ? "bg-white border-[#ea580c] text-[#ea580c] scale-100 hover:scale-110" : "bg-white border-[#ff3f6c] text-[#ff3f6c] scale-100 hover:scale-110"))
-                            : "bg-gray-100 border-gray-300 text-gray-400 scale-90 opacity-40 cursor-not-allowed"
-                        }`}
+                        className={`relative flex items-center justify-center p-1.5 rounded-full shadow-md border cursor-pointer transition-all ${isActive
+                          ? (selectedBoutique === b.name
+                            ? (isGanesh ? "bg-[#fff3e0] border-[#ea580c] text-[#ea580c] scale-110" : "bg-[#e2f0d9] border-[#2d5a27] text-[#2d5a27] scale-110")
+                            : (isGanesh ? "bg-white border-[#ea580c] text-[#ea580c] scale-100 hover:scale-110" : "bg-white border-[#ff3f6c] text-[#ff3f6c] scale-100 hover:scale-110"))
+                          : "bg-gray-100 border-gray-300 text-gray-400 scale-90 opacity-40 cursor-not-allowed"
+                          }`}
                       >
                         <Store className="w-4 h-4" />
-                        
+
                         {/* Interactive Tooltip popup */}
                         {(hoveredBoutique === b.name || selectedBoutique === b.name || (isActive && hoveredBoutique === null && selectedBoutique === null && b.id === "b_ganesh_1")) && (
-                          <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-[7.5px] py-1 px-2 rounded-lg font-black tracking-wide whitespace-nowrap shadow-md z-30 animate-in fade-in duration-200 flex items-center gap-1 border ${
-                            isGanesh ? "bg-[#07362a] border-[#07362a]" : "bg-[#2d5a27] border-[#2d5a27]"
-                          }`}>
+                          <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-[7.5px] py-1 px-2 rounded-lg font-black tracking-wide whitespace-nowrap shadow-md z-30 animate-in fade-in duration-200 flex items-center gap-1 border ${isGanesh ? "bg-[#07362a] border-[#07362a]" : "bg-[#2d5a27] border-[#2d5a27]"
+                            }`}>
                             <span>{b.name} ({b.distance <= 1.5 ? '10-15m' : b.distance <= 2.5 ? '20-30m' : b.distance <= 4.0 ? '1-2h' : b.distance <= 6.0 ? '2-3h' : 'Same-Day'})</span>
                             <span>•</span>
                             <span>★ {b.rating}</span>
@@ -2130,9 +2164,9 @@ export default function LocalBazaar() {
                       &lt; {selectedRadius === 2 ? '30m' : selectedRadius === 5 ? '2h' : selectedRadius === 10 ? '4h' : '24h'}
                     </span>
                   </div>
-                  
+
                   <div className="flex-1 flex items-center gap-2">
-                    <input 
+                    <input
                       type="range"
                       min="2"
                       max="15"
@@ -2157,11 +2191,10 @@ export default function LocalBazaar() {
                           key={item.r}
                           onClick={() => setSelectedRadius(item.r)}
                           style={selectedRadius === item.r ? { backgroundColor: themeColors.hexColor, borderColor: themeColors.hexColor, color: '#fff' } : {}}
-                          className={`px-1.5 py-0.5 text-[8px] font-black rounded border transition-all cursor-pointer ${
-                            selectedRadius === item.r
-                              ? "text-white animate-pulse"
-                              : "bg-white text-gray-550 border-gray-200 hover:bg-gray-50"
-                          }`}
+                          className={`px-1.5 py-0.5 text-[8px] font-black rounded border transition-all cursor-pointer ${selectedRadius === item.r
+                            ? "text-white animate-pulse"
+                            : "bg-white text-gray-550 border-gray-200 hover:bg-gray-50"
+                            }`}
                         >
                           {item.label}
                         </button>
@@ -2208,20 +2241,20 @@ export default function LocalBazaar() {
                   {themeColors.name === "Ganesh Chaturthi" ? "🌼" : themeColors.name === "Chhath Puja" ? "🌅" : themeColors.name === "Varalakshmi Vratam" ? "🪻" : themeColors.name === "Lohri" ? "🔥" : themeColors.name === "Durga Puja" ? "🔱" : "🏺"}
                 </span>
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
-                  {themeColors.name === "Ganesh Chaturthi" 
-                    ? "Ganesh Chaturthi Essentials" 
-                    : themeColors.name === "Chhath Puja" 
-                    ? "Chhath Essentials" 
-                    : themeColors.name === "Varalakshmi Vratam" 
-                    ? "Vratam Essentials" 
-                    : themeColors.name === "Lohri"
-                    ? "Lohri Essentials"
-                    : themeColors.name === "Durga Puja"
-                    ? "Pujo Essentials"
-                    : `${themeColors.name.split(' ')[0]} Essentials`}
+                  {themeColors.name === "Ganesh Chaturthi"
+                    ? "Ganesh Chaturthi Essentials"
+                    : themeColors.name === "Chhath Puja"
+                      ? "Chhath Essentials"
+                      : themeColors.name === "Varalakshmi Vratam"
+                        ? "Vratam Essentials"
+                        : themeColors.name === "Lohri"
+                          ? "Lohri Essentials"
+                          : themeColors.name === "Durga Puja"
+                            ? "Pujo Essentials"
+                            : `${themeColors.name.split(' ')[0]} Essentials`}
                 </h3>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   if (themeColors.name === "Ganesh Chaturthi" || themeColors.name === "Chhath Puja" || themeColors.name === "Varalakshmi Vratam" || themeColors.name === "Lohri" || themeColors.name === "Durga Puja") {
                     setActiveCategory("All");
@@ -2248,8 +2281,8 @@ export default function LocalBazaar() {
                     { name: "Gifts & Hampers", img: "/pooja_essentials_category.png", value: "Gifts" },
                     { name: "More", img: null, value: "All" }
                   ].map((cat, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       onClick={() => setActiveCategory(cat.value)}
                       className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
                     >
@@ -2279,8 +2312,8 @@ export default function LocalBazaar() {
                     { name: "Sarees", img: "/ethnic_wear_category.png", value: "Sarees" },
                     { name: "More", img: null, value: "All" }
                   ].map((cat, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       onClick={() => setActiveCategory(cat.value)}
                       className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
                     >
@@ -2313,8 +2346,8 @@ export default function LocalBazaar() {
                     { name: "Accessories", img: "/pooja_essentials_category.png", value: "Accessories" },
                     { name: "More", img: null, value: "All" }
                   ].map((cat, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       onClick={() => setActiveCategory(cat.value)}
                       className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
                     >
@@ -2345,8 +2378,8 @@ export default function LocalBazaar() {
                     { name: "Jewellery", img: "/pooja_essentials_category.png", value: "Accessories" },
                     { name: "More", img: null, value: "All" }
                   ].map((cat, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       onClick={() => setActiveCategory(cat.value)}
                       className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
                     >
@@ -2379,8 +2412,8 @@ export default function LocalBazaar() {
                     { name: "Gifts & Hampers", img: "/pooja_essentials_category.png", value: "Gifts" },
                     { name: "More", img: null, value: "All" }
                   ].map((cat, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       onClick={() => setActiveCategory(cat.value)}
                       className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
                     >
@@ -2405,8 +2438,8 @@ export default function LocalBazaar() {
               ) : (
                 <>
                   {themeColors.categories.map((cat, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       onClick={() => {
                         if (cat.name === "Aadi Silks" || cat.name === "Handlooms") {
                           setActiveCategory("Ethnic Wear");
@@ -2424,9 +2457,9 @@ export default function LocalBazaar() {
                       </span>
                     </div>
                   ))}
-                  
+
                   {/* More Category */}
-                  <div 
+                  <div
                     onClick={() => setActiveCategory("All")}
                     className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
                   >
@@ -2472,8 +2505,8 @@ export default function LocalBazaar() {
                 }
 
                 return (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     onClick={() => {
                       if (cat.name === "Ethnic Wear" || cat.name === "Handlooms") {
                         setActiveCategory("Ethnic Wear");
@@ -2485,13 +2518,12 @@ export default function LocalBazaar() {
                     }}
                     className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
                   >
-                    <div 
+                    <div
                       style={isSelected ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
-                      className={`w-13 h-13 rounded-full overflow-hidden border bg-[#fffbeb] flex items-center justify-center transition-all ${
-                        isSelected 
-                          ? "border-2 scale-102 border-orange-500" 
-                          : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
-                      }`}
+                      className={`w-13 h-13 rounded-full overflow-hidden border bg-[#fffbeb] flex items-center justify-center transition-all ${isSelected
+                        ? "border-2 scale-102 border-orange-500"
+                        : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
+                        }`}
                     >
                       <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
                     </div>
@@ -2501,19 +2533,18 @@ export default function LocalBazaar() {
                   </div>
                 );
               })}
-              
+
               {/* More / All Category */}
-              <div 
+              <div
                 onClick={() => setActiveCategory("All")}
                 className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
               >
-                <div 
+                <div
                   style={activeCategory === "All" ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
-                  className={`w-13 h-13 rounded-full border bg-slate-50 flex items-center justify-center transition-all ${
-                    activeCategory === "All"
-                      ? "border-2 border-slate-700 scale-102"
-                      : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
-                  }`}
+                  className={`w-13 h-13 rounded-full border bg-slate-50 flex items-center justify-center transition-all ${activeCategory === "All"
+                    ? "border-2 border-slate-700 scale-102"
+                    : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
+                    }`}
                 >
                   <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
                     <span className="border border-gray-400 rounded-2xs"></span>
@@ -2573,24 +2604,23 @@ export default function LocalBazaar() {
                     key={idx}
                     onClick={() => setActiveCategory(pill.value)}
                     style={isActive ? { backgroundColor: themeColors.hexColor, borderColor: themeColors.hexColor, color: '#fff' } : {}}
-                    className={`shrink-0 px-3.5 py-1 rounded-md text-[9px] font-black border transition-all cursor-pointer ${
-                      isActive
-                        ? "text-white"
-                        : "bg-white text-slate-600 border-gray-200 hover:border-slate-300"
-                    }`}
+                    className={`shrink-0 px-3.5 py-1 rounded-md text-[9px] font-black border transition-all cursor-pointer ${isActive
+                      ? "text-white"
+                      : "bg-white text-slate-600 border-gray-200 hover:border-slate-300"
+                      }`}
                   >
                     {pill.name}
                   </button>
                 );
               })}
             </div>
-            
+
             {filteredProducts.length === 0 ? (
               <div className="border border-dashed border-gray-200 rounded-2xl p-10 text-center flex flex-col items-center justify-center gap-2">
                 <Store className="w-8 h-8 text-gray-300" />
                 <span className="text-xs text-gray-400 font-bold">No active local sellers found within {selectedRadius === 2 ? '30 mins' : selectedRadius === 5 ? '2 hours' : selectedRadius === 10 ? '4 hours' : '24 hours'}.</span>
-                <button 
-                  onClick={() => { setSelectedRadius(15); setSelectedBoutique(null); }} 
+                <button
+                  onClick={() => { setSelectedRadius(15); setSelectedBoutique(null); }}
                   className="text-xs font-black text-[#ff3f6c] hover:underline"
                 >
                   Expand search to Same-day Delivery
@@ -2601,7 +2631,7 @@ export default function LocalBazaar() {
                 {selectedBoutique && (
                   <div className="bg-[#fffbeb] border border-amber-200 text-amber-900 rounded-xl px-4 py-2 flex items-center justify-between text-xs font-bold shadow-3xs select-none">
                     <span>Showing catalog for <strong>{selectedBoutique}</strong></span>
-                    <button 
+                    <button
                       onClick={() => setSelectedBoutique(null)}
                       className="text-amber-600 hover:text-amber-800 font-black uppercase text-[10px] cursor-pointer"
                     >
@@ -2609,12 +2639,12 @@ export default function LocalBazaar() {
                     </button>
                   </div>
                 )}
-                
+
                 <div className={["Ganesh Chaturthi", "Chhath Puja", "Varalakshmi Vratam", "Lohri", "Durga Puja"].includes(themeColors.name) ? "flex flex-col gap-3.5 pb-6" : "grid grid-cols-2 gap-3 pb-6"}>
                   {filteredProducts.map((p) => {
                     const discountPct = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
                     const isExpanded = expandedProductId === p.id;
-                    
+
                     // Find the boutique info corresponding to the product to display detailed shop info when expanded
                     const boutiqueInfo = boutiques.find(b => b.name.toLowerCase() === p.boutique.toLowerCase());
                     const isFes = ["Ganesh Chaturthi", "Chhath Puja", "Varalakshmi Vratam", "Lohri", "Durga Puja"].includes(themeColors.name);
@@ -2733,9 +2763,8 @@ export default function LocalBazaar() {
                         onClick={() => {
                           setExpandedProductId(isExpanded ? null : p.id);
                         }}
-                        className={`border border-gray-150/60 rounded-xl overflow-hidden cursor-pointer hover:shadow-md hover:border-gray-250/80 transition-all bg-white relative flex flex-col text-left group ${
-                          isExpanded ? "col-span-2 ring-1 ring-[#ff3f6c]/30" : ""
-                        }`}
+                        className={`border border-gray-150/60 rounded-xl overflow-hidden cursor-pointer hover:shadow-md hover:border-gray-250/80 transition-all bg-white relative flex flex-col text-left group ${isExpanded ? "col-span-2 ring-1 ring-[#ff3f6c]/30" : ""
+                          }`}
                       >
                         {/* Flex layout for expanded vs non-expanded state */}
                         <div className={isExpanded ? "flex flex-row" : "flex flex-col"}>
@@ -2761,7 +2790,7 @@ export default function LocalBazaar() {
                                 {p.category}
                               </div>
                             </div>
-                            
+
                             <div className="mt-1.5">
                               <div className="flex items-baseline gap-1.5 flex-wrap">
                                 <span className="text-[11px] font-black text-slate-900">₹{p.price}</span>
@@ -2771,7 +2800,7 @@ export default function LocalBazaar() {
                                 ({discountPct}% OFF)
                               </span>
                             </div>
-                            
+
                             {!isExpanded && (
                               <div className="mt-2 pt-1 border-t border-gray-50 flex items-center justify-between text-[7.5px] font-extrabold text-slate-500">
                                 <span className="text-[#2d5a27] font-black">🚚 {p.deliveryTime}</span>
@@ -2907,7 +2936,7 @@ export default function LocalBazaar() {
                   <span className="font-extrabold text-xs text-slate-800 leading-none mt-0.5">{selectedProduct.boutique}</span>
                 </div>
               </div>
-              
+
               <div className="bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full flex items-center gap-1 shadow-3xs">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="text-[9px] text-emerald-800 font-black uppercase tracking-wider">Artisan Verified</span>
@@ -3014,13 +3043,13 @@ export default function LocalBazaar() {
 
           {/* Checkout Bar */}
           <div className="fixed bottom-14 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3.5 flex gap-3.5 z-40 shadow-[0_-5px_15px_rgba(0,0,0,0.06)]">
-            <button 
+            <button
               onClick={() => { setProposedBid(Math.round(selectedProduct.price * 0.81)); setStep(3); }}
               className="flex-1 bg-gradient-to-r from-orange-500 to-[#ff3f6c] hover:from-orange-600 hover:to-[#e0355f] text-white text-xs font-black py-3.5 rounded-xl uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-[0.99]"
             >
               <Sparkles className="w-4 h-4 animate-pulse" /> Request Best Price
             </button>
-            <button 
+            <button
               onClick={() => setStep(5)}
               className="flex-1 bg-[#282c3f] hover:bg-[#151722] text-white text-xs font-black py-3.5 rounded-xl uppercase tracking-wider shadow-md cursor-pointer transition-all active:scale-[0.99]"
             >
@@ -3050,7 +3079,7 @@ export default function LocalBazaar() {
           </header>
 
           <main className="flex-1 px-4 py-6 flex flex-col gap-6 text-center">
-            
+
             {/* Price comparisons */}
             <div className="flex justify-around items-center border border-gray-100 rounded-2xl p-4 bg-white shadow-3xs">
               <div className="flex flex-col gap-0.5">
@@ -3067,7 +3096,7 @@ export default function LocalBazaar() {
             {/* Custom SVG likelihood gauge */}
             <div className="flex flex-col items-center gap-2 bg-slate-50 border border-gray-100 rounded-2xl p-4">
               <span className="text-[9.5px] font-black text-gray-400 uppercase tracking-wider">Likelihood Meter</span>
-              
+
               {/* Gauge Arc (Only contains the SVG) */}
               <div className="relative w-44 h-[88px] flex items-end justify-center">
                 <svg className="w-full h-full" viewBox="0 0 100 50">
@@ -3076,16 +3105,16 @@ export default function LocalBazaar() {
                   <path d="M 10 50 A 40 40 0 0 1 36 24" fill="none" stroke="#ef4444" strokeWidth="8" />
                   <path d="M 36 24 A 40 40 0 0 1 64 24" fill="none" stroke="#eab308" strokeWidth="8" />
                   <path d="M 64 24 A 40 40 0 0 1 90 50" fill="none" stroke="#10b981" strokeWidth="8" />
-                  
+
                   {/* Needle line */}
-                  <line 
-                    x1="50" 
-                    y1="50" 
+                  <line
+                    x1="50"
+                    y1="50"
                     x2={`${50 + 36 * Math.cos((180 - (probInfo.percentage / 100) * 180) * Math.PI / 180)}`}
                     y2={`${50 - 36 * Math.sin((180 - (probInfo.percentage / 100) * 180) * Math.PI / 180)}`}
-                    stroke="#1e293b" 
-                    strokeWidth="3.5" 
-                    strokeLinecap="round" 
+                    stroke="#1e293b"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
                     className="transition-all duration-300 ease-out"
                   />
                   <circle cx="50" cy="50" r="5" fill="#1e293b" />
@@ -3107,7 +3136,7 @@ export default function LocalBazaar() {
             {/* Slider control */}
             <div className="flex flex-col gap-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-3xs">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block text-left">Slide Your Bid offer</span>
-              <input 
+              <input
                 type="range"
                 min={Math.round(selectedProduct.price * 0.7)} // Minimum limit 70% of list price
                 max={selectedProduct.price}
@@ -3136,7 +3165,7 @@ export default function LocalBazaar() {
 
           {/* Offer confirmation CTA */}
           <div className="fixed bottom-14 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3.5 flex z-40 shadow-[0_-5px_15px_rgba(0,0,0,0.06)]">
-            <button 
+            <button
               onClick={handleSubmitOffer}
               className="w-full bg-[#ff3f6c] hover:bg-[#e0355f] text-white text-xs font-black py-3.5 rounded-xl uppercase tracking-wider shadow-md cursor-pointer transition-all active:scale-[0.99] text-center"
             >
@@ -3180,17 +3209,15 @@ export default function LocalBazaar() {
             </div>
 
             {chatMessages.map((msg, idx) => (
-              <div 
-                key={idx} 
-                className={`flex gap-2 max-w-[85%] items-end ${
-                  msg.sender === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
-                }`}
+              <div
+                key={idx}
+                className={`flex gap-2 max-w-[85%] items-end ${msg.sender === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
+                  }`}
               >
-                <div className={`p-3 rounded-2xl text-[11px] leading-normal font-semibold shadow-3xs ${
-                  msg.sender === "user" 
-                    ? "bg-[#ff3f6c] text-white rounded-br-none" 
-                    : "bg-white border border-gray-150 text-slate-800 rounded-bl-none"
-                }`}>
+                <div className={`p-3 rounded-2xl text-[11px] leading-normal font-semibold shadow-3xs ${msg.sender === "user"
+                  ? "bg-[#ff3f6c] text-white rounded-br-none"
+                  : "bg-white border border-gray-150 text-slate-800 rounded-bl-none"
+                  }`}>
                   {msg.text}
                 </div>
                 <span className="text-[7px] text-gray-400 font-bold select-none shrink-0 mb-1">{msg.time}</span>
@@ -3210,25 +3237,25 @@ export default function LocalBazaar() {
 
           {/* Negotiating Controls Panel */}
           <div className="fixed bottom-14 left-0 right-0 bg-white border-t border-gray-100 p-3 flex flex-col gap-2.5 z-40 shadow-[0_-5px_15px_rgba(0,0,0,0.06)]">
-            
+
             {/* Quick Action buttons representing bids */}
             {!isTyping && chatMessages.length > 0 && chatMessages[chatMessages.length - 1].sender === "shop" && (
               <div className="flex gap-2 text-xs">
-                <button 
+                <button
                   onClick={() => handleAcceptCounter(negotiatedPrice)}
                   className="flex-1 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider cursor-pointer transition-colors"
                 >
                   Accept Offer (₹{negotiatedPrice})
                 </button>
                 {chatRound < 2 && (
-                  <button 
+                  <button
                     onClick={() => handleUserCounterBid(Math.round((proposedBid + negotiatedPrice) / 2))}
                     className="flex-1 bg-[#282c3f] hover:bg-[#151722] text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider cursor-pointer transition-colors"
                   >
                     Counter ₹{Math.round((proposedBid + negotiatedPrice) / 2)}
                   </button>
                 )}
-                <button 
+                <button
                   onClick={() => {
                     setChatMessages(prev => [...prev, { sender: "shop", text: "Offer canceled. Redirecting you to catalog...", time: "now" }]);
                     setTimeout(() => setStep(1), 1500);
@@ -3242,7 +3269,7 @@ export default function LocalBazaar() {
 
             {/* Text message bar */}
             <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3.5 py-2.5 bg-gray-50 focus-within:bg-white focus-within:border-gray-300 transition-colors">
-              <input 
+              <input
                 type="text"
                 placeholder="Type counter offer amount (e.g. 1100)..."
                 value={userChatInput}
@@ -3250,7 +3277,7 @@ export default function LocalBazaar() {
                 onKeyDown={(e) => e.key === "Enter" && handleSendFreeChatMessage()}
                 className="flex-1 bg-transparent border-none outline-none text-xs text-gray-700 placeholder-gray-400"
               />
-              <button 
+              <button
                 onClick={handleSendFreeChatMessage}
                 className="text-[#ff3f6c] p-0.5 hover:scale-105 transition-transform cursor-pointer shrink-0"
               >
@@ -3281,20 +3308,18 @@ export default function LocalBazaar() {
 
           <main className="flex-1 px-4 py-6 flex flex-col gap-5 text-left">
             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Boutique Delivery</h3>
-            
+
             {/* Same day delivery option */}
-            <div 
+            <div
               onClick={() => setFulfillmentMode("delivery")}
-              className={`border rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all ${
-                fulfillmentMode === "delivery"
-                  ? "border-[#ff3f6c] bg-pink-50/20 shadow-3xs"
-                  : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
-              }`}
+              className={`border rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all ${fulfillmentMode === "delivery"
+                ? "border-[#ff3f6c] bg-pink-50/20 shadow-3xs"
+                : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+                }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  fulfillmentMode === "delivery" ? "border-[#ff3f6c]" : "border-gray-300"
-                }`}>
+                <div className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 ${fulfillmentMode === "delivery" ? "border-[#ff3f6c]" : "border-gray-300"
+                  }`}>
                   {fulfillmentMode === "delivery" && <span className="w-2.5 h-2.5 rounded-full bg-[#ff3f6c]"></span>}
                 </div>
                 <div className="flex flex-col text-left">
@@ -3307,18 +3332,16 @@ export default function LocalBazaar() {
 
             {/* Boutique store pickup option */}
             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-wider mt-2">Local Shop Pick-up</h3>
-            <div 
+            <div
               onClick={() => setFulfillmentMode("pickup")}
-              className={`border rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all ${
-                fulfillmentMode === "pickup"
-                  ? "border-[#ff3f6c] bg-pink-50/20 shadow-3xs"
-                  : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
-              }`}
+              className={`border rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-all ${fulfillmentMode === "pickup"
+                ? "border-[#ff3f6c] bg-pink-50/20 shadow-3xs"
+                : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+                }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  fulfillmentMode === "pickup" ? "border-[#ff3f6c]" : "border-gray-300"
-                }`}>
+                <div className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 ${fulfillmentMode === "pickup" ? "border-[#ff3f6c]" : "border-gray-300"
+                  }`}>
                   {fulfillmentMode === "pickup" && <span className="w-2.5 h-2.5 rounded-full bg-[#ff3f6c]"></span>}
                 </div>
                 <div className="flex flex-col text-left">
@@ -3337,7 +3360,7 @@ export default function LocalBazaar() {
                 </span>
                 <span className="text-[9.5px] text-emerald-700">Add tailoring instructions to fit your profile mannequin.</span>
               </div>
-              <button 
+              <button
                 onClick={() => alert("Mannequin details synced! Tailoring will be adjusted to your profile sizes.")}
                 className="bg-emerald-600 text-white text-[9.5px] font-black py-1.5 px-3 rounded-lg shadow-sm"
               >
@@ -3355,7 +3378,7 @@ export default function LocalBazaar() {
 
           {/* Place order CTA */}
           <div className="fixed bottom-14 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3.5 flex z-40 shadow-[0_-5px_15px_rgba(0,0,0,0.06)]">
-            <button 
+            <button
               onClick={() => setStep(6)}
               className="w-full bg-[#ff3f6c] hover:bg-[#e0355f] text-white text-xs font-black py-3.5 rounded-xl uppercase tracking-wider shadow-md cursor-pointer transition-all active:scale-[0.99] text-center"
             >
@@ -3377,18 +3400,18 @@ export default function LocalBazaar() {
             <p className="text-sm text-gray-500 font-bold">
               Purchased {selectedProduct.name} at <span className="text-[#ff3f6c] font-black">₹{negotiatedPrice}</span>
             </p>
-            <span className="text-[9.5px] font-black text-gray-400 uppercase tracking-widest mt-1">Order Ref: MYN-LB-{(Math.random()*1000000).toFixed(0)}</span>
+            <span className="text-[9.5px] font-black text-gray-400 uppercase tracking-widest mt-1">Order Ref: MYN-LB-{(Math.random() * 1000000).toFixed(0)}</span>
           </div>
 
           <div className="w-full max-w-xs flex flex-col gap-3.5 mt-6">
-            <button 
+            <button
               onClick={() => { alert("Shared to Outfit Circle group board!"); setStep(1); }}
               className="bg-[#ff3f6c] hover:bg-[#e0355f] text-white text-xs font-black py-3.5 rounded-xl uppercase tracking-wider shadow-md cursor-pointer transition-all active:scale-[0.99]"
             >
               Share Deal to Outfit Circle
             </button>
-            
-            <button 
+
+            <button
               onClick={() => setStep(1)}
               className="bg-white border border-gray-200 text-slate-700 hover:bg-gray-50 text-xs font-black py-3.5 rounded-xl uppercase tracking-wider shadow-3xs cursor-pointer transition-colors"
             >
@@ -3414,19 +3437,17 @@ export default function LocalBazaar() {
               onMouseEnter={() => setShowMusicTooltip(true)}
               onMouseLeave={() => setShowMusicTooltip(false)}
               aria-label={`Toggle ${themeColors.name} background ambience music`}
-              className={`w-10 h-10 rounded-full bg-white/80 backdrop-blur-md border flex items-center justify-center shadow-lg transition-all duration-300 relative cursor-pointer ${
-                themeColors.name === "Varalakshmi Vratam" 
-                  ? (isMusicPlaying ? "scale-105 border-purple-300 shadow-purple-100" : "border-purple-100")
-                  : (isMusicPlaying ? "scale-105 border-orange-300 shadow-orange-100" : "border-orange-100")
-              }`}
+              className={`w-10 h-10 rounded-full bg-white/80 backdrop-blur-md border flex items-center justify-center shadow-lg transition-all duration-300 relative cursor-pointer ${themeColors.name === "Varalakshmi Vratam"
+                ? (isMusicPlaying ? "scale-105 border-purple-300 shadow-purple-100" : "border-purple-100")
+                : (isMusicPlaying ? "scale-105 border-orange-300 shadow-orange-100" : "border-orange-100")
+                }`}
             >
               {/* Glowing Pulse Ring */}
               {isMusicPlaying && (
-                <span className={`absolute inset-0 rounded-full animate-ping ${
-                  themeColors.name === "Varalakshmi Vratam" ? "bg-purple-400/25" : "bg-orange-400/25"
-                }`} />
+                <span className={`absolute inset-0 rounded-full animate-ping ${themeColors.name === "Varalakshmi Vratam" ? "bg-purple-400/25" : "bg-orange-400/25"
+                  }`} />
               )}
-              
+
               <span className="text-sm select-none">
                 {isMusicPlaying ? "🔊" : "🔇"}
               </span>
@@ -3440,11 +3461,10 @@ export default function LocalBazaar() {
                   toggleMute();
                 }}
                 title={isMusicMuted ? "Unmute" : "Mute"}
-                className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border border-white text-white text-[8px] font-black flex items-center justify-center shadow-sm cursor-pointer ${
-                  themeColors.name === "Varalakshmi Vratam" 
-                    ? "bg-purple-600 hover:bg-purple-700" 
-                    : "bg-orange-500 hover:bg-orange-600"
-                }`}
+                className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border border-white text-white text-[8px] font-black flex items-center justify-center shadow-sm cursor-pointer ${themeColors.name === "Varalakshmi Vratam"
+                  ? "bg-purple-600 hover:bg-purple-700"
+                  : "bg-orange-500 hover:bg-orange-600"
+                  }`}
               >
                 {isMusicMuted ? "🔇" : "🔊"}
               </button>
