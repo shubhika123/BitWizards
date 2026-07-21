@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { 
   ArrowLeft, 
@@ -18,7 +18,8 @@ import {
   LogOut, 
   Briefcase, 
   Gift, 
-  Sparkles 
+  Sparkles,
+  Calendar
 } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { getContestHistory } from "../../lib/OutfitCircleApi";
@@ -31,6 +32,23 @@ export default function MyProfile() {
   const [size, setSize] = useState("S");
   const [coins, setCoins] = useState(0);
   const [contestHistory, setContestHistory] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [showCustomCalendar, setShowCustomCalendar] = useState(false);
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date().getMonth());
+  const [currentCalendarYear, setCurrentCalendarYear] = useState(new Date().getFullYear());
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const savedDate = localStorage.getItem("profileSelectedDate");
+    if (savedDate) {
+      setSelectedDate(savedDate);
+    }
+  }, []);
+
+  const handleDateChange = (dateVal: string) => {
+    setSelectedDate(dateVal);
+    localStorage.setItem("profileSelectedDate", dateVal);
+  };
 
   const loadCoins = async () => {
     if (!user?.user_id) {
@@ -175,6 +193,136 @@ export default function MyProfile() {
             >
               <Plus className="w-3 h-3 text-gray-500" /> Add
             </button>
+          </div>
+
+          <div className="w-full h-[1px] bg-gray-100"></div>
+
+          {/* Target/Special Date selection */}
+          <div className="flex items-center justify-between p-1 rounded-lg transition-colors relative">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-4 h-4 text-[#ff3f6c]" />
+              <div>
+                <h5 className="text-[11.5px] font-black text-gray-800">Target / Special Date</h5>
+                <p className="text-[9.5px] text-gray-400 font-semibold mt-0.5">
+                  {selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : "No date selected"}
+                </p>
+              </div>
+            </div>
+            <div className="relative">
+              <button 
+                onClick={() => setShowCustomCalendar(!showCustomCalendar)}
+                className="flex items-center justify-center gap-0.5 bg-[#ff3f6c] hover:bg-[#e0355c] text-white border border-[#ff3f6c] rounded-lg px-3 py-1 text-[10px] font-black shadow-3xs cursor-pointer active:scale-95 transition-transform"
+              >
+                Choose Date
+              </button>
+
+              {showCustomCalendar && (
+                <div className="absolute right-0 top-9 z-50 bg-white border border-gray-150 rounded-xl shadow-lg p-3.5 w-64 select-none">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (currentCalendarMonth === 0) {
+                          setCurrentCalendarMonth(11);
+                          setCurrentCalendarYear(currentCalendarYear - 1);
+                        } else {
+                          setCurrentCalendarMonth(currentCalendarMonth - 1);
+                        }
+                      }}
+                      className="p-1 hover:bg-gray-100 rounded-lg text-gray-650"
+                    >
+                      <ChevronRight className="w-4 h-4 rotate-180" />
+                    </button>
+                    <span className="text-xs font-black text-gray-800">
+                      {new Date(currentCalendarYear, currentCalendarMonth).toLocaleString("default", { month: "long" })} {currentCalendarYear}
+                    </span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (currentCalendarMonth === 11) {
+                          setCurrentCalendarMonth(0);
+                          setCurrentCalendarYear(currentCalendarYear + 1);
+                        } else {
+                          setCurrentCalendarMonth(currentCalendarMonth + 1);
+                        }
+                      }}
+                      className="p-1 hover:bg-gray-100 rounded-lg text-gray-650"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Weekday headers */}
+                  <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 mb-1.5">
+                    <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+                  </div>
+
+                  {/* Days grid */}
+                  <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                    {/* Padding cells */}
+                    {[...Array(new Date(currentCalendarYear, currentCalendarMonth, 1).getDay())].map((_, i) => (
+                      <span key={`pad-${i}`} />
+                    ))}
+                    {/* Actual day cells */}
+                    {[...Array(new Date(currentCalendarYear, currentCalendarMonth + 1, 0).getDate())].map((_, i) => {
+                      const dayNum = i + 1;
+                      const dateStr = `${currentCalendarYear}-${String(currentCalendarMonth + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+                      const isSelected = selectedDate === dateStr;
+                      const isToday = new Date().toDateString() === new Date(currentCalendarYear, currentCalendarMonth, dayNum).toDateString();
+                      
+                      return (
+                        <button
+                          key={`day-${dayNum}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDateChange(dateStr);
+                            setShowCustomCalendar(false);
+                          }}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all ${
+                            isSelected 
+                              ? "bg-[#ff3f6c] text-white" 
+                              : isToday
+                                ? "border border-[#ff3f6c] text-[#ff3f6c] hover:bg-[#fff0f3]"
+                                : "text-gray-700 hover:bg-gray-100"
+                          }`}
+                        >
+                          {dayNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-gray-100 text-[10px] font-black">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDateChange("");
+                        setShowCustomCalendar(false);
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      Clear
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const today = new Date();
+                        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+                        handleDateChange(todayStr);
+                        setCurrentCalendarMonth(today.getMonth());
+                        setCurrentCalendarYear(today.getFullYear());
+                        setShowCustomCalendar(false);
+                      }}
+                      className="text-[#ff3f6c] hover:text-[#e0355c]"
+                    >
+                      Today
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="w-full h-[1px] bg-gray-100"></div>
