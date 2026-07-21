@@ -106,3 +106,18 @@ class PollVote(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("poll_id", "user_id", name="uq_poll_user_vote"),
     )
+
+
+# Contest Submissions (MRP Master Daily Game History in MySQL)
+class ContestSubmission(SQLModel, table=True):
+    __tablename__ = "contest_submissions"
+
+    submission_id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.user_id", nullable=False)
+    product_name: str = Field(max_length=255, nullable=False)
+    category: str = Field(max_length=100, nullable=False)
+    guessed_price: float = Field(nullable=False)
+    actual_price: float = Field(nullable=False)
+    coins_won: int = Field(default=0)
+    result_msg: str = Field(max_length=255, nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -198,9 +198,36 @@ export async function updatePinCanvas(
   canvas: { canvas_x?: number; canvas_y?: number; canvas_scale?: number; canvas_z_index?: number }
 ) {
   const res = await fetch(`${BASE}/pins/${pinId}/canvas`, {
-    method: "PUT",
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(canvas),
   });
+  return handle(res);
+}
+
+export async function submitContestGuess(payload: {
+  user_id: number;
+  product_name: string;
+  category: string;
+  guessed_price: number;
+  actual_price: number;
+  coins_won: number;
+  result_msg: string;
+}) {
+  const res = await fetch(`/api/contest/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return handle(res);
+}
+
+export async function getContestHistory(userId: number) {
+  const res = await fetch(`/api/contest/history?user_id=${userId}`);
+  return handle(res);
+}
+
+export async function getContestStatus(userId: number) {
+  const res = await fetch(`/api/contest/status?user_id=${userId}`);
   return handle(res);
 }
