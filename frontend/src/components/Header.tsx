@@ -8,7 +8,8 @@ import {
   User, 
   Heart, 
   Bell,
-  X
+  X,
+  Sparkles
 } from "lucide-react";
 import { useGenieUiStore } from "../store/genieUiStore";
 import { GenieEntryButton } from "./genie/GenieEntryButton";
@@ -192,12 +193,33 @@ export default function Header() {
               <MyntraLogo className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 drop-shadow-3xs" />
             </Link>
 
-            {/* Festive Live Tag */}
+            {/* Rakhi Festive Badge */}
             <Link 
               href="/Category/Rakhi"
-              className="hidden min-[440px]:flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-[#fffbf0] via-[#fff1f2] to-[#fffbf0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs select-none shrink-0 animate-pulse"
+              className="hidden min-[350px]:flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fff9f0] via-[#ffe4e6] to-[#fff9f0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-1 shrink-0"
             >
-              <span className="truncate max-w-[110px] sm:max-w-none">🌸 RAKHI LIVE 🌸</span>
+              {/* SVG Rakhi on Left */}
+              <div className="absolute left-[-7px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
+                <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
+                  {/* Red Thread cord */}
+                  <path d="M 0 25 Q 12.5 22 25 25 Q 37.5 28 50 25" stroke="#ef4444" strokeWidth="2" fill="none" />
+                  <path d="M 0 25 Q 12.5 28 25 25 Q 37.5 22 50 25" stroke="#f59e0b" strokeWidth="1" fill="none" />
+                  {/* Center Rakhi Flower */}
+                  <circle cx="25" cy="25" r="7" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
+                  <circle cx="25" cy="25" r="4.5" fill="#be123c" />
+                  <circle cx="25" cy="25" r="2" fill="#ffd700" />
+                  {/* Golden beads */}
+                  {[...Array(8)].map((_, i) => {
+                    const angle = (i * 45 * Math.PI) / 180;
+                    const x = 25 + 6.2 * Math.cos(angle);
+                    const y = 25 + 6.2 * Math.sin(angle);
+                    return <circle key={i} cx={x} cy={y} r="0.8" fill="#ffd700" />;
+                  })}
+                </svg>
+              </div>
+              
+              <span>RAKHI</span>
+              <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
             </Link>
           </div>
 
