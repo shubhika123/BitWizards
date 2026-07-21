@@ -30,19 +30,46 @@ const CATEGORY_IMAGES: Record<string, string> = {
 export default function RakshaBandhanBanner() {
   const [categories, setCategories] = useState<CategoryBoost[]>(FALLBACK_CATEGORIES);
   const [loading, setLoading] = useState(true);
+  const [festivalName, setFestivalName] = useState<string>("Raksha Bandhan");
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/fetch-feed")
+  const loadActiveFestival = () => {
+    const dateStr = localStorage.getItem("simulated_date") || "";
+    const url = dateStr ? `http://127.0.0.1:8000/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : "http://127.0.0.1:8000/fetch-feed";
+
+    fetch(url)
       .then((res) => res.json())
-      .then((data: CategoryBoost[]) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setCategories(data);
+      .then((data: any) => {
+        if (data?.boost_map && Array.isArray(data.boost_map) && data.boost_map.length > 0) {
+          setCategories(data.boost_map);
         } else {
           setCategories(FALLBACK_CATEGORIES);
+        }
+
+        if (data?.national_festival) {
+          setFestivalName(data.national_festival);
+        } else if (data?.active_festivals && data.active_festivals.length > 0) {
+          setFestivalName(data.active_festivals[0]);
+        } else {
+          // Date fallback
+          if (dateStr.includes("-10-") || dateStr.includes("-11-")) {
+            setFestivalName("Diwali");
+          } else if (dateStr.includes("-08-")) {
+            setFestivalName("Raksha Bandhan");
+          } else {
+            setFestivalName("Festive Season");
+          }
         }
       })
       .catch(() => setCategories(FALLBACK_CATEGORIES))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadActiveFestival();
+    window.addEventListener("storage", loadActiveFestival);
+    return () => {
+      window.removeEventListener("storage", loadActiveFestival);
+    };
   }, []);
 
   if (loading) return null;
@@ -87,14 +114,20 @@ export default function RakshaBandhanBanner() {
         <div className="flex items-center gap-2.5 justify-center mt-1 z-10">
           <span className="text-amber-500 font-extrabold text-base">✦</span>
           <h2 className="text-[#5c0f1e] font-serif font-black text-xl tracking-widest uppercase">
-            RAKSHA BANDHAN
+            {festivalName}
           </h2>
           <span className="text-amber-500 font-extrabold text-base">✦</span>
         </div>
 
         <div className="flex items-center gap-2 mt-2 w-full justify-center text-amber-500/70 z-10">
           <span className="w-8 h-[1px] bg-amber-400"></span>
-          <span className="text-[10px] font-bold tracking-wider capitalize text-rose-700/80 font-serif">Celebrate The Bond, Festively Styled</span>
+          <span className="text-[10px] font-bold tracking-wider capitalize text-rose-700/80 font-serif">
+            {festivalName === "Diwali" 
+              ? "Grand Festival of Lights & Splendor" 
+              : festivalName === "Raksha Bandhan" 
+              ? "Celebrate The Bond, Festively Styled" 
+              : "Festive Expressions & Ethnic Elegance"}
+          </span>
           <span className="w-8 h-[1px] bg-amber-400"></span>
         </div>
       </div>

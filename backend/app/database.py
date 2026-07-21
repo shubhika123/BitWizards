@@ -166,26 +166,96 @@ def seed_database():
             
         # Check if Festival is empty
         if len(session.exec(select(Festival)).all()) == 0:
-            print("🌱 Seeding active Raksha Bandhan festival...")
-            f = Festival(
-                festival_id=1,
-                name="Raksha Bandhan",
-                start_date=date(2026, 1, 1),
-                end_date=date(2026, 12, 31),
-                is_active=True
-            )
-            session.add(f)
+            print("🌱 Seeding active National & Regional festivals...")
+            festivals = [
+                Festival(
+                    festival_id=1,
+                    name="Raksha Bandhan",
+                    region_tags=["All"],
+                    start_date=date(2026, 8, 1),
+                    end_date=date(2026, 8, 31),
+                    is_active=True
+                ),
+                Festival(
+                    festival_id=2,
+                    name="Diwali",
+                    region_tags=["All"],
+                    start_date=date(2026, 10, 20),
+                    end_date=date(2026, 11, 20),
+                    is_active=True
+                ),
+                Festival(
+                    festival_id=3,
+                    name="Chhath Puja",
+                    region_tags=["Patna"],
+                    start_date=date(2026, 11, 1),
+                    end_date=date(2026, 11, 15),
+                    is_active=True
+                ),
+                Festival(
+                    festival_id=4,
+                    name="Varalakshmi Vratam",
+                    region_tags=["Vizag", "Vijayawada", "Belgaum", "Mysuru"],
+                    start_date=date(2026, 8, 10),
+                    end_date=date(2026, 8, 25),
+                    is_active=True
+                ),
+                Festival(
+                    festival_id=5,
+                    name="Aadi Festival",
+                    region_tags=["Coimbatore", "Madurai", "Salem"],
+                    start_date=date(2026, 7, 15),
+                    end_date=date(2026, 8, 15),
+                    is_active=True
+                ),
+                Festival(
+                    festival_id=6,
+                    name="Ganesh Chaturthi",
+                    region_tags=["Mumbai", "Belgaum"],
+                    start_date=date(2026, 9, 1),
+                    end_date=date(2026, 9, 15),
+                    is_active=True
+                ),
+                Festival(
+                    festival_id=7,
+                    name="Lohri",
+                    region_tags=["Ludhiana", "Amritsar"],
+                    start_date=date(2026, 1, 5),
+                    end_date=date(2026, 1, 20),
+                    is_active=True
+                ),
+                Festival(
+                    festival_id=8,
+                    name="Durga Puja",
+                    region_tags=["Kolkata"],
+                    start_date=date(2026, 10, 1),
+                    end_date=date(2026, 10, 15),
+                    is_active=True
+                )
+            ]
+            session.add_all(festivals)
             session.commit()
             
         # Check if FestivalBoostRule is empty
         if len(session.exec(select(FestivalBoostRule)).all()) == 0:
             print("🌱 Seeding active festival boost rules...")
-            b1 = FestivalBoostRule(festival_id=1, category_id=1, max_boost=Decimal("0.30"))
-            b2 = FestivalBoostRule(festival_id=1, category_id=2, max_boost=Decimal("0.40"))
-            b3 = FestivalBoostRule(festival_id=1, category_id=3, max_boost=Decimal("0.50"))
-            b4 = FestivalBoostRule(festival_id=1, category_id=4, max_boost=Decimal("0.25"))
-            b5 = FestivalBoostRule(festival_id=1, category_id=5, max_boost=Decimal("0.35"))
-            session.add_all([b1, b2, b3, b4, b5])
+            boost_rules = [
+                FestivalBoostRule(festival_id=1, category_id=1, max_boost=Decimal("0.30")),
+                FestivalBoostRule(festival_id=1, category_id=2, max_boost=Decimal("0.40")),
+                FestivalBoostRule(festival_id=1, category_id=3, max_boost=Decimal("0.50")),
+                FestivalBoostRule(festival_id=1, category_id=4, max_boost=Decimal("0.25")),
+                FestivalBoostRule(festival_id=2, category_id=1, max_boost=Decimal("0.45")),
+                FestivalBoostRule(festival_id=2, category_id=2, max_boost=Decimal("0.50")),
+                FestivalBoostRule(festival_id=2, category_id=4, max_boost=Decimal("0.40")),
+                FestivalBoostRule(festival_id=3, category_id=2, max_boost=Decimal("0.50")),
+                FestivalBoostRule(festival_id=4, category_id=2, max_boost=Decimal("0.50")),
+                FestivalBoostRule(festival_id=4, category_id=4, max_boost=Decimal("0.45")),
+                FestivalBoostRule(festival_id=5, category_id=2, max_boost=Decimal("0.40")),
+                FestivalBoostRule(festival_id=6, category_id=1, max_boost=Decimal("0.45")),
+                FestivalBoostRule(festival_id=7, category_id=1, max_boost=Decimal("0.40")),
+                FestivalBoostRule(festival_id=8, category_id=2, max_boost=Decimal("0.50"))
+            ]
+            session.add_all(boost_rules)
             session.commit()
 
         # Check if OutfitBoard is empty

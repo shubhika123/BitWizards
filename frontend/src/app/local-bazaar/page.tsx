@@ -1079,6 +1079,17 @@ export default function LocalBazaar() {
   const [fulfillmentMode, setFulfillmentMode] = useState<"delivery" | "pickup">("delivery");
 
   // Sync city selection with logged-in user or LocalStorage
+  const [simulatedDate, setSimulatedDate] = useState<string>("");
+
+  useEffect(() => {
+    const checkDate = () => {
+      setSimulatedDate(localStorage.getItem("simulated_date") || "");
+    };
+    checkDate();
+    window.addEventListener("storage", checkDate);
+    return () => window.removeEventListener("storage", checkDate);
+  }, []);
+
   useEffect(() => {
     if (user?.city) {
       setActiveCity(user.city);
@@ -1322,6 +1333,11 @@ export default function LocalBazaar() {
                     Showing Sellers Near <span style={{ color: themeColors.hexColor }}>{activeCity}</span>
                     <span className="text-[9px] text-gray-400 cursor-pointer" onClick={() => !user?.city && setShowCityDropdown(!showCityDropdown)}>∨</span>
                   </span>
+                  {simulatedDate && (
+                    <span className="text-[8.5px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider ml-1 shadow-3xs">
+                      📅 {simulatedDate}
+                    </span>
+                  )}
                 </div>
                 
                 <div className="relative">

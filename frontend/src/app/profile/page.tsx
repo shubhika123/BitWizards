@@ -33,21 +33,29 @@ export default function MyProfile() {
   const [coins, setCoins] = useState(0);
   const [contestHistory, setContestHistory] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [simulatedDate, setSimulatedDate] = useState<string>("");
   const [showCustomCalendar, setShowCustomCalendar] = useState(false);
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date().getMonth());
   const [currentCalendarYear, setCurrentCalendarYear] = useState(new Date().getFullYear());
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const savedDate = localStorage.getItem("profileSelectedDate");
-    if (savedDate) {
-      setSelectedDate(savedDate);
-    }
+    const savedDate = localStorage.getItem("simulated_date") || localStorage.getItem("profileSelectedDate") || "";
+    setSimulatedDate(savedDate);
+    setSelectedDate(savedDate);
   }, []);
 
-  const handleDateChange = (dateVal: string) => {
-    setSelectedDate(dateVal);
-    localStorage.setItem("profileSelectedDate", dateVal);
+  const handleDateChange = (val: string) => {
+    setSelectedDate(val);
+    setSimulatedDate(val);
+    if (val) {
+      localStorage.setItem("profileSelectedDate", val);
+      localStorage.setItem("simulated_date", val);
+    } else {
+      localStorage.removeItem("profileSelectedDate");
+      localStorage.removeItem("simulated_date");
+    }
+    window.dispatchEvent(new Event("storage"));
   };
 
   const loadCoins = async () => {
