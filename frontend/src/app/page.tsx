@@ -39,6 +39,49 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  const [activeFestival, setActiveFestival] = useState<string>("");
+  const [simulatedDate, setSimulatedDate] = useState<string>("");
+
+  const loadActiveFestivalName = () => {
+    const dateStr = localStorage.getItem("simulated_date") || "";
+    setSimulatedDate(dateStr);
+    const url = dateStr ? `http://127.0.0.1:8000/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : "http://127.0.0.1:8000/fetch-feed";
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data: any) => {
+        let currentFest = "";
+        if (data?.national_festival) {
+          currentFest = data.national_festival;
+        } else if (data?.active_festivals && data.active_festivals.length > 0) {
+          const matches = data.active_festivals.filter((name: string) => name === "Diwali" || name === "Raksha Bandhan");
+          if (matches.length > 0) currentFest = matches[0];
+        } else {
+          // Date fallback
+          if (dateStr >= "2026-11-08" && dateStr <= "2026-11-12") {
+            currentFest = "Diwali";
+          } else if (dateStr === "2026-08-28") {
+            currentFest = "Raksha Bandhan";
+          }
+        }
+        
+        if (currentFest === "Diwali" || currentFest === "Raksha Bandhan") {
+          setActiveFestival(currentFest);
+        } else {
+          setActiveFestival("");
+        }
+      })
+      .catch(() => setActiveFestival(""));
+  };
+
+  useEffect(() => {
+    loadActiveFestivalName();
+    window.addEventListener("storage", loadActiveFestivalName);
+    return () => {
+      window.removeEventListener("storage", loadActiveFestivalName);
+    };
+  }, []);
+
   const [personalizedGuesses, setPersonalizedGuesses] = useState<Array<{
     category: string;
     price: number;
@@ -111,8 +154,17 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  const isDiwali = activeFestival === "Diwali";
+  const isRakhi = activeFestival === "Raksha Bandhan";
+
+  const bgGradient = isDiwali 
+    ? "from-[#fffcf0] via-white to-[#fff8ed] text-amber-950" 
+    : isRakhi 
+      ? "from-[#fff0f3] via-white to-[#fffbeb]" 
+      : "from-gray-50 via-white to-gray-50/50";
+
   return (
-    <div className="bg-gradient-to-b from-[#fff0f3] via-white to-[#fffbeb] min-h-screen flex flex-col font-sans relative">
+    <div className={`min-h-screen flex flex-col font-sans relative bg-gradient-to-b ${bgGradient}`}>
       {/* Header */}
       <Header />
        
@@ -120,54 +172,91 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col pb-6">
         {/* 1. Location Indicator Row */}
-        <div className="bg-gradient-to-r from-[#ffe4e6] to-[#fff1f2] px-3.5 py-2 flex items-center justify-between text-[10px] text-gray-700 font-bold border-b border-rose-100 select-none animate-fade-in">
+        <div className={`px-3.5 py-2 flex items-center justify-between text-[10px] font-bold border-b select-none animate-fade-in ${
+          isDiwali 
+            ? "bg-gradient-to-r from-[#fef3c7] to-[#fde68a] border-amber-200 text-amber-900" 
+            : isRakhi 
+              ? "bg-gradient-to-r from-[#ffe4e6] to-[#fff1f2] border-rose-100 text-gray-700" 
+              : "bg-gradient-to-r from-gray-100 to-gray-200/80 border-gray-200 text-gray-650"
+        }`}>
           <div className="flex items-center gap-1.5 truncate">
-            <MapPin className="w-3.5 h-3.5 text-[#ff3f6c] shrink-0" />
+            <MapPin className={`w-3.5 h-3.5 shrink-0 ${isDiwali ? "text-amber-600" : isRakhi ? "text-[#ff3f6c]" : "text-gray-500"}`} />
             <span className="truncate">Delivering to {getCityState(user?.city || "Bengaluru")}</span>
           </div>
           <span className="text-gray-400 font-black shrink-0">∨</span>
         </div>
 
         {/* 2. Category Tab Bar */}
-        <div className="flex items-center justify-between px-3.5 bg-white border-b border-[#ff3f6c]/20 relative h-10 select-none text-[11px] font-extrabold text-gray-500">
+        <div className="flex items-center justify-between px-3.5 bg-white border-b border-gray-100 relative h-10 select-none text-[11px] font-extrabold text-gray-555">
           <div className="flex items-center gap-3.5 h-full">
             {/* ALL Tab with matching curved layout wave border */}
-            <div className="bg-white border-t-2 border-x border-[#ff3f6c] rounded-t-xl px-4.5 h-full flex items-center justify-center text-[#ff3f6c] font-black relative top-[1px] z-10 border-b-2 border-b-white gap-1">
+            <div className={`bg-white border-t-2 border-x rounded-t-xl px-4.5 h-full flex items-center justify-center font-black relative top-[1px] z-10 border-b-2 border-b-white gap-1 ${
+              isDiwali 
+                ? "border-amber-500 text-amber-600" 
+                : isRakhi 
+                  ? "border-[#ff3f6c] text-[#ff3f6c]" 
+                  : "border-slate-800 text-slate-800"
+            }`}>
               <span>ALL</span>
-              <Sparkles className="w-3 h-3 text-[#ff3f6c] animate-pulse" />
+              <Sparkles className={`w-3 h-3 animate-pulse ${
+                isDiwali ? "text-amber-500" : isRakhi ? "text-[#ff3f6c]" : "text-slate-800"
+              }`} />
             </div>
-            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-0.5">MEN</div>
-            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-0.5">WOMEN</div>
-            <div className="hover:text-[#ff3f6c] cursor-pointer h-full flex items-center px-0.5">KIDS</div>
+            <div className={`cursor-pointer h-full flex items-center px-0.5 ${isDiwali ? "hover:text-amber-600" : isRakhi ? "hover:text-[#ff3f6c]" : "hover:text-slate-800"}`}>MEN</div>
+            <div className={`cursor-pointer h-full flex items-center px-0.5 ${isDiwali ? "hover:text-amber-600" : isRakhi ? "hover:text-[#ff3f6c]" : "hover:text-slate-800"}`}>WOMEN</div>
+            <div className={`cursor-pointer h-full flex items-center px-0.5 ${isDiwali ? "hover:text-amber-600" : isRakhi ? "hover:text-[#ff3f6c]" : "hover:text-slate-800"}`}>KIDS</div>
 
             {/* Rakhi Festive Badge */}
-            <Link 
-              href="/Category/Rakhi"
-              className="flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fff9f0] via-[#ffe4e6] to-[#fff9f0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-0.5"
-            >
-              {/* SVG Rakhi on Left */}
-              <div className="absolute left-[-7px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
-                <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
-                  {/* Red Thread cord */}
-                  <path d="M 0 25 Q 12.5 22 25 25 Q 37.5 28 50 25" stroke="#ef4444" strokeWidth="2" fill="none" />
-                  <path d="M 0 25 Q 12.5 28 25 25 Q 37.5 22 50 25" stroke="#f59e0b" strokeWidth="1" fill="none" />
-                  {/* Center Rakhi Flower */}
-                  <circle cx="25" cy="25" r="7" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
-                  <circle cx="25" cy="25" r="4.5" fill="#be123c" />
-                  <circle cx="25" cy="25" r="2" fill="#ffd700" />
-                  {/* Golden beads */}
-                  {[...Array(8)].map((_, i) => {
-                    const angle = (i * 45 * Math.PI) / 180;
-                    const x = 25 + 6.2 * Math.cos(angle);
-                    const y = 25 + 6.2 * Math.sin(angle);
-                    return <circle key={i} cx={x} cy={y} r="0.8" fill="#ffd700" />;
-                  })}
-                </svg>
-              </div>
-              
-              <span>RAKHI</span>
-              <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
-            </Link>
+            {isRakhi && (
+              <Link 
+                href="/Category/Rakhi"
+                className="flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fff9f0] via-[#ffe4e6] to-[#fff9f0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-0.5"
+              >
+                {/* SVG Rakhi on Left */}
+                <div className="absolute left-[-7px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
+                  <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
+                    {/* Red Thread cord */}
+                    <path d="M 0 25 Q 12.5 22 25 25 Q 37.5 28 50 25" stroke="#ef4444" strokeWidth="2" fill="none" />
+                    <path d="M 0 25 Q 12.5 28 25 25 Q 37.5 22 50 25" stroke="#f59e0b" strokeWidth="1" fill="none" />
+                    {/* Center Rakhi Flower */}
+                    <circle cx="25" cy="25" r="7" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
+                    <circle cx="25" cy="25" r="4.5" fill="#be123c" />
+                    <circle cx="25" cy="25" r="2" fill="#ffd700" />
+                    {/* Golden beads */}
+                    {[...Array(8)].map((_, i) => {
+                      const angle = (i * 45 * Math.PI) / 180;
+                      const x = 25 + 6.2 * Math.cos(angle);
+                      const y = 25 + 6.2 * Math.sin(angle);
+                      return <circle key={i} cx={x} cy={y} r="0.8" fill="#ffd700" />;
+                    })}
+                  </svg>
+                </div>
+                <span>RAKHI</span>
+                <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+              </Link>
+            )}
+
+            {/* Diwali Festive Badge */}
+            {isDiwali && (
+              <Link 
+                href="/Category/Jewellery"
+                className="flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fffbeb] via-[#fef3c7] to-[#fffbeb] border border-amber-400 rounded-full text-amber-900 text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-0.5"
+              >
+                {/* SVG Diya/Lamp on Left */}
+                <div className="absolute left-[-5px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
+                  <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
+                    {/* Flame */}
+                    <path d="M 25 5 Q 29 17 25 22 Q 21 17 25 5" fill="#ea580c" />
+                    <path d="M 25 9 Q 27 17 25 21 Q 23 17 25 9" fill="#f59e0b" />
+                    {/* Clay pot base */}
+                    <path d="M 10 25 C 10 37 40 37 40 25 Z" fill="#b45309" />
+                    <circle cx="25" cy="28" r="2" fill="#f59e0b" />
+                  </svg>
+                </div>
+                <span>DIWALI LIVE</span>
+                <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+              </Link>
+            )}
           </div>
           
           {/* Layout Grid Dot Icon */}

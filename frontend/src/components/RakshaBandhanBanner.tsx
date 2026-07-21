@@ -18,19 +18,26 @@ const FALLBACK_CATEGORIES: CategoryBoost[] = [
   { category_id: 4, category_name: "Jewellery", boost: 0.25 },
 ];
 
+const DIWALI_CATEGORIES: CategoryBoost[] = [
+  { category_id: 1, category_name: "Men Ethnic Wear", boost: 0.45 },
+  { category_id: 2, category_name: "Women Ethnic Wear", boost: 0.5 },
+  { category_id: 4, category_name: "Jewellery", boost: 0.35 },
+  { category_id: 5, category_name: "Decor", boost: 0.4 },
+];
+
 // fallback images per category — extend as new categories come from backend
 const CATEGORY_IMAGES: Record<string, string> = {
   "Men Ethnic Wear": "https://apisap.fabindia.com/medias/20235705-01.jpg?context=bWFzdGVyfGltYWdlc3wxMTg1NTF8aW1hZ2UvanBlZ3xhR05tTDJobFpTOHhNRFV4TWpRMU1EQXhOelk1TWpZdk1qQXlNelUzTURWZk1ERXVhbkJufDMxZjNkZTlkMWMyYjNhNTc2NmIyZmY2ZjhmZWZiMDRiYzExYmY1ZDViNGI1OTFmOThkZDE5Njg5MGNkMTg1ZDg",
   "Women Ethnic Wear": "https://images.pexels.com/photos/20516292/pexels-photo-20516292.jpeg",
   "Rakhi": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSvn03YsqLkgWtoMWhak0kBwqLtlVIfS4jqTKNotFF7-1d3eaVe684s1cl0AIKaTnDY4mWowIY3CRfniSF95QHora3ci7Fd2OO1yxgmK-o",
   "Jewellery": "https://images.pexels.com/photos/7700270/pexels-photo-7700270.jpeg",
-
+  "Decor": "https://images.pexels.com/photos/5709661/pexels-photo-5709661.jpeg?auto=format&fit=crop&w=300&q=80",
 };
 
 export default function RakshaBandhanBanner() {
   const [categories, setCategories] = useState<CategoryBoost[]>(FALLBACK_CATEGORIES);
   const [loading, setLoading] = useState(true);
-  const [festivalName, setFestivalName] = useState<string>("Raksha Bandhan");
+  const [festivalName, setFestivalName] = useState<string>("");
 
   const loadActiveFestival = () => {
     const dateStr = localStorage.getItem("simulated_date") || "";
@@ -39,28 +46,36 @@ export default function RakshaBandhanBanner() {
     fetch(url)
       .then((res) => res.json())
       .then((data: any) => {
-        if (data?.boost_map && Array.isArray(data.boost_map) && data.boost_map.length > 0) {
-          setCategories(data.boost_map);
-        } else {
-          setCategories(FALLBACK_CATEGORIES);
-        }
-
+        let currentFest = "";
         if (data?.national_festival) {
-          setFestivalName(data.national_festival);
+          currentFest = data.national_festival;
         } else if (data?.active_festivals && data.active_festivals.length > 0) {
-          setFestivalName(data.active_festivals[0]);
+          // Find if either diwali or raksha bandhan is active
+          const matches = data.active_festivals.filter((name: string) => name === "Diwali" || name === "Raksha Bandhan");
+          if (matches.length > 0) currentFest = matches[0];
         } else {
           // Date fallback
-          if (dateStr.includes("-10-") || dateStr.includes("-11-")) {
-            setFestivalName("Diwali");
-          } else if (dateStr.includes("-08-")) {
-            setFestivalName("Raksha Bandhan");
-          } else {
-            setFestivalName("Festive Season");
+          if (dateStr >= "2026-11-08" && dateStr <= "2026-11-12") {
+            currentFest = "Diwali";
+          } else if (dateStr === "2026-08-28") {
+            currentFest = "Raksha Bandhan";
           }
         }
+
+        if (currentFest === "Diwali" || currentFest === "Raksha Bandhan") {
+          setFestivalName(currentFest);
+          if (currentFest === "Diwali") {
+            setCategories(DIWALI_CATEGORIES);
+          } else {
+            setCategories(FALLBACK_CATEGORIES);
+          }
+        } else {
+          setFestivalName("");
+        }
       })
-      .catch(() => setCategories(FALLBACK_CATEGORIES))
+      .catch(() => {
+        setFestivalName("");
+      })
       .finally(() => setLoading(false));
   };
 
@@ -73,47 +88,70 @@ export default function RakshaBandhanBanner() {
   }, []);
 
   if (loading) return null;
+  if (festivalName !== "Diwali" && festivalName !== "Raksha Bandhan") return null;
+
+  const isDiwali = festivalName === "Diwali";
 
   return (
-    <div className="mx-3.5 mt-3 mb-4 rounded-[28px] overflow-hidden bg-[#fff0f2]/75 border border-rose-100/60 relative select-none shadow-sm p-4.5 flex flex-col gap-4">
+    <div className={`mx-3.5 mt-3 mb-4 rounded-[28px] overflow-hidden relative select-none shadow-sm p-4.5 flex flex-col gap-4 ${
+      isDiwali 
+        ? "bg-[#fffbeb]/90 border border-amber-300/80 shadow-amber-100/50" 
+        : "bg-[#fff0f2]/75 border border-rose-100/60 shadow-rose-100/30"
+    }`}>
 
-      {/* Decorative Hanging SVG Rakhi on Left */}
+      {/* Decorative Hanging SVG element on Left */}
       <div className="absolute left-[-6px] top-3 select-none pointer-events-none z-10 opacity-90 scale-90">
-        <svg className="w-20 h-20 text-amber-500 drop-shadow-xs" viewBox="0 0 100 100">
-          {/* Thread */}
-          <path d="M 0 50 Q 25 42 50 50 Q 75 58 100 50" stroke="#ff3f6c" strokeWidth="2.5" fill="none" />
-          {/* Hanging tassels */}
-          <path d="M 35 48 C 35 60 40 65 40 75" stroke="#d97706" strokeWidth="1" fill="none" />
-          <circle cx="40" cy="75" r="1.5" fill="#ef4444" />
-          {/* Rakhi Body */}
-          <circle cx="50" cy="50" r="20" fill="#f59e0b" stroke="#be123c" strokeWidth="2" />
-          <circle cx="50" cy="50" r="14" fill="#be123c" />
-          <circle cx="50" cy="50" r="8" fill="#ffd700" />
-          <circle cx="50" cy="50" r="4" fill="#be123c" />
-          {/* Beads */}
-          {[...Array(12)].map((_, i) => {
-            const angle = (i * 30 * Math.PI) / 180;
-            const x = 50 + 17 * Math.cos(angle);
-            const y = 50 + 17 * Math.sin(angle);
-            return <circle key={i} cx={x} cy={y} r="2" fill="#ffd700" stroke="#d97706" strokeWidth="0.5" />;
-          })}
-        </svg>
+        {isDiwali ? (
+          <svg className="w-18 h-18 text-amber-500 drop-shadow-xs" viewBox="0 0 100 100">
+            {/* Flame */}
+            <path d="M 50 15 Q 62 42 50 55 Q 38 42 50 15" fill="#ea580c" />
+            <path d="M 50 22 Q 58 42 50 50 Q 42 42 50 22" fill="#f59e0b" />
+            {/* Base */}
+            <path d="M 15 55 C 15 85 85 85 85 55 Z" fill="#b45309" stroke="#78350f" strokeWidth="2.5" />
+            <circle cx="50" cy="62" r="5" fill="#f59e0b" />
+            <circle cx="30" cy="58" r="2.5" fill="#f59e0b" />
+            <circle cx="70" cy="58" r="2.5" fill="#f59e0b" />
+          </svg>
+        ) : (
+          <svg className="w-20 h-20 text-amber-500 drop-shadow-xs" viewBox="0 0 100 100">
+            {/* Thread */}
+            <path d="M 0 50 Q 25 42 50 50 Q 75 58 100 50" stroke="#ff3f6c" strokeWidth="2.5" fill="none" />
+            {/* Hanging tassels */}
+            <path d="M 35 48 C 35 60 40 65 40 75" stroke="#d97706" strokeWidth="1" fill="none" />
+            <circle cx="40" cy="75" r="1.5" fill="#ef4444" />
+            {/* Rakhi Body */}
+            <circle cx="50" cy="50" r="20" fill="#f59e0b" stroke="#be123c" strokeWidth="2" />
+            <circle cx="50" cy="50" r="14" fill="#be123c" />
+            <circle cx="50" cy="50" r="8" fill="#ffd700" />
+            <circle cx="50" cy="50" r="4" fill="#be123c" />
+            {/* Beads */}
+            {[...Array(12)].map((_, i) => {
+              const angle = (i * 30 * Math.PI) / 180;
+              const x = 50 + 17 * Math.cos(angle);
+              const y = 50 + 17 * Math.sin(angle);
+              return <circle key={i} cx={x} cy={y} r="2" fill="#ffd700" stroke="#d97706" strokeWidth="0.5" />;
+            })}
+          </svg>
+        )}
       </div>
 
       {/* Header Block */}
       <div className="flex flex-col items-center pt-2 pb-2 relative text-center">
-        {/* Soft pink flowers on top-right absolute overlay */}
+        {/* Soft flowers on top-right absolute overlay */}
         <div className="absolute right-[-14px] top-[-14px] opacity-35 pointer-events-none select-none z-5">
           <img
-            src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=150&q=80"
-            alt="Pink Flowers Decor"
+            src={isDiwali 
+              ? "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=150&q=80"
+              : "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=150&q=80"
+            }
+            alt="Decor Flowers"
             className="w-24 h-24 object-cover rounded-full mix-blend-multiply"
           />
         </div>
 
         <div className="flex items-center gap-2.5 justify-center mt-1 z-10">
           <span className="text-amber-500 font-extrabold text-base">✦</span>
-          <h2 className="text-[#5c0f1e] font-serif font-black text-xl tracking-widest uppercase">
+          <h2 className={`font-serif font-black text-xl tracking-widest uppercase ${isDiwali ? "text-amber-950" : "text-[#5c0f1e]"}`}>
             {festivalName}
           </h2>
           <span className="text-amber-500 font-extrabold text-base">✦</span>
@@ -121,12 +159,10 @@ export default function RakshaBandhanBanner() {
 
         <div className="flex items-center gap-2 mt-2 w-full justify-center text-amber-500/70 z-10">
           <span className="w-8 h-[1px] bg-amber-400"></span>
-          <span className="text-[10px] font-bold tracking-wider capitalize text-rose-700/80 font-serif">
-            {festivalName === "Diwali" 
+          <span className={`text-[10px] font-bold tracking-wider capitalize font-serif ${isDiwali ? "text-amber-800" : "text-rose-700/80"}`}>
+            {isDiwali 
               ? "Grand Festival of Lights & Splendor" 
-              : festivalName === "Raksha Bandhan" 
-              ? "Celebrate The Bond, Festively Styled" 
-              : "Festive Expressions & Ethnic Elegance"}
+              : "Celebrate The Bond, Festively Styled"}
           </span>
           <span className="w-8 h-[1px] bg-amber-400"></span>
         </div>

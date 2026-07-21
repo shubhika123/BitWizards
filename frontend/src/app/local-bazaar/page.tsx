@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../../store/authStore";
 import { 
@@ -793,9 +793,9 @@ const getCityState = (city: string) => {
 // Dynamic local bazaar color/theme generator based on local festival
 // Dynamic local bazaar color/theme generator based on local festival
 // Dynamic local bazaar color/theme generator based on local festival
-const getFestiveTheme = (city: string) => {
-  const norm = city.trim().toLowerCase();
-  if (["coimbatore", "madurai", "salem"].includes(norm)) {
+const getFestiveTheme = (festivalName: string) => {
+  const norm = festivalName.trim().toLowerCase();
+  if (norm === "aadi festival") {
     return {
       name: "Aadi Festival",
       bgGradient: "from-[#fffdf0] via-[#fffdf5] to-[#f2faf6]",
@@ -830,7 +830,7 @@ const getFestiveTheme = (city: string) => {
       ]
     };
   }
-  if (norm === "patna") {
+  if (norm === "chhath puja") {
     return {
       name: "Chhath Puja",
       bgGradient: "from-[#fffcfb] via-[#fffbf9] to-[#fff8f8]",
@@ -864,7 +864,7 @@ const getFestiveTheme = (city: string) => {
       ]
     };
   }
-  if (["vijayawada", "vizag"].includes(norm)) {
+  if (norm === "varalakshmi vratam") {
     return {
       name: "Varalakshmi Vratam",
       bgGradient: "from-[#fffcfb] via-[#fffbfb] to-[#f9f5ff]",
@@ -898,7 +898,7 @@ const getFestiveTheme = (city: string) => {
       ]
     };
   }
-  if (["belgaum", "mumbai"].includes(norm)) {
+  if (norm === "ganesh chaturthi") {
     return {
       name: "Ganesh Chaturthi",
       bgGradient: "from-[#fffdf9] via-[#fffbf6] to-[#fff9f2]",
@@ -933,7 +933,7 @@ const getFestiveTheme = (city: string) => {
       ]
     };
   }
-  if (["amritsar", "ludhiana"].includes(norm)) {
+  if (norm === "lohri") {
     return {
       name: "Lohri",
       bgGradient: "from-[#fff9f3] via-[#fffbf7] to-[#fff8f2]",
@@ -968,7 +968,7 @@ const getFestiveTheme = (city: string) => {
       ]
     };
   }
-  if (norm === "kolkata") {
+  if (norm === "durga puja") {
     return {
       name: "Durga Puja",
       bgGradient: "from-[#fffcfc] via-[#fffbfb] to-[#fff5f5]",
@@ -1046,7 +1046,8 @@ export default function LocalBazaar() {
   const [selectedRadius, setSelectedRadius] = useState<number>(5);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeCity, setActiveCity] = useState<string>("Patna");
-  const themeColors = getFestiveTheme(activeCity);
+  const [activeFestivalName, setActiveFestivalName] = useState<string>("");
+  const themeColors = getFestiveTheme(activeFestivalName);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [hoveredBoutique, setHoveredBoutique] = useState<string | null>(null);
   const [selectedBoutique, setSelectedBoutique] = useState<string | null>(null);
@@ -1089,6 +1090,152 @@ export default function LocalBazaar() {
     window.addEventListener("storage", checkDate);
     return () => window.removeEventListener("storage", checkDate);
   }, []);
+
+  useEffect(() => {
+    const fetchActiveFestival = async () => {
+      try {
+        const url = `/api/festivals/active?city=${encodeURIComponent(activeCity)}` + 
+          (simulatedDate ? `&simulated_date=${encodeURIComponent(simulatedDate)}` : "");
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP error");
+        const data = await res.json();
+        const activeFest = data.regional_festival || data.national_festival || "";
+        setActiveFestivalName(activeFest);
+      } catch (err) {
+        console.warn("Failed to fetch active festival from backend:", err);
+      }
+    };
+    fetchActiveFestival();
+  }, [activeCity, simulatedDate]);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [showMusicTooltip, setShowMusicTooltip] = useState(false);
+
+  const fadeVolume = (targetVolume: number, duration: number = 500) => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    const startVolume = audio.volume;
+    const diff = targetVolume - startVolume;
+    const steps = 10;
+    const stepTime = duration / steps;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+      currentStep++;
+      const nextVolume = startVolume + (diff * (currentStep / steps));
+      audio.volume = Math.max(0, Math.min(1, nextVolume));
+
+      if (currentStep >= steps) {
+        clearInterval(interval);
+        audio.volume = targetVolume;
+        if (targetVolume === 0) {
+          audio.pause();
+          setIsMusicPlaying(false);
+        }
+      }
+    }, stepTime);
+  };
+
+  const startMusic = () => {
+    if (typeof window === "undefined") return;
+    const isVaralakshmi = themeColors.name === "Varalakshmi Vratam";
+    const src = isVaralakshmi ? "/varalakshmi_ambience.mp3" : "/chhath_ambience.mp3";
+    const mutedKey = isVaralakshmi ? "varalakshmi_music_muted" : "chhath_music_muted";
+    const enabledKey = isVaralakshmi ? "varalakshmi_music_enabled" : "chhath_music_enabled";
+
+    // If there is already an audio playing with a different source, clean it up
+    if (audioRef.current && audioRef.current.src && !audioRef.current.src.endsWith(src)) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    if (!audioRef.current) {
+      const audio = new Audio(src);
+      audio.loop = true;
+      audio.volume = 0;
+      audio.muted = localStorage.getItem(mutedKey) === "true";
+      setIsMusicMuted(audio.muted);
+      audioRef.current = audio;
+    }
+    
+    const audio = audioRef.current;
+    audio.muted = isMusicMuted;
+    
+    audio.play().then(() => {
+      setIsMusicPlaying(true);
+      localStorage.setItem(enabledKey, "true");
+      fadeVolume(isMusicMuted ? 0 : 0.15, 500);
+    }).catch(err => {
+      console.warn("Audio playback failed:", err);
+    });
+  };
+
+  const togglePlayPause = () => {
+    if (!audioRef.current) {
+      startMusic();
+      return;
+    }
+    
+    const isVaralakshmi = themeColors.name === "Varalakshmi Vratam";
+    const src = isVaralakshmi ? "/varalakshmi_ambience.mp3" : "/chhath_ambience.mp3";
+    const enabledKey = isVaralakshmi ? "varalakshmi_music_enabled" : "chhath_music_enabled";
+    
+    if (audioRef.current.src && !audioRef.current.src.endsWith(src)) {
+      startMusic();
+      return;
+    }
+
+    const audio = audioRef.current;
+    if (isMusicPlaying) {
+      fadeVolume(0, 500);
+      localStorage.setItem(enabledKey, "false");
+    } else {
+      audio.play().then(() => {
+        setIsMusicPlaying(true);
+        localStorage.setItem(enabledKey, "true");
+        fadeVolume(isMusicMuted ? 0 : 0.15, 500);
+      });
+    }
+  };
+
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    const isVaralakshmi = themeColors.name === "Varalakshmi Vratam";
+    const mutedKey = isVaralakshmi ? "varalakshmi_music_muted" : "chhath_music_muted";
+
+    const nextMuted = !isMusicMuted;
+    setIsMusicMuted(nextMuted);
+    localStorage.setItem(mutedKey, String(nextMuted));
+    
+    if (nextMuted) {
+      fadeVolume(0, 300);
+      setTimeout(() => {
+        audio.muted = true;
+      }, 300);
+    } else {
+      audio.muted = false;
+      fadeVolume(0.15, 500);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current && isMusicPlaying) {
+        audioRef.current.pause();
+      }
+    };
+  }, [isMusicPlaying]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsMusicPlaying(false);
+    }
+  }, [themeColors.name]);
 
   useEffect(() => {
     if (user?.city) {
@@ -1388,7 +1535,7 @@ export default function LocalBazaar() {
                       {!user?.city && <span className="text-[9px] text-gray-500">▼</span>}
                     </div>
                     <span className="text-[9.5px] text-gray-500 font-medium tracking-wide">
-                      {selectedRadius} km radius • 38+ sellers nearby
+                      {selectedRadius === 2 ? '30 min delivery' : selectedRadius === 5 ? '2 hr delivery' : selectedRadius === 10 ? '4 hr delivery' : 'Same-day delivery'} • 38+ sellers nearby
                     </span>
                   </div>
 
@@ -1538,6 +1685,17 @@ export default function LocalBazaar() {
                 <p className="text-slate-200 text-[8px] font-medium leading-normal mt-1 max-w-[95%]">
                   {themeColors.bannerDesc}
                 </p>
+                <button
+                  onClick={togglePlayPause}
+                  className={`mt-2 px-3 py-1.5 text-[#2d1a3c] text-[8.5px] font-black rounded-full shadow-md flex items-center gap-1.5 active:scale-95 transition-all w-fit cursor-pointer border-none ${
+                    isMusicPlaying 
+                      ? "bg-emerald-300 hover:bg-emerald-400" 
+                      : "bg-[#ffd700] hover:bg-yellow-400"
+                  }`}
+                >
+                  <span>{isMusicPlaying ? "Ambience Active 🎵" : "Celebrate Chhath ☀️"}</span>
+                  <Sparkles className="w-2.5 h-2.5 animate-pulse" />
+                </button>
               </div>
 
               {/* Banner Category Icons (Bottom Half) */}
@@ -1599,6 +1757,17 @@ export default function LocalBazaar() {
                 <p className="text-purple-200 text-[8px] font-medium leading-normal mt-1 max-w-[95%]">
                   {themeColors.bannerDesc}
                 </p>
+                <button
+                  onClick={togglePlayPause}
+                  className={`mt-2 px-3 py-1.5 text-purple-950 text-[8.5px] font-black rounded-full shadow-md flex items-center gap-1.5 active:scale-95 transition-all w-fit cursor-pointer border-none ${
+                    isMusicPlaying 
+                      ? "bg-emerald-300 hover:bg-emerald-400 text-slate-900" 
+                      : "bg-[#ffd700] hover:bg-yellow-400"
+                  }`}
+                >
+                  <span>{isMusicPlaying ? "Ambience Active 🎵" : "Celebrate Varalakshmi 🪷"}</span>
+                  <Sparkles className="w-2.5 h-2.5 animate-pulse" />
+                </button>
               </div>
 
               {/* Banner Category Icons (Bottom Half) */}
@@ -1853,18 +2022,17 @@ export default function LocalBazaar() {
 
 
           {/* Interactive Geofence Map */}
-          <div className={`mx-3.5 mt-3.5 border rounded-2xl overflow-hidden shadow-3xs relative select-none ${themeColors.cardBg}`}>
+          <div className={`mx-3.5 mt-3.5 border border-gray-100 rounded-2xl overflow-hidden shadow-3xs relative select-none ${themeColors.cardBg}`}>
             <div className="px-4 py-2 bg-amber-500/5 border-b border-gray-100/60 flex justify-between items-center text-[10px] font-extrabold uppercase tracking-wider">
               <div className="flex items-center gap-1">
                 <Compass className="w-3.5 h-3.5" style={{ color: themeColors.hexColor }} />
                 <span>Hyper-Local Geofence Map</span>
               </div>
-              <span style={{ color: themeColors.hexColor }}>{filteredBoutiques.length} Active in {selectedRadius}km</span>
+              <span style={{ color: themeColors.hexColor }}>{filteredBoutiques.length} Active within {selectedRadius === 2 ? '30 mins' : selectedRadius === 5 ? '2 hours' : selectedRadius === 10 ? '4 hours' : '24 hours'}</span>
             </div>
 
-            {/* Map Frame Container */}
             <div className={`relative w-full h-[180px] overflow-hidden ${themeColors.mapBg} flex flex-row`}>
-              <div className="w-[60%] h-full relative shrink-0">
+              <div className={`h-full relative shrink-0 ${themeColors.name === "Ganesh Chaturthi" ? "w-[60%]" : "w-full"}`}>
                 {/* Floating Sellers count box */}
                 <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-xl shadow-md border border-gray-100 flex items-center gap-1.5 z-20 select-none">
                   <div className="w-6 h-6 rounded-full bg-emerald-50 text-[#2d5a27] flex items-center justify-center">
@@ -1872,7 +2040,7 @@ export default function LocalBazaar() {
                   </div>
                   <div className="flex flex-col text-left">
                     <span className="font-black text-[9.5px] text-slate-800 leading-none">12 Sellers</span>
-                    <span className="text-[7px] font-extrabold text-gray-400 uppercase tracking-wider mt-0.5">Within 5km</span>
+                    <span className="text-[7px] font-extrabold text-gray-400 uppercase tracking-wider mt-0.5">Within 2 hours</span>
                   </div>
                 </div>
                 {/* Map grid decoration */}
@@ -1944,7 +2112,7 @@ export default function LocalBazaar() {
                           <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-[7.5px] py-1 px-2 rounded-lg font-black tracking-wide whitespace-nowrap shadow-md z-30 animate-in fade-in duration-200 flex items-center gap-1 border ${
                             isGanesh ? "bg-[#07362a] border-[#07362a]" : "bg-[#2d5a27] border-[#2d5a27]"
                           }`}>
-                            <span>{b.name} ({b.distance}km)</span>
+                            <span>{b.name} ({b.distance <= 1.5 ? '10-15m' : b.distance <= 2.5 ? '20-30m' : b.distance <= 4.0 ? '1-2h' : b.distance <= 6.0 ? '2-3h' : 'Same-Day'})</span>
                             <span>•</span>
                             <span>★ {b.rating}</span>
                           </div>
@@ -1953,6 +2121,54 @@ export default function LocalBazaar() {
                     </div>
                   );
                 })}
+
+                {/* Floating Slider control merged at bottom of map grid */}
+                <div className="absolute bottom-1.5 left-1.5 right-1.5 z-30 bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between gap-2.5">
+                  <div className="flex flex-col text-left shrink-0">
+                    <span className="text-[6.5px] font-black text-gray-400 uppercase tracking-wider">Delivery Time</span>
+                    <span className="text-[9px] font-black text-slate-800" style={{ color: themeColors.hexColor }}>
+                      &lt; {selectedRadius === 2 ? '30m' : selectedRadius === 5 ? '2h' : selectedRadius === 10 ? '4h' : '24h'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex-1 flex items-center gap-2">
+                    <input 
+                      type="range"
+                      min="2"
+                      max="15"
+                      value={selectedRadius}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        const steps = [2, 5, 10, 15];
+                        const closest = steps.reduce((prev, curr) => Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev);
+                        setSelectedRadius(closest);
+                      }}
+                      className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      style={{ accentColor: themeColors.hexColor }}
+                    />
+                    <div className="flex gap-1 shrink-0">
+                      {[
+                        { r: 2, label: "30m" },
+                        { r: 5, label: "2h" },
+                        { r: 10, label: "4h" },
+                        { r: 15, label: "24h" }
+                      ].map((item) => (
+                        <button
+                          key={item.r}
+                          onClick={() => setSelectedRadius(item.r)}
+                          style={selectedRadius === item.r ? { backgroundColor: themeColors.hexColor, borderColor: themeColors.hexColor, color: '#fff' } : {}}
+                          className={`px-1.5 py-0.5 text-[8px] font-black rounded border transition-all cursor-pointer ${
+                            selectedRadius === item.r
+                              ? "text-white animate-pulse"
+                              : "bg-white text-gray-550 border-gray-200 hover:bg-gray-50"
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Trust Badges (40%) */}
@@ -1982,44 +2198,10 @@ export default function LocalBazaar() {
                 </div>
               ) : null}
             </div>
-
-            {/* Radius slider strip */}
-            <div className="p-3.5 bg-slate-50/70 border-t border-gray-150 flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[10px] font-black text-gray-500 uppercase tracking-wide">
-                <span>Filter Discovery Radius</span>
-                <span className="text-xs font-black" style={{ color: themeColors.hexColor }}>&lt; {selectedRadius} km</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <input 
-                  type="range"
-                  min="1"
-                  max="15"
-                  value={selectedRadius}
-                  onChange={(e) => setSelectedRadius(Number(e.target.value))}
-                  className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer" style={{ accentColor: themeColors.hexColor }}
-                />
-                <div className="flex gap-1.5">
-                  {[2, 5, 10, 15].map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => setSelectedRadius(r)}
-                      style={selectedRadius === r ? { backgroundColor: themeColors.hexColor, borderColor: themeColors.hexColor, color: '#fff' } : {}}
-                      className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
-                        selectedRadius === r
-                          ? "text-white"
-                          : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      {r}k
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Visual circular essentials row */}
-          <div className="mx-3.5 mt-3.5 bg-white border border-gray-150/65 rounded-2xl p-4 text-left shadow-3xs select-none">
+          <div className="mx-3.5 mt-3.5 bg-white border border-gray-100 rounded-2xl p-4 text-left shadow-3xs select-none">
             <div className="flex items-center justify-between mb-3.5">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs">
@@ -2406,12 +2588,12 @@ export default function LocalBazaar() {
             {filteredProducts.length === 0 ? (
               <div className="border border-dashed border-gray-200 rounded-2xl p-10 text-center flex flex-col items-center justify-center gap-2">
                 <Store className="w-8 h-8 text-gray-300" />
-                <span className="text-xs text-gray-400 font-bold">No active local sellers found in {selectedRadius} km.</span>
+                <span className="text-xs text-gray-400 font-bold">No active local sellers found within {selectedRadius === 2 ? '30 mins' : selectedRadius === 5 ? '2 hours' : selectedRadius === 10 ? '4 hours' : '24 hours'}.</span>
                 <button 
                   onClick={() => { setSelectedRadius(15); setSelectedBoutique(null); }} 
                   className="text-xs font-black text-[#ff3f6c] hover:underline"
                 >
-                  Expand search radius to 15 km
+                  Expand search to Same-day Delivery
                 </button>
               </div>
             ) : (
@@ -2470,7 +2652,7 @@ export default function LocalBazaar() {
                                     </span>
                                   )}
                                   <span className="text-[8.5px] text-gray-500 font-bold flex items-center gap-0.5">
-                                    📍 {p.distance} km
+                                    📍 {p.distance <= 1.5 ? '10-15 mins' : p.distance <= 2.5 ? '20-30 mins' : p.distance <= 4.0 ? '1-2 hours' : p.distance <= 6.0 ? '2-3 hours' : 'Same-Day'}
                                   </span>
                                 </div>
 
@@ -2617,7 +2799,7 @@ export default function LocalBazaar() {
                                     )}
                                   </span>
                                   <span className="text-[8.5px] text-gray-400 font-bold mt-0.5">
-                                    📍 {p.distance} km • {boutiqueInfo?.speciality || "Festive Collection"}
+                                    📍 {p.distance <= 1.5 ? '10-15 mins' : p.distance <= 2.5 ? '20-30 mins' : p.distance <= 4.0 ? '1-2 hours' : p.distance <= 6.0 ? '2-3 hours' : 'Same-Day'} • {boutiqueInfo?.speciality || "Festive Collection"}
                                   </span>
                                 </div>
                               </div>
@@ -2737,7 +2919,7 @@ export default function LocalBazaar() {
               <div className="flex items-center justify-between text-xs font-bold text-gray-600">
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-[#ff3f6c]" />
-                  <span>📍 {selectedProduct.distance} km away</span>
+                  <span>📍 {selectedProduct.distance <= 1.5 ? '10-15 mins' : selectedProduct.distance <= 2.5 ? '20-30 mins' : selectedProduct.distance <= 4.0 ? '1-2 hours' : selectedProduct.distance <= 6.0 ? '2-3 hours' : 'Same-Day'} away</span>
                 </div>
                 <span>🚚 Delivered within {selectedProduct.deliveryTime}</span>
               </div>
@@ -3117,7 +3299,7 @@ export default function LocalBazaar() {
                 </div>
                 <div className="flex flex-col text-left">
                   <span className="text-xs font-black text-slate-800">Delivered within {selectedProduct.deliveryTime}</span>
-                  <span className="text-[9.5px] text-gray-400 mt-0.5">Sourced from {selectedProduct.boutique} ({selectedProduct.distance} km)</span>
+                  <span className="text-[9.5px] text-gray-400 mt-0.5">Sourced from {selectedProduct.boutique} ({selectedProduct.distance <= 1.5 ? '10-15 mins' : selectedProduct.distance <= 2.5 ? '20-30 mins' : selectedProduct.distance <= 4.0 ? '1-2 hours' : selectedProduct.distance <= 6.0 ? '2-3 hours' : 'Same-Day'})</span>
                 </div>
               </div>
               <span className="text-xs font-black text-slate-800">₹49</span>
@@ -3214,6 +3396,61 @@ export default function LocalBazaar() {
             </button>
           </div>
         </main>
+      )}
+      {/* Floating Ambient Music Control for Chhath Puja / Varalakshmi Vratam */}
+      {(themeColors.name === "Chhath Puja" || themeColors.name === "Varalakshmi Vratam") && (
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
+          {/* Tooltip */}
+          {showMusicTooltip && (
+            <div className="bg-slate-900/90 text-white text-[9px] font-bold px-2.5 py-1.5 rounded-lg shadow-md whitespace-nowrap animate-in fade-in slide-in-from-bottom-2 duration-200">
+              🎵 {themeColors.name === "Varalakshmi Vratam" ? "Varalakshmi" : "Chhath"} Ambience
+            </div>
+          )}
+
+          {/* Floating Glass Control Button */}
+          <div className="relative">
+            <button
+              onClick={togglePlayPause}
+              onMouseEnter={() => setShowMusicTooltip(true)}
+              onMouseLeave={() => setShowMusicTooltip(false)}
+              aria-label={`Toggle ${themeColors.name} background ambience music`}
+              className={`w-10 h-10 rounded-full bg-white/80 backdrop-blur-md border flex items-center justify-center shadow-lg transition-all duration-300 relative cursor-pointer ${
+                themeColors.name === "Varalakshmi Vratam" 
+                  ? (isMusicPlaying ? "scale-105 border-purple-300 shadow-purple-100" : "border-purple-100")
+                  : (isMusicPlaying ? "scale-105 border-orange-300 shadow-orange-100" : "border-orange-100")
+              }`}
+            >
+              {/* Glowing Pulse Ring */}
+              {isMusicPlaying && (
+                <span className={`absolute inset-0 rounded-full animate-ping ${
+                  themeColors.name === "Varalakshmi Vratam" ? "bg-purple-400/25" : "bg-orange-400/25"
+                }`} />
+              )}
+              
+              <span className="text-sm select-none">
+                {isMusicPlaying ? "🔊" : "🔇"}
+              </span>
+            </button>
+
+            {/* Micro mute toggle */}
+            {isMusicPlaying && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleMute();
+                }}
+                title={isMusicMuted ? "Unmute" : "Mute"}
+                className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full border border-white text-white text-[8px] font-black flex items-center justify-center shadow-sm cursor-pointer ${
+                  themeColors.name === "Varalakshmi Vratam" 
+                    ? "bg-purple-600 hover:bg-purple-700" 
+                    : "bg-orange-500 hover:bg-orange-600"
+                }`}
+              >
+                {isMusicMuted ? "🔇" : "🔊"}
+              </button>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

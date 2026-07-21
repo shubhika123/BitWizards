@@ -108,12 +108,6 @@ export default function LoginScreen() {
     <div className="fixed inset-0 bg-[#f5f5f6] flex flex-col items-center justify-center z-50 p-4 select-none">
 
 
-      {isMock && (
-        <div className="mb-4 bg-amber-500/10 border border-amber-300/30 px-3.5 py-1.5 rounded-full text-amber-600 text-[9px] font-extrabold tracking-wider shadow-2xs">
-          MOCK AUTH ACTIVE
-        </div>
-      )}
-
       <div className="bg-white border border-[#eaeaec] rounded-xs shadow-xs w-full max-w-[360px] overflow-hidden flex flex-col">
 
         <div className="relative w-full h-[140px] bg-gradient-to-r from-[#ffe4e6] to-[#fff1f2] flex items-center justify-between px-4 overflow-hidden border-b border-[#eaeaec]">
@@ -220,10 +214,6 @@ export default function LoginScreen() {
                     Edit
                   </span>
                 </p>
-              </div>
-
-              <div className="bg-amber-50 border border-amber-200 rounded-sm p-3 text-[10px] text-amber-700 font-bold text-left leading-normal">
-                💡 Demo Mode: Use OTP passcode <span className="underline select-all text-amber-900 font-black">123456</span> to complete authentication.
               </div>
 
               <div className="flex items-center border border-gray-200 focus-within:border-gray-400 rounded-sm p-3.5 gap-2.5 transition-colors">
