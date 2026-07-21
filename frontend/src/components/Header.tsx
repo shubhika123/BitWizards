@@ -35,6 +35,46 @@ export default function Header() {
 
   const { user } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFestival, setActiveFestival] = useState("");
+
+  const loadActiveFestivalHeader = () => {
+    const dateStr = localStorage.getItem("simulated_date") || "";
+    const url = dateStr ? `http://127.0.0.1:8000/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : "http://127.0.0.1:8000/fetch-feed";
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data: any) => {
+        let currentFest = "";
+        if (data?.national_festival) {
+          currentFest = data.national_festival;
+        } else if (data?.active_festivals && data.active_festivals.length > 0) {
+          const matches = data.active_festivals.filter((name: string) => name === "Diwali" || name === "Raksha Bandhan");
+          if (matches.length > 0) currentFest = matches[0];
+        } else {
+          // Date fallback
+          if (dateStr >= "2026-11-08" && dateStr <= "2026-11-12") {
+            currentFest = "Diwali";
+          } else if (dateStr === "2026-08-28") {
+            currentFest = "Raksha Bandhan";
+          }
+        }
+        
+        if (currentFest === "Diwali" || currentFest === "Raksha Bandhan") {
+          setActiveFestival(currentFest);
+        } else {
+          setActiveFestival("");
+        }
+      })
+      .catch(() => setActiveFestival(""));
+  };
+
+  useEffect(() => {
+    loadActiveFestivalHeader();
+    window.addEventListener("storage", loadActiveFestivalHeader);
+    return () => {
+      window.removeEventListener("storage", loadActiveFestivalHeader);
+    };
+  }, []);
 
   // Daily Guessing Contest states
   const [showContest, setShowContest] = useState(false);
@@ -194,33 +234,57 @@ export default function Header() {
             </Link>
 
             {/* Rakhi Festive Badge */}
-            <Link 
-              href="/Category/Rakhi"
-              className="hidden min-[350px]:flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fff9f0] via-[#ffe4e6] to-[#fff9f0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-1 shrink-0"
-            >
-              {/* SVG Rakhi on Left */}
-              <div className="absolute left-[-7px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
-                <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
-                  {/* Red Thread cord */}
-                  <path d="M 0 25 Q 12.5 22 25 25 Q 37.5 28 50 25" stroke="#ef4444" strokeWidth="2" fill="none" />
-                  <path d="M 0 25 Q 12.5 28 25 25 Q 37.5 22 50 25" stroke="#f59e0b" strokeWidth="1" fill="none" />
-                  {/* Center Rakhi Flower */}
-                  <circle cx="25" cy="25" r="7" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
-                  <circle cx="25" cy="25" r="4.5" fill="#be123c" />
-                  <circle cx="25" cy="25" r="2" fill="#ffd700" />
-                  {/* Golden beads */}
-                  {[...Array(8)].map((_, i) => {
-                    const angle = (i * 45 * Math.PI) / 180;
-                    const x = 25 + 6.2 * Math.cos(angle);
-                    const y = 25 + 6.2 * Math.sin(angle);
-                    return <circle key={i} cx={x} cy={y} r="0.8" fill="#ffd700" />;
-                  })}
-                </svg>
-              </div>
-              
-              <span>RAKHI</span>
-              <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
-            </Link>
+            {activeFestival === "Raksha Bandhan" && (
+              <Link 
+                href="/Category/Rakhi"
+                className="hidden min-[350px]:flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fff9f0] via-[#ffe4e6] to-[#fff9f0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-1 shrink-0"
+              >
+                {/* SVG Rakhi on Left */}
+                <div className="absolute left-[-7px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
+                  <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
+                    {/* Red Thread cord */}
+                    <path d="M 0 25 Q 12.5 22 25 25 Q 37.5 28 50 25" stroke="#ef4444" strokeWidth="2" fill="none" />
+                    <path d="M 0 25 Q 12.5 28 25 25 Q 37.5 22 50 25" stroke="#f59e0b" strokeWidth="1" fill="none" />
+                    {/* Center Rakhi Flower */}
+                    <circle cx="25" cy="25" r="7" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
+                    <circle cx="25" cy="25" r="4.5" fill="#be123c" />
+                    <circle cx="25" cy="25" r="2" fill="#ffd700" />
+                    {/* Golden beads */}
+                    {[...Array(8)].map((_, i) => {
+                      const angle = (i * 45 * Math.PI) / 180;
+                      const x = 25 + 6.2 * Math.cos(angle);
+                      const y = 25 + 6.2 * Math.sin(angle);
+                      return <circle key={i} cx={x} cy={y} r="0.8" fill="#ffd700" />;
+                    })}
+                  </svg>
+                </div>
+                
+                <span>RAKHI</span>
+                <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+              </Link>
+            )}
+
+            {/* Diwali Festive Badge */}
+            {activeFestival === "Diwali" && (
+              <Link 
+                href="/Category/Jewellery"
+                className="hidden min-[350px]:flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fffbeb] via-[#fef3c7] to-[#fffbeb] border border-amber-400 rounded-full text-amber-900 text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-1 shrink-0"
+              >
+                {/* SVG Diya/Lamp on Left */}
+                <div className="absolute left-[-5px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
+                  <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
+                    {/* Flame */}
+                    <path d="M 25 5 Q 29 17 25 22 Q 21 17 25 5" fill="#ea580c" />
+                    <path d="M 25 9 Q 27 17 25 21 Q 23 17 25 9" fill="#f59e0b" />
+                    {/* Clay pot base */}
+                    <path d="M 10 25 C 10 37 40 37 40 25 Z" fill="#b45309" />
+                    <circle cx="25" cy="28" r="2" fill="#f59e0b" />
+                  </svg>
+                </div>
+                <span>DIWALI</span>
+                <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+              </Link>
+            )}
           </div>
 
           {/* Compact Actions (MRP Master, Bell, Heart, Profile) */}
