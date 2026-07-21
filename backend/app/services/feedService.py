@@ -10,10 +10,10 @@ from app.models.FestivalSchema import Festival, FestivalBoostRule, Category
 
 def get_active_festivals(
     session: Session,
-    region: Optional[str] = None,
+    city: Optional[str] = None,
     today: Optional[date_type] = None,
 ) -> List[Festival]:
-    """Return festivals active today, optionally filtered by region."""
+    """Return festivals active today, optionally filtered by city or national tag."""
     today = today or date_type.today()
 
     statement = select(Festival).where(
@@ -23,11 +23,17 @@ def get_active_festivals(
     )
     festivals = session.exec(statement).all()
 
-    if region:
-        festivals = [
-            f for f in festivals
-            if not f.region_tags or region in f.region_tags
-        ]
+    if city:
+        city_lower = city.strip().lower()
+        matched = []
+        for f in festivals:
+            if not f.region_tags or "All" in f.region_tags or "National" in f.region_tags:
+                matched.append(f)
+            else:
+                tags_lower = [t.lower() for t in f.region_tags]
+                if city_lower in tags_lower:
+                    matched.append(f)
+        return matched
 
     return festivals
 
