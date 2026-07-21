@@ -312,11 +312,11 @@ const getLocalBazaarData = (city: string) => {
     const generatedProducts: Product[] = [
       {
         id: "chhath_prod_1",
-        name: "Clay Diya & Puja Samagri Kit",
+        name: "Santarms Chhath Puja Thali Set",
         category: "Puja Essentials",
         price: 299,
         originalPrice: 450,
-        image: "/woman_holding_diya.png",
+        image: "https://m.media-amazon.com/images/I/81yJa1khhDL.jpg",
         trustScore: 99,
         distance: 1.2,
         deliveryTime: "Same-Day Delivery",
@@ -331,11 +331,11 @@ const getLocalBazaarData = (city: string) => {
       },
       {
         id: "chhath_prod_2",
-        name: "Mithila Cotton Saree",
-        category: "Sarees",
+        name: "Pujahome Puja Samagri Kit with NavShringaar Saman",
+        category: "Puja Essentials",
         price: 1299,
         originalPrice: 1999,
-        image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80",
+        image: "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcT3erHaDrSUvG8CuYi0ZtUKdMxNK06_u1rP6wxlJCKbRxx-MUbFVPnJ96E4ZZyzOLBMnPQ_UqkTrnu2TBxqa7OlWtWR47Y_T9nSzsuPXuCUE3szw-LdZpQcD2o",
         trustScore: 98,
         distance: 1.8,
         deliveryTime: "Same-Day Delivery",
@@ -346,7 +346,46 @@ const getLocalBazaarData = (city: string) => {
         onTimeDelivery: 98,
         returnRate: 2,
         yearsOnMyntra: 3,
-        description: "Traditional yellow and red cotton sarees, Bhagalpuri silk sarees, and festival wear."
+        description: "Pujahome Chhat Puja Samagri Kit with NavShringaar Saman"
+      },
+
+      {
+        id: "chhath_prod_2",
+        name: "Chhath puja Combo Set supli and bahagi chhath puja specel",
+        category: "Puja Essentials",
+        price: 1299,
+        originalPrice: 1999,
+        image: "https://m.media-amazon.com/images/I/41g-YA6Q+RL._AC_UF894,1000_QL80_.jpg",
+        trustScore: 98,
+        distance: 1.8,
+        deliveryTime: "Same-Day Delivery",
+        pickupTime: "15 mins",
+        boutique: "Mithila Handlooms & Sarees",
+        location: city,
+        rating: 4.7,
+        onTimeDelivery: 98,
+        returnRate: 2,
+        yearsOnMyntra: 3,
+        description: "Chhath puja Combo Set supli and bahagi chhath puja specel"
+      },
+      {
+        id: "chhath_prod_2",
+        name: "Chhath Poojan Kit with Multi 1 Soop",
+        category: "Puja Essentials",
+        price: 1299,
+        originalPrice: 1999,
+        image: "https://m.media-amazon.com/images/I/517iezzxZqL._AC_UF894,1000_QL80_.jpg",
+        trustScore: 98,
+        distance: 1.8,
+        deliveryTime: "Same-Day Delivery",
+        pickupTime: "15 mins",
+        boutique: "Mithila Handlooms & Sarees",
+        location: city,
+        rating: 4.7,
+        onTimeDelivery: 98,
+        returnRate: 2,
+        yearsOnMyntra: 3,
+        description: "Pujahome Chhat Puja Samagri Kit with NavShringaar Saman"
       },
       {
         id: "chhath_prod_3",
@@ -354,7 +393,7 @@ const getLocalBazaarData = (city: string) => {
         category: "Accessories",
         price: 499,
         originalPrice: 799,
-        image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=300&q=80",
+        image: "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSepl-TtGde8b54kf6GdBrFOmWe-gyRvr1jthx7amFruIZgncKVo_jW0pphuP7cL3sGO6wrnJoDFVJ6tswzRrVenFZbb4cRrjeiWLuPc-uSyFKzzpB-qpMA2Q",
         trustScore: 97,
         distance: 2.5,
         deliveryTime: "Same-Day Delivery",
@@ -366,7 +405,27 @@ const getLocalBazaarData = (city: string) => {
         returnRate: 1,
         yearsOnMyntra: 2,
         description: "Pure handspun khadi cotton dhoti and dupatta set for festive arghya rituals."
+      },
+      {
+        id: "chhath_prod_3",
+        name: "Handcrafted Bamboo Soop Tray for Pooja & Rituals",
+        category: "Accessories",
+        price: 499,
+        originalPrice: 799,
+        image: "https://m.media-amazon.com/images/I/7100fGRg9wL.jpg",
+        trustScore: 97,
+        distance: 2.5,
+        deliveryTime: "Same-Day Delivery",
+        pickupTime: "20 mins",
+        boutique: "Ganga Khadi Bhandar",
+        location: city,
+        rating: 4.6,
+        onTimeDelivery: 97,
+        returnRate: 1,
+        yearsOnMyntra: 2,
+        description: "raditional Muram Supa for Chhath Puja, Wedding & Religious Use, Eco-Friendly Cane Offering Tray"
       }
+
     ];
 
     return { boutiques: generatedBoutiques, products: generatedProducts };
