@@ -1,6 +1,5 @@
 // lib/OutfitCircleApi.ts
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-const BASE = `${API_BASE}/outfit-circle`;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";const BASE = `${API_BASE}/outfit-circle`;
 export interface PinnedProduct {
   pin_id: number;
   board_id: number;
