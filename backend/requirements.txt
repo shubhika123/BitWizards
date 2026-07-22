@@ -9,4 +9,3 @@ python-dotenv
 requests
 pinecone
 sentence-transformers
-numpy
