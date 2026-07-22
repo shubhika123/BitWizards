@@ -12,9 +12,7 @@ def get_dashboard_metrics() -> Dict[str, Any]:
     # 1. Engagement Metrics
     unique_players = set(card["user_id"] for card in deck_cards.values())
     total_players = len(unique_players)
-    
-    print(f"[Dashboard Log] Fetch request received. Total Unique Users Seen So Far: {total_players}")
-    print(f"[Dashboard Log] Unique User IDs: {list(unique_players)}")
+
     
     completed_decks = 0
     total_decks = len(daily_decks)

@@ -154,12 +154,6 @@ class CurationEngine:
                 filter=filter_dict
             )
 
-            # --- RESTORED: PINECONE RAW MATCHES PRINT TRACE ---
-            print(f"\n==================== PINECONE MATCHES FOR {slot} ====================")
-            for match in res.matches:
-                m_name = match.metadata.get("name", "Unknown Item") if match.metadata else "Unknown Item"
-                print(f"ID: {match.id} | Score: {match.score:.9f} | Name: {m_name}")
-            print("=======================================================================")
 
             candidates = []
             for match in res.matches:
@@ -307,15 +301,6 @@ class CurationEngine:
                 min(slot_candidates["ACCESSORY"], key=lambda x: x["price"])
             ]
 
-        # --- RESTORED: FINAL SELECTED OUTFIT PRINT TRACE ---
-        print("\n==================== FINAL SELECTED OUTFIT ====================")
-        for item in best_combo:
-            score = item.get('score', 0)
-            if isinstance(score, float):
-                print(f"[{item['category'].upper()}] {item['name']} (ID: {item['id']}) - Score: {score:.9f}")
-            else:
-                print(f"[{item['category'].upper()}] {item['name']} (ID: {item['id']}) - Score: {score}")
-        print("===============================================================\n")
 
         # Cleanup internal keys before returning to frontend
         for item in best_combo:

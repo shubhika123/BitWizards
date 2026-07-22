@@ -16,7 +16,7 @@ try:
     # If using SQLite (via Render env var), we need specific connect_args
     connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
     
-    engine = create_engine(DATABASE_URL, echo=True, connect_args=connect_args)
+    engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args)
     
     # Test connection immediately
     with engine.connect() as conn:
@@ -26,7 +26,7 @@ except Exception as e:
     print(f"⚠️ Primary DB connection failed: {e}. Falling back to local SQLite.")
     sqlite_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "myntra.db"))
     DATABASE_URL = f"sqlite:///{sqlite_path}"
-    engine = create_engine(DATABASE_URL, echo=True, connect_args={"check_same_thread": False})
+    engine = create_engine(DATABASE_URL, echo=False, connect_args={"check_same_thread": False})
 
 # Ensure all models are registered
 import app.models.OutfitCircleSchema
