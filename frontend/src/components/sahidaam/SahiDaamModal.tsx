@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { CardDeck } from "./CardDeck";
+import { useAuthStore } from "../../store/authStore";
 
 interface Props {
   onClose: () => void;
@@ -13,8 +14,15 @@ export function SahiDaamModal({ onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const { user } = useAuthStore();
+
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/sahidaam/deck/today")
+    const userId = user?.uid || "demo_user_123";
+    fetch("http://127.0.0.1:8000/api/sahidaam/deck/today", {
+      headers: {
+        "X-User-Id": userId
+      }
+    })
       .then(res => res.json())
       .then(data => {
         if (data.cards) {
@@ -38,10 +46,8 @@ export function SahiDaamModal({ onClose }: Props) {
       }}
     >
       
-      {/* Header: Fixed top bar */}
-      <div className="fixed top-0 w-full flex justify-center items-center p-4 shadow-[0_4px_20px_rgba(255,62,108,0.15)] z-50 bg-black/20 pointer-events-none">
-        <span className="text-[#FF3E6C] font-bold text-lg pointer-events-auto">🎯 Sahi Daam — GUESS THE PRICE</span>
-      </div>
+      {/* Header removed as requested */}
+
 
       {/* Content Area */}
       <div 

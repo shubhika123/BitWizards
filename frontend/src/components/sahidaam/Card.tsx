@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
 import { CheckCircle2, XCircle, Heart, ThumbsDown, X } from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
 
 interface DetailTier {
   reveal_at_seconds: number;
@@ -43,10 +44,19 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
   const [guess, setGuess] = useState<number>(Math.round(card.actual_price * 0.8)); // Default starting point
   const [revealData, setRevealData] = useState<RevealData | null>(null);
   
+  const { user } = useAuthStore();
+  const userId = user?.uid || "demo_user_123";
+  
   // Framer motion drag state
   const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+  
+  // Overlays
+  const leftOpacity = useTransform(x, [0, -150], [0, 1]);
+  const rightOpacity = useTransform(x, [0, 150], [0, 1]);
+  const upOpacity = useTransform(y, [0, -150], [0, 1]);
+  
   const controls = useAnimation();
   
   // 3D Flip state
@@ -77,7 +87,10 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
   // Mark as shown when it becomes active
   useEffect(() => {
     if (isActive && status === "pending") {
-      fetch(`http://127.0.0.1:8000/api/sahidaam/deck/card/${card.id}/shown`, { method: "POST" })
+      fetch(`http://127.0.0.1:8000/api/sahidaam/deck/card/${card.id}/shown`, { 
+        method: "POST",
+        headers: { "X-User-Id": userId }
+      })
         .then(res => res.json())
         .then(data => {
           if (data.shown_at) {
@@ -96,7 +109,10 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
     
     fetch(`http://127.0.0.1:8000/api/sahidaam/deck/card/${card.id}/submit`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "X-User-Id": userId
+      },
       body: JSON.stringify({ guess_amount: guess })
     })
       .then(res => res.json())
@@ -109,20 +125,22 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
   };
 
   const handleDragEnd = async (e: any, info: any) => {
-    const offset = info.offset.x;
-    const velocity = info.velocity.x;
+    const offsetX = info.offset.x;
+    const velocityX = info.velocity.x;
+    const offsetY = info.offset.y;
+    const velocityY = info.velocity.y;
 
-    if (offset > 100 || velocity > 500) {
-      // Swiped right (Wishlist)
-      await controls.start({ x: 300, opacity: 0 });
-      handleSwipeAction("wishlist");
-    } else if (offset < -100 || velocity < -500) {
-      // Swiped left (Unrecommend)
+    if (offsetX < -100 || velocityX < -500) {
+      // Swiped left (Wishlist)
       await controls.start({ x: -300, opacity: 0 });
+      handleSwipeAction("wishlist");
+    } else if (offsetX > 100 || velocityX > 500) {
+      // Swiped right (Unrecommend)
+      await controls.start({ x: 300, opacity: 0 });
       handleSwipeAction("unrecommend");
-    } else if (info.offset.y > 100 || info.velocity.y > 500) {
-      // Swiped down (Dismiss)
-      await controls.start({ y: 300, opacity: 0 });
+    } else if (offsetY < -100 || velocityY < -500) {
+      // Swiped up (Dismiss)
+      await controls.start({ y: -300, opacity: 0 });
       handleSwipeAction("dismiss");
     } else {
       // Snap back
@@ -137,7 +155,10 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
     
     fetch(`http://127.0.0.1:8000/api/sahidaam/deck/card/${card.id}/swipe`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "X-User-Id": userId
+      },
       body: JSON.stringify({ action })
     }).catch(console.error);
     
@@ -182,7 +203,7 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
         drag={isActive ? true : false}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         onDragEnd={handleDragEnd}
-        style={{ x, rotateZ: rotate, opacity, transformStyle: "preserve-3d" }}
+        style={{ x, y, rotateZ: rotate, transformStyle: "preserve-3d" }}
         animate={controls}
         whileTap={{ cursor: "grabbing" }}
       >
@@ -245,11 +266,11 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
                 <div className="flex justify-between items-center text-gray-500 text-xs font-bold">
                   <span>₹300</span>
                   <span className="text-2xl text-gray-900 font-black">₹{guess}</span>
-                  <span>₹4000</span>
+                  <span>₹10000</span>
                 </div>
                 <input 
                   type="range" 
-                  min="300" max="4000" step="50"
+                  min="300" max="10000" step="50"
                   value={guess}
                   onChange={(e) => setGuess(Number(e.target.value))}
                   className="custom-slider"
@@ -276,6 +297,7 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
                 </button>
               </div>
             </div>
+
           </div>
 
           {/* BACK FACE (Reveal) */}
@@ -331,6 +353,28 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
               <div className="animate-pulse w-full h-full bg-gray-100 rounded-2xl"></div>
             )}
           </div>
+        </motion.div>
+
+        {/* Overlays for swipe feedback - placed outside the flipping div so they show on both faces */}
+        <motion.div 
+          className="absolute inset-0 z-[100] flex items-center justify-center rounded-2xl bg-pink-500/80 pointer-events-none"
+          style={{ opacity: leftOpacity }}
+        >
+          <Heart className="w-32 h-32 text-white animate-pulse" fill="white" />
+        </motion.div>
+        
+        <motion.div 
+          className="absolute inset-0 z-[100] flex items-center justify-center rounded-2xl bg-red-500/80 pointer-events-none"
+          style={{ opacity: rightOpacity }}
+        >
+          <ThumbsDown className="w-32 h-32 text-white" fill="white" />
+        </motion.div>
+        
+        <motion.div 
+          className="absolute inset-0 z-[100] flex items-center justify-center rounded-2xl bg-yellow-400/80 pointer-events-none"
+          style={{ opacity: upOpacity }}
+        >
+          <span className="text-white text-3xl font-black uppercase tracking-widest bg-black/20 px-6 py-3 rounded-full backdrop-blur-sm">Skip</span>
         </motion.div>
       </motion.div>
     </>

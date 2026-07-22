@@ -1,14 +1,17 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Header
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import datetime
 
 from app.services import sahidaam_db
+from app.services.admin_dashboard import get_dashboard_metrics
 
 router = APIRouter(prefix="/sahidaam", tags=["SahiDaam"])
 
 # Stub for auth - we use a mock user ID for now as requested by typical hackathon flows
-def get_current_user():
+def get_current_user(x_user_id: Optional[str] = Header(None)):
+    if x_user_id:
+        return x_user_id
     return "demo_user_123"
 
 class SubmitGuessRequest(BaseModel):
@@ -79,5 +82,16 @@ def get_insights_sample():
         if sahidaam_db.ppi_aggregates:
             return sahidaam_db.ppi_aggregates[0]
         return {}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/recommendations/over-guessed")
+def get_over_guessed_recommendations():
+    """Returns top items that users perceive to have higher value than their actual price."""
+    try:
+        metrics = get_dashboard_metrics()
+        # From metrics, we extract price_iq.highest_perceived_gain
+        # It's a list of dicts with name, image_url, actual_price, guess_amount, error_pct
+        return {"items": metrics.get("price_iq", {}).get("highest_perceived_gain", [])}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -22,7 +22,6 @@ import {
   Calendar
 } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
-import { getContestHistory } from "../../lib/OutfitCircleApi";
 
 export default function MyProfile() {
   const { user, logout, initAuth } = useAuthStore();
@@ -30,8 +29,6 @@ export default function MyProfile() {
   const [height, setHeight] = useState(162);
   const [weight, setWeight] = useState(58);
   const [size, setSize] = useState("S");
-  const [coins, setCoins] = useState(0);
-  const [contestHistory, setContestHistory] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [simulatedDate, setSimulatedDate] = useState<string>("");
   const [showCustomCalendar, setShowCustomCalendar] = useState(false);
@@ -58,24 +55,7 @@ export default function MyProfile() {
     window.dispatchEvent(new Event("storage"));
   };
 
-  const loadCoins = async () => {
-    if (!user?.user_id) {
-      setCoins(0);
-      setContestHistory([]);
-      return;
-    }
-    try {
-      const res = await getContestHistory(user.user_id);
-      setCoins(res?.total_coins || 0);
-      setContestHistory(Array.isArray(res?.history) ? res.history : []);
-    } catch (e) {
-      console.error("Failed to load contest history from MySQL:", e);
-    }
-  };
 
-  useEffect(() => {
-    loadCoins();
-  }, [user]);
 
   // Initialize auth session and load settings
   useEffect(() => {
@@ -92,11 +72,6 @@ export default function MyProfile() {
         console.error(e);
       }
     }
-
-    window.addEventListener("storage", loadCoins);
-    return () => {
-      window.removeEventListener("storage", loadCoins);
-    };
   }, []);
 
   // Save preferences to localStorage
@@ -119,11 +94,7 @@ export default function MyProfile() {
           <span className="font-extrabold text-sm text-gray-800 tracking-wide">My Profile</span>
         </div>
         <div className="flex items-center gap-2">
-          {/* Daily Contest Coins */}
-          <div className="bg-amber-50 text-amber-800 border border-amber-100 rounded-full px-2.5 py-1 flex items-center gap-1 text-[10px] font-black shadow-3xs">
-            <span>🪙</span>
-            {coins} Coins
-          </div>
+
           <div className="bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-full px-3 py-1 flex items-center gap-1.5 text-[10.5px] font-black shadow-3xs">
             <span className="w-4 h-3 bg-emerald-600 rounded-xs text-white text-[6px] flex items-center justify-center font-bold">₹</span>
             ₹0
@@ -394,11 +365,7 @@ export default function MyProfile() {
           
           {/* Horizontal widgets */}
           <div className="flex gap-2.5 w-full">
-            {/* Contest Coins */}
-            <div className="flex-1 bg-amber-50/50 border border-amber-150 rounded-xl p-2.5 flex flex-col hover:bg-amber-50 cursor-pointer transition-colors justify-between">
-              <span className="text-[8px] font-black text-amber-700 uppercase tracking-wider">Guess Coins</span>
-              <span className="text-[11px] font-black text-amber-950 mt-1">🪙 {coins}</span>
-            </div>
+
             {/* MynCash */}
             <div className="flex-1 bg-gray-50 border border-gray-150 rounded-xl p-2.5 flex flex-col hover:bg-gray-100 cursor-pointer transition-colors justify-between">
               <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider">MynCash</span>
@@ -423,66 +390,7 @@ export default function MyProfile() {
           </div>
         </div>
 
-        {/* 6. MRP Master Contest History */}
-        <div className="mx-3.5 mt-4 mb-6 bg-gradient-to-b from-[#fff7f9] via-white to-white rounded-2xl border border-rose-150 shadow-sm p-4 flex flex-col gap-3 shrink-0 select-none text-left">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[8px] font-black bg-[#ff3f6c] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
-                🎯 Game History
-              </span>
-              <span className="text-[10px] font-black text-gray-800 uppercase tracking-wide">MRP Master Entries</span>
-            </div>
-            <span className="text-[9.5px] font-bold text-gray-400">{contestHistory.length} Recorded</span>
-          </div>
 
-          {contestHistory.length === 0 ? (
-            <div className="bg-rose-50/40 rounded-xl p-3 text-center border border-rose-100">
-              <span className="text-[10.5px] font-bold text-gray-500 block">No contest plays recorded yet.</span>
-              <span className="text-[9.5px] text-gray-400 mt-0.5 block">Play the MRP Master game in the header to earn coins and personalize your feed!</span>
-            </div>
-          ) : (
-            <div className="space-y-2.5 max-h-60 overflow-y-auto scrollbar-none pr-1">
-              {contestHistory.map((item: any, idx: number) => {
-                const playedDate = item.created_at ? new Date(item.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Recent";
-                return (
-                  <div key={item.submission_id || idx} className="bg-white border border-rose-100 rounded-xl p-3 shadow-3xs flex flex-col gap-1.5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-[8.5px] font-extrabold text-gray-400 block">{playedDate}</span>
-                        <h4 className="text-[11px] font-black text-[#282c3f] leading-snug">{item.product_name}</h4>
-                        <span className="text-[9px] font-bold text-rose-500 uppercase tracking-wider">{item.category}</span>
-                      </div>
-                      <span className="text-[10px] font-black bg-amber-100 text-amber-950 px-2 py-0.5 rounded-full">
-                        +{item.coins_won} Coins
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[10px] bg-gray-50 p-2 rounded-lg border border-gray-100">
-                      <div>
-                        <span className="text-gray-400 font-semibold block text-[8.5px]">Your Guess</span>
-                        <span className="font-black text-[#282c3f]">₹{item.guessed_price}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-gray-400 font-semibold block text-[8.5px]">Actual MRP</span>
-                        <span className="font-black text-gray-600">₹{item.actual_price}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-0.5">
-                      <span className="text-[8.5px] font-bold text-gray-500">{item.result_msg}</span>
-                      <Link 
-                        href={`/Category/${encodeURIComponent(item.category)}`}
-                        className="text-[9px] font-black text-[#ff3f6c] hover:underline"
-                      >
-                        Shop {item.category} Under ₹{item.guessed_price} &rarr;
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
         {/* 6. Payments & Currencies / Manage Accordions */}
         <div className="mx-3.5 mt-4 bg-white rounded-2xl border border-gray-150 shadow-sm overflow-hidden select-none shrink-0 text-xs font-bold text-gray-700">

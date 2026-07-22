@@ -26,6 +26,8 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname() || "/";
   const isGenieRoute = pathname.startsWith("/genie");
+  const isAdminRoute = pathname.startsWith("/admin");
+  const hideBottomNav = isGenieRoute || isAdminRoute;
 
   const { user, isInitialized, initAuth } = useAuthStore();
   const [showSplash, setShowSplash] = useState(true);
@@ -75,13 +77,13 @@ export default function RootLayout({
 
         {/* Scrollable Children Container */}
         <div
-          className={`flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-transparent ${isGenieRoute ? "pb-0" : "pb-16"
+          className={`flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-transparent ${hideBottomNav ? "pb-0" : "pb-16"
             }`}
         >
           {children}
         </div>
 
-        {!isGenieRoute && (
+        {!hideBottomNav && (
           <nav className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-gray-150 flex items-center justify-around z-40 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] select-none shrink-0 px-2 pb-1">
             {/* Home Tab */}
             <Link href="/" className={`flex flex-col items-center gap-0.5 cursor-pointer ${pathname === "/" ? "text-[#ff3f6c]" : "text-gray-400 hover:text-[#ff3f6c]"}`}>
