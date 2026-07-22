@@ -1,5 +1,6 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import Header from "../../../components/Header";
 import PinButton from "../../../components/OutfitCircle/PinButton";
@@ -8,6 +9,7 @@ import { useAuthStore } from "../../../store/authStore";
 
 export default function CategoryPage() {
   const params = useParams();
+  const router = useRouter();
   const categoryName = decodeURIComponent(params.CategoryName as string);
   const category = categories.find((c) => c.name === categoryName);
 
@@ -65,7 +67,12 @@ export default function CategoryPage() {
     <div className="bg-white min-h-screen">
       <Header />
       <div className="px-3.5 py-4">
-        <h2 className="text-sm font-black text-[#282c3f] mb-3">{category.name}</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <button onClick={() => router.back()} className="p-1.5 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+          <h2 className="text-sm font-black text-[#282c3f] m-0">{category.name}</h2>
+        </div>
 
         {/* Personalized Banner Notice */}
         {guessedPrice !== null && isPersonalized && (

@@ -1,12 +1,13 @@
 "use client";
 import RakshaBandhanBanner from "../components/RakshaBandhanBanner";
+import YouMayLikeThis from "../components/YouMayLikeThis";
 import React, { useState, useEffect, useRef } from "react";
+import { SahiDaamModal } from "../components/sahidaam/SahiDaamModal";
 import Link from "next/link";
 import Header from "../components/Header";
 import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck, Heart, Gem, Gift } from "lucide-react";
 import { categories } from "../lib/Categories";
 import { useAuthStore } from "../store/authStore";
-import { getContestHistory } from "../lib/OutfitCircleApi";
 
 // State mapping lookup for target Indian cities celebrative of festivals
 const cityToStateMap: Record<string, string> = {
@@ -38,6 +39,7 @@ export default function Home() {
   const { user } = useAuthStore();
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const [isGuessModalOpen, setIsGuessModalOpen] = useState(false);
 
   const [activeFestival, setActiveFestival] = useState<string>("");
   const [simulatedDate, setSimulatedDate] = useState<string>("");
@@ -82,64 +84,7 @@ export default function Home() {
     };
   }, []);
 
-  const [personalizedGuesses, setPersonalizedGuesses] = useState<Array<{
-    category: string;
-    price: number;
-    matchingProducts: any[];
-  }>>([]);
 
-  const loadPersonalizedFeed = async () => {
-    if (!user?.user_id) {
-      setPersonalizedGuesses([]);
-      return;
-    }
-
-    try {
-      const res = await getContestHistory(user.user_id);
-      const categoryGuesses = res?.category_guesses || {};
-      const entries = Object.entries(categoryGuesses) as [string, number][];
-
-      const results = entries.map(([catName, price]) => {
-        // Find matching category in Categories.ts
-        const cat = categories.find((c) => 
-          c.name.toLowerCase().includes(catName.toLowerCase()) || 
-          catName.toLowerCase().includes(c.name.toLowerCase())
-        );
-
-        if (!cat) return null;
-
-        // Filter items under or equal to price, sort highest value first
-        const matching = cat.products
-          .filter((p) => p.product_price <= Number(price))
-          .sort((a, b) => b.product_price - a.product_price);
-
-        // Fallback if no products are strictly <= price: pick closest items
-        const displayProducts = matching.length > 0 ? matching : [...cat.products].sort((a, b) => Math.abs(a.product_price - Number(price)) - Math.abs(b.product_price - Number(price)));
-
-        return {
-          category: cat.name,
-          price: Number(price),
-          matchingProducts: displayProducts.slice(0, 6)
-        };
-      }).filter(Boolean) as Array<{ category: string; price: number; matchingProducts: any[] }>;
-
-      setPersonalizedGuesses(results);
-    } catch (e) {
-      console.error("Error building personalized homepage shelf from MySQL:", e);
-      setPersonalizedGuesses([]);
-    }
-  };
-
-  useEffect(() => {
-    loadPersonalizedFeed();
-  }, [user]);
-
-  useEffect(() => {
-    window.addEventListener("storage", loadPersonalizedFeed);
-    return () => {
-      window.removeEventListener("storage", loadPersonalizedFeed);
-    };
-  }, [user]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -216,22 +161,20 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 3. Category Story Reels */}
-        <div className="flex items-center gap-4 px-3.5 py-3.5 bg-white border-b border-gray-100 select-none overflow-x-auto scrollbar-none w-full">
+        {/* Subcategory Capsules Reel (Moved from below) */}
+        <div className="sticky top-[125px] z-[45] grid grid-cols-5 gap-2.5 px-3.5 py-4 bg-white border-b border-gray-50 select-none w-full shadow-sm">
           {[
-            { label: "Fashion", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=150&q=80", bg: "bg-[#1c2536]", href: "/", active: true },
-            { label: "Beauty", img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=150&q=80", bg: "bg-[#f5f5f7]", href: "/" },
-            { label: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=150&q=80", bg: "bg-[#fcf3f3]", href: "/" },
-            { label: "Homeliving", img: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=150&q=80", bg: "bg-[#ffffff]", href: "/" },
-            { label: "Accessories", img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80", bg: "bg-[#3a4439]", href: "/" },
-          ].map((story, i) => (
-            <Link key={i} href={story.href} className="flex flex-col items-center cursor-pointer shrink-0">
-              <div className="w-14 h-14 rounded-full overflow-hidden border border-gray-200 bg-white relative p-0.5 flex items-center justify-center">
-                <img src={story.img} alt={story.label} className="w-full h-full object-cover rounded-full" />
+            { label: "Shirt", img: "/shirts.png", href: "/Category/Shirt" },
+            { label: "Kurta Sets", img: "/kurtasets.png", href: "/Category/Kurta Sets" },
+            { label: "Jeans", img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=100&q=80", href: "/Category/Jeans" },
+            { label: "Home Decor", img: "/homedecor.png", href: "/Category/Decor" },
+            { label: "T-Shirt", img: "/tshirt.png", href: "/Category/T-Shirt" },
+          ].map((capsule, i) => (
+            <Link key={i} href={capsule.href} className="flex flex-col items-center cursor-pointer w-full">
+              <div className="w-full aspect-square rounded-full border border-gray-100 overflow-hidden bg-gray-50 shadow-sm relative group hover:scale-95 transition-transform duration-200">
+                <img src={capsule.img} alt={capsule.label} className="w-full h-full object-cover object-top" />
               </div>
-              <span className={`text-[10px] mt-1 font-semibold tracking-tight ${story.active ? "text-[#ff3f6c]" : "text-gray-700"}`}>
-                {story.label}
-              </span>
+              <span className="text-[10px] font-bold text-gray-700 mt-1.5 whitespace-nowrap">{capsule.label}</span>
             </Link>
           ))}
         </div>
@@ -328,6 +271,24 @@ export default function Home() {
               </div>
             </Link>
 
+            {/* Slide 5: Guess the Price */}
+            <div 
+              onClick={() => setIsGuessModalOpen(true)}
+              className="w-full h-full shrink-0 snap-center relative block select-none cursor-pointer bg-white"
+            >
+              <img 
+                src="/guesstheprice.png" 
+                alt="Guess The Price"
+                className="w-full h-full object-contain pb-9"
+              />
+              <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#282c3f] flex items-center justify-between px-4">
+                <span className="text-[#ffd166] text-[9.5px] font-black uppercase tracking-wider">GUESS & WIN REWARDS!</span>
+                <span className="text-white text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1">
+                  PLAY NOW <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </div>
+
           </div>
           
           {/* Circular Pagination dots floating on top */}
@@ -343,125 +304,11 @@ export default function Home() {
 
         <RakshaBandhanBanner />
 
-        {/* 🎯 PERSONALIZED SHELF BASED ON USER'S CONTEST GUESSES */}
-        {personalizedGuesses.length > 0 && (
-          <div className="space-y-3 my-1 select-none">
-            {personalizedGuesses.map((guessItem, idx) => (
-              <div 
-                key={idx} 
-                className="mx-3.5 bg-white py-3 border-b border-gray-100 text-left"
-              >
-                <div className="flex items-center justify-between mb-2.5">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[8px] font-bold bg-[#ff3f6c] text-white px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        🎯 Based on your Guess
-                      </span>
-                      <span className="text-[8.5px] font-bold text-gray-500 uppercase tracking-widest">MRP Master</span>
-                    </div>
-                    <h3 className="text-[13px] font-bold text-gray-800 uppercase tracking-wide mt-1">
-                      {guessItem.category} Under ₹{guessItem.price}
-                    </h3>
-                  </div>
-                  <Link 
-                    href={`/Category/${encodeURIComponent(guessItem.category)}`}
-                    className="text-[10px] font-bold text-[#ff3f6c] flex items-center gap-0.5 hover:underline"
-                  >
-                    View All <ChevronRight className="w-3 h-3" />
-                  </Link>
-                </div>
 
-                {/* Horizontal Scrollable Product Cards matching budget */}
-                <div className="flex gap-2.5 overflow-x-auto scrollbar-none py-0.5">
-                  {guessItem.matchingProducts.map((prod) => (
-                    <div 
-                      key={prod.product_id}
-                      className="w-32 shrink-0 bg-white border border-[#EFEFEF] overflow-hidden flex flex-col justify-between group hover:translate-y-[-2px] transition-transform duration-200"
-                      style={{ boxShadow: '0 2px 8px rgba(0,0,0,.05)' }}
-                    >
-                      <div className="h-28 bg-gray-50 relative overflow-hidden">
-                        <img src={prod.product_image_url} alt={prod.product_name} className="w-full h-full object-cover" />
-                        <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[7.5px] font-bold px-1.5 py-0.5 rounded">
-                          Under ₹{guessItem.price}
-                        </span>
-                      </div>
-                      <div className="p-2 flex flex-col justify-between flex-1">
-                        <span className="text-[10px] font-bold text-gray-800 truncate block">{prod.product_name}</span>
-                        <span className="text-[10px] font-black text-[#ff3f6c] mt-0.5 block">₹{prod.product_price}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* 4. Main Campaign Banner */}
-        <div className="mt-4 bg-[#F5F5F5] border-y border-gray-100 overflow-hidden flex items-center justify-between relative">
-          {/* Left Gym Image */}
-          <div className="w-1/2 h-44 bg-gray-50 overflow-hidden relative">
-            <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80" alt="Fitness Campaign" className="w-full h-full object-cover" />
-          </div>
-          {/* Right Text details */}
-          <div className="w-1/2 p-4 flex flex-col justify-center text-center">
-            <div className="flex items-center justify-center gap-1.5 mb-1.5">
-              <span className="font-extrabold text-[8px] bg-black text-white px-1.5 py-0.5 rounded tracking-widest uppercase scale-90">HRX</span>
-              <span className="text-[9px] text-gray-500 font-bold border-l pl-1 border-gray-300">ENRIZZ</span>
-            </div>
-            <span className="text-[8px] text-gray-400 font-bold uppercase tracking-wider block mb-0.5">& More</span>
-            <h3 className="text-xs font-bold text-gray-700 leading-tight">Fuel Your Fitness</h3>
-            <div className="text-lg font-black text-gray-850 mt-1 uppercase tracking-tight">
-              UNDER <span className="text-[#ff3f6c]">₹899</span>
-            </div>
-            <div className="absolute bottom-2.5 right-2.5 bg-white/80 p-1 rounded-full border border-gray-150 scale-90 hover:bg-white cursor-pointer transition-colors">
-              <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-            </div>
-          </div>
-        </div>
 
-        {/* 4b. Banner Pagination Dots */}
-        <div className="flex justify-center items-center gap-1 mt-2.5 mb-4 select-none">
-          {[...Array(9)].map((_, i) => (
-            <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? "bg-gray-700" : "bg-gray-200"}`} />
-          ))}
-        </div>
 
-        {/* 5. Axis Bank Cashback Strip Offer */}
-        <div className="mx-3.5 mb-4 bg-[#FAFAFA] border border-[#EAEAEA] p-3 flex items-center justify-between select-none">
-          <div className="flex items-center gap-2">
-            {/* Small Card Icon */}
-            <div className="w-7 h-5 bg-[#0b1329] rounded border border-gray-700 relative overflow-hidden flex items-center justify-center shrink-0">
-              <div className="absolute top-0.5 left-0.5 w-1.5 h-0.8 bg-yellow-500 rounded-3xs"></div>
-              <span className="text-[4px] text-teal-400 font-extrabold uppercase scale-[0.6] mt-2">AXIS</span>
-            </div>
-            <div>
-              <span className="text-[9px] font-bold text-gray-805 block leading-tight">Get 7.5% Cashback* | 0 Joining Fee</span>
-              <span className="text-[8px] text-gray-550 font-bold block leading-none">With FLIPKART AXIS BANK Credit Card</span>
-            </div>
-          </div>
-          <button className="bg-[#ff3f6c] text-white text-[8px] font-bold px-2.5 py-1 rounded uppercase tracking-wider hover:bg-[#e0355f] cursor-pointer shrink-0 transition-colors border-none">
-            Apply Now ›
-          </button>
-        </div>
 
-        {/* 6. Subcategory Capsules Reel */}
-        <div className="grid grid-cols-5 gap-2.5 px-3.5 py-2 bg-white mb-6 select-none w-full">
-          {[
-            { label: "Shirt", img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=100&q=80", href: "/shirts" },
-            { label: "Kurta Sets", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=100&q=80", href: "/" },
-            { label: "Jeans", img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=100&q=80", href: "/" },
-            { label: "Jeans", img: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&w=100&q=80", href: "/" },
-            { label: "T-Shirt", img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=100&q=80", href: "/shirts" },
-          ].map((capsule, i) => (
-            <Link key={i} href={capsule.href} className="flex flex-col items-center cursor-pointer w-full">
-              <div className="w-full aspect-[3/4] border border-[#EFEFEF] overflow-hidden bg-gray-50 relative group hover:scale-95 transition-transform duration-200">
-                <img src={capsule.img} alt={capsule.label} className="w-full h-full object-cover" />
-              </div>
-              <span className="text-[9px] font-bold text-gray-500 mt-1">{capsule.label}</span>
-            </Link>
-          ))}
-        </div>
 
         {/* 7. Continue Browsing These Brands */}
         <div className="mx-3.5 mb-6">
@@ -473,8 +320,8 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
             {/* Right Image Card with PLAY TO SLAY */}
-            <div className="relative h-52 overflow-hidden border border-[#EFEFEF] group cursor-pointer bg-gray-50">
-              <img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <div className="relative h-52 rounded-2xl overflow-hidden shadow-xs group cursor-pointer bg-gray-50">
+              <img src="/playtoslay.png" alt="" className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent flex items-end justify-center pb-3">
                 <div className="bg-black text-white text-[7.5px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm border border-gray-850 select-none">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> PLAY TO SLAY
@@ -484,8 +331,11 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Over-guessed Recommendations Section */}
+        <YouMayLikeThis />
+
         {/* 8. Original Shop By Category Section */}
-        <div className="max-w-7xl mx-auto w-full px-3.5 py-6 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto w-full px-3.5 py-6 mt-2 border-t border-gray-100">
           <div className="text-left mb-6">
             <h2 className="text-[14px] font-bold tracking-wider text-gray-800 uppercase">
               SHOP BY CATEGORY
@@ -506,7 +356,7 @@ export default function Home() {
                   <img 
                     src={cat.image} 
                     alt={cat.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
@@ -532,6 +382,8 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {isGuessModalOpen && <SahiDaamModal onClose={() => setIsGuessModalOpen(false)} />}
     </div>
   );
 }
