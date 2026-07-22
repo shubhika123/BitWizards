@@ -237,30 +237,10 @@ export default function Header() {
             {activeFestival === "Raksha Bandhan" && (
               <Link 
                 href="/Category/Rakhi"
-                className="hidden min-[350px]:flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fff9f0] via-[#ffe4e6] to-[#fff9f0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-1 shrink-0"
+                className="hidden min-[350px]:flex items-center pl-2 pr-2.5 py-0.5 border border-rose-300 rounded-full text-[#ff3f6c] text-[8px] font-bold uppercase tracking-wider ml-1 shrink-0"
               >
-                {/* SVG Rakhi on Left */}
-                <div className="absolute left-[-7px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
-                  <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
-                    {/* Red Thread cord */}
-                    <path d="M 0 25 Q 12.5 22 25 25 Q 37.5 28 50 25" stroke="#ef4444" strokeWidth="2" fill="none" />
-                    <path d="M 0 25 Q 12.5 28 25 25 Q 37.5 22 50 25" stroke="#f59e0b" strokeWidth="1" fill="none" />
-                    {/* Center Rakhi Flower */}
-                    <circle cx="25" cy="25" r="7" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
-                    <circle cx="25" cy="25" r="4.5" fill="#be123c" />
-                    <circle cx="25" cy="25" r="2" fill="#ffd700" />
-                    {/* Golden beads */}
-                    {[...Array(8)].map((_, i) => {
-                      const angle = (i * 45 * Math.PI) / 180;
-                      const x = 25 + 6.2 * Math.cos(angle);
-                      const y = 25 + 6.2 * Math.sin(angle);
-                      return <circle key={i} cx={x} cy={y} r="0.8" fill="#ffd700" />;
-                    })}
-                  </svg>
-                </div>
-                
                 <span>RAKHI</span>
-                <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+                <Sparkles className="w-2.5 h-2.5 text-[#ff3f6c] ml-1 shrink-0" />
               </Link>
             )}
 
@@ -268,21 +248,10 @@ export default function Header() {
             {activeFestival === "Diwali" && (
               <Link 
                 href="/Category/Jewellery"
-                className="hidden min-[350px]:flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fffbeb] via-[#fef3c7] to-[#fffbeb] border border-amber-400 rounded-full text-amber-900 text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-1 shrink-0"
+                className="hidden min-[350px]:flex items-center pl-2 pr-2.5 py-0.5 border border-amber-400 rounded-full text-amber-700 text-[8px] font-bold uppercase tracking-wider ml-1 shrink-0"
               >
-                {/* SVG Diya/Lamp on Left */}
-                <div className="absolute left-[-5px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
-                  <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
-                    {/* Flame */}
-                    <path d="M 25 5 Q 29 17 25 22 Q 21 17 25 5" fill="#ea580c" />
-                    <path d="M 25 9 Q 27 17 25 21 Q 23 17 25 9" fill="#f59e0b" />
-                    {/* Clay pot base */}
-                    <path d="M 10 25 C 10 37 40 37 40 25 Z" fill="#b45309" />
-                    <circle cx="25" cy="28" r="2" fill="#f59e0b" />
-                  </svg>
-                </div>
                 <span>DIWALI</span>
-                <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+                <Sparkles className="w-2.5 h-2.5 text-amber-600 ml-1 shrink-0" />
               </Link>
             )}
           </div>
@@ -292,7 +261,7 @@ export default function Header() {
             {/* Daily Guess & Win Contest Trigger */}
             <button
               onClick={() => setShowContest(true)}
-              className="relative flex items-center gap-1 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-amber-900 shadow-2xs hover:shadow-xs hover:border-amber-400 active:scale-95 transition-all cursor-pointer shrink-0"
+              className="flex items-center gap-1 bg-[#FAFAFA] border border-[#EAEAEA] rounded px-2.5 py-1 text-[8.5px] font-bold uppercase tracking-wider text-gray-700 hover:border-gray-400 active:scale-95 transition-all cursor-pointer shrink-0"
               title="Daily Price Guessing Contest"
             >
               <span>🎯 MRP Master</span>

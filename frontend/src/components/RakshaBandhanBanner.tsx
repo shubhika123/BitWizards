@@ -93,10 +93,10 @@ export default function RakshaBandhanBanner() {
   const isDiwali = festivalName === "Diwali";
 
   return (
-    <div className={`mx-3.5 mt-3 mb-4 rounded-[28px] overflow-hidden relative select-none shadow-sm p-4.5 flex flex-col gap-4 ${
+    <div className={`mt-3 mb-4 overflow-hidden relative select-none p-5 flex flex-col gap-4 ${
       isDiwali 
-        ? "bg-[#fffbeb]/90 border border-amber-300/80 shadow-amber-100/50" 
-        : "bg-[#fff0f2]/75 border border-rose-100/60 shadow-rose-100/30"
+        ? "bg-[#FFFDF9] border-y border-amber-200" 
+        : "bg-[#FFF0F2]/50 border-y border-rose-200"
     }`}>
 
       {/* Decorative Hanging SVG element on Left */}
@@ -174,10 +174,11 @@ export default function RakshaBandhanBanner() {
           <Link
             key={cat.category_id}
             href={`/Category/${encodeURIComponent(cat.category_name)}`}
-            className={`bg-white rounded-lg border border-amber-200/50 overflow-hidden flex flex-col justify-between hover:shadow-xs transition-shadow duration-200 ${idx === categories.length - 1 && categories.length % 2 !== 0
+            className={`bg-white border border-[#EFEFEF] overflow-hidden flex flex-col justify-between hover:translate-y-[-2px] transition-transform duration-200 ${idx === categories.length - 1 && categories.length % 2 !== 0
               ? "col-span-2 max-w-[48%] mx-auto w-full"
               : ""
               }`}
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,.04)' }}
           >
             {/* Top Section: High-Fidelity square image */}
             <div className="aspect-[4/3] w-full overflow-hidden bg-slate-50 relative">
@@ -192,14 +193,14 @@ export default function RakshaBandhanBanner() {
             </div>
 
             {/* Bottom Section: Myntra-inspired clean info text */}
-            <div className="bg-gradient-to-b from-white to-[#fff8f6] p-3 text-center flex flex-col items-center justify-center border-t border-rose-50/60">
+            <div className="bg-white p-3 text-center flex flex-col items-center justify-center border-t border-[#EFEFEF]">
               <span className="text-[10px] font-bold text-gray-800 tracking-wide uppercase font-sans">
                 {cat.category_name}
               </span>
-              <span className="text-[13px] font-black text-rose-950 mt-1 uppercase font-sans tracking-wide">
+              <span className="text-[13px] font-bold text-gray-900 mt-1 uppercase font-sans tracking-wide">
                 UP TO {Math.round(cat.boost * 100)}% OFF
               </span>
-              <span className="text-[9.5px] font-extrabold text-[#ff3f6c] hover:underline mt-2 font-sans tracking-wider uppercase">
+              <span className="text-[9.5px] font-bold text-[#ff3f6c] hover:underline mt-2 font-sans tracking-wider uppercase">
                 Shop Now
               </span>
             </div>
@@ -208,40 +209,40 @@ export default function RakshaBandhanBanner() {
       </div>
 
       {/* Value Proposition Footer Bar */}
-      <div className="mt-1.5 bg-[#fffbeb]/95 border border-rose-100/50 rounded-xl p-3 flex items-center justify-between text-[7px] font-bold text-gray-700 shadow-3xs select-none">
+      <div className="mt-1.5 bg-[#FAFAFA] border border-[#EAEAEA] p-3 flex items-center justify-between text-[7px] font-bold text-gray-700 select-none">
 
         {/* Same Day Delivery */}
         <div className="flex items-center gap-1.5 flex-1 justify-center">
           <Truck className="w-4.5 h-4.5 text-rose-700 shrink-0" />
           <div className="flex flex-col text-left">
-            <span className="font-extrabold text-[8.5px] text-gray-800 leading-tight">Same Day Delivery</span>
-            <span className="text-[7.5px] text-gray-400 font-medium leading-none mt-0.5">Quick & Reliable</span>
+            <span className="font-extrabold text-[8.5px] text-gray-805 leading-tight">Same Day Delivery</span>
+            <span className="text-[7.5px] text-gray-450 font-medium leading-none mt-0.5">Quick & Reliable</span>
           </div>
         </div>
 
-        <div className="w-[1px] h-6 bg-rose-200/50 shrink-0"></div>
+        <div className="w-[1px] h-6 bg-gray-200 shrink-0"></div>
 
         {/* Secure Payments */}
         <div className="flex items-center gap-1.5 flex-1 justify-center">
           <ShieldCheck className="w-4.5 h-4.5 text-rose-700 shrink-0" />
           <div className="flex flex-col text-left">
-            <span className="font-extrabold text-[8.5px] text-gray-800 leading-tight">Secure Payments</span>
-            <span className="text-[7.5px] text-gray-400 font-medium leading-none mt-0.5">100% Safe Checkout</span>
+            <span className="font-extrabold text-[8.5px] text-gray-850 leading-tight">Secure Payments</span>
+            <span className="text-[7.5px] text-gray-450 font-medium leading-none mt-0.5">100% Safe Checkout</span>
           </div>
         </div>
 
-        <div className="w-[1px] h-6 bg-rose-200/50 shrink-0"></div>
+        <div className="w-[1px] h-6 bg-gray-200 shrink-0"></div>
 
         {/* Premium Quality */}
         <div className="flex items-center gap-1.5 flex-1 justify-center">
           <Sparkles className="w-4.5 h-4.5 text-rose-700 shrink-0" />
           <div className="flex flex-col text-left">
-            <span className="font-extrabold text-[8.5px] text-gray-800 leading-tight">Premium Quality</span>
-            <span className="text-[7.5px] text-gray-400 font-medium leading-none mt-0.5">Handpicked for You</span>
+            <span className="font-extrabold text-[8.5px] text-gray-855 leading-tight">Premium Quality</span>
+            <span className="text-[7.5px] text-gray-450 font-medium leading-none mt-0.5">Handpicked for You</span>
           </div>
         </div>
 
-        <div className="w-[1px] h-6 bg-rose-200/50 shrink-0"></div>
+        <div className="w-[1px] h-6 bg-gray-200 shrink-0"></div>
 
         {/* 24/7 Support */}
         <div className="flex items-center gap-1.5 flex-1 justify-center">
@@ -249,8 +250,8 @@ export default function RakshaBandhanBanner() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
           </svg>
           <div className="flex flex-col text-left">
-            <span className="font-extrabold text-[8.5px] text-gray-800 leading-tight">24/7 Support</span>
-            <span className="text-[7.5px] text-gray-400 font-medium leading-none mt-0.5">We're Here for You</span>
+            <span className="font-extrabold text-[8.5px] text-gray-850 leading-tight">24/7 Support</span>
+            <span className="text-[7.5px] text-gray-450 font-medium leading-none mt-0.5">We're Here for You</span>
           </div>
         </div>
 
