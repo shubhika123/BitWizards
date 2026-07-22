@@ -102,82 +102,44 @@ export default function Home() {
   const isDiwali = activeFestival === "Diwali";
   const isRakhi = activeFestival === "Raksha Bandhan";
 
-  const bgGradient = isDiwali 
-    ? "from-[#fffcf0] via-white to-[#fff8ed] text-amber-950" 
-    : isRakhi 
-      ? "from-[#fff0f3] via-white to-[#fffbeb]" 
-      : "from-gray-50 via-white to-gray-50/50";
+  const pageBg = "bg-white";
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans relative bg-gradient-to-b ${bgGradient}`}>
+    <div className={`min-h-screen flex flex-col font-sans relative ${pageBg}`}>
       {/* Header */}
       <Header />
        
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col pb-6">
+      <main className="flex-1 flex flex-col pb-4">
         {/* 1. Location Indicator Row */}
-        <div className={`px-3.5 py-2 flex items-center justify-between text-[10px] font-bold border-b select-none animate-fade-in ${
-          isDiwali 
-            ? "bg-gradient-to-r from-[#fef3c7] to-[#fde68a] border-amber-200 text-amber-900" 
-            : isRakhi 
-              ? "bg-gradient-to-r from-[#ffe4e6] to-[#fff1f2] border-rose-100 text-gray-700" 
-              : "bg-gradient-to-r from-gray-100 to-gray-200/80 border-gray-200 text-gray-650"
-        }`}>
+        <div className={`px-3.5 py-1.5 flex items-center justify-between text-[10px] font-bold border-b border-gray-100 select-none ${isDiwali ? 'bg-[#f3e8ff]' : 'bg-[#FAFAFA]'} text-gray-600`}>
           <div className="flex items-center gap-1.5 truncate">
-            <MapPin className={`w-3.5 h-3.5 shrink-0 ${isDiwali ? "text-amber-600" : isRakhi ? "text-[#ff3f6c]" : "text-gray-500"}`} />
+            <MapPin className="w-3.5 h-3.5 shrink-0 text-gray-500" />
             <span className="truncate">Delivering to {getCityState(user?.city || "Bengaluru")}</span>
           </div>
-          <span className="text-gray-400 font-black shrink-0">∨</span>
+          <span className="text-gray-400 font-bold shrink-0">∨</span>
         </div>
 
         {/* 2. Category Tab Bar */}
-        <div className="flex items-center justify-between px-3.5 bg-white border-b border-gray-100 relative h-10 select-none text-[11px] font-extrabold text-gray-555">
-          <div className="flex items-center gap-3.5 h-full">
-            {/* ALL Tab with matching curved layout wave border */}
-            <div className={`bg-white border-t-2 border-x rounded-t-xl px-4.5 h-full flex items-center justify-center font-black relative top-[1px] z-10 border-b-2 border-b-white gap-1 ${
-              isDiwali 
-                ? "border-amber-500 text-amber-600" 
-                : isRakhi 
-                  ? "border-[#ff3f6c] text-[#ff3f6c]" 
-                  : "border-slate-800 text-slate-800"
-            }`}>
+        <div className={`flex items-center justify-between px-3.5 ${isDiwali ? 'bg-[#faf5ff]' : 'bg-white'} border-b border-gray-100 relative h-10 select-none text-[11px] font-bold text-gray-700`}>
+          <div className="flex items-center gap-4.5 h-full">
+            <div className="border-b-2 border-[#ff3f6c] text-[#ff3f6c] h-full flex items-center justify-center font-bold px-1 gap-1">
               <span>ALL</span>
-              <Sparkles className={`w-3 h-3 animate-pulse ${
-                isDiwali ? "text-amber-500" : isRakhi ? "text-[#ff3f6c]" : "text-slate-800"
-              }`} />
+              <Sparkles className="w-3.5 h-3.5 text-[#ff3f6c] animate-pulse" />
             </div>
-            <div className={`cursor-pointer h-full flex items-center px-0.5 ${isDiwali ? "hover:text-amber-600" : isRakhi ? "hover:text-[#ff3f6c]" : "hover:text-slate-800"}`}>MEN</div>
-            <div className={`cursor-pointer h-full flex items-center px-0.5 ${isDiwali ? "hover:text-amber-600" : isRakhi ? "hover:text-[#ff3f6c]" : "hover:text-slate-800"}`}>WOMEN</div>
-            <div className={`cursor-pointer h-full flex items-center px-0.5 ${isDiwali ? "hover:text-amber-600" : isRakhi ? "hover:text-[#ff3f6c]" : "hover:text-slate-800"}`}>KIDS</div>
+            <div className="cursor-pointer h-full flex items-center px-0.5 hover:text-[#ff3f6c]">MEN</div>
+            <div className="cursor-pointer h-full flex items-center px-0.5 hover:text-[#ff3f6c]">WOMEN</div>
+            <div className="cursor-pointer h-full flex items-center px-0.5 hover:text-[#ff3f6c]">KIDS</div>
 
             {/* Rakhi Festive Badge */}
             {isRakhi && (
               <Link 
                 href="/Category/Rakhi"
-                className="flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fff9f0] via-[#ffe4e6] to-[#fff9f0] border border-amber-300 rounded-full text-[#9f1239] text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-0.5"
+                className="flex items-center pl-2 pr-2.5 py-0.5 border border-rose-300 rounded-full text-[#ff3f6c] text-[8px] font-bold uppercase tracking-wider ml-0.5"
               >
-                {/* SVG Rakhi on Left */}
-                <div className="absolute left-[-7px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
-                  <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
-                    {/* Red Thread cord */}
-                    <path d="M 0 25 Q 12.5 22 25 25 Q 37.5 28 50 25" stroke="#ef4444" strokeWidth="2" fill="none" />
-                    <path d="M 0 25 Q 12.5 28 25 25 Q 37.5 22 50 25" stroke="#f59e0b" strokeWidth="1" fill="none" />
-                    {/* Center Rakhi Flower */}
-                    <circle cx="25" cy="25" r="7" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
-                    <circle cx="25" cy="25" r="4.5" fill="#be123c" />
-                    <circle cx="25" cy="25" r="2" fill="#ffd700" />
-                    {/* Golden beads */}
-                    {[...Array(8)].map((_, i) => {
-                      const angle = (i * 45 * Math.PI) / 180;
-                      const x = 25 + 6.2 * Math.cos(angle);
-                      const y = 25 + 6.2 * Math.sin(angle);
-                      return <circle key={i} cx={x} cy={y} r="0.8" fill="#ffd700" />;
-                    })}
-                  </svg>
-                </div>
                 <span>RAKHI</span>
-                <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+                <Sparkles className="w-2.5 h-2.5 text-[#ff3f6c] ml-1 shrink-0" />
               </Link>
             )}
 
@@ -185,21 +147,10 @@ export default function Home() {
             {isDiwali && (
               <Link 
                 href="/Category/Jewellery"
-                className="flex items-center relative pl-6.5 pr-2.5 py-0.5 bg-gradient-to-r from-[#fffbeb] via-[#fef3c7] to-[#fffbeb] border border-amber-400 rounded-full text-amber-900 text-[7.5px] font-black tracking-widest uppercase shadow-3xs animate-pulse select-none cursor-pointer scale-95 ml-0.5"
+                className="flex items-center pl-2 pr-2.5 py-0.5 border border-amber-400 rounded-full text-amber-700 text-[8px] font-bold uppercase tracking-wider ml-0.5"
               >
-                {/* SVG Diya/Lamp on Left */}
-                <div className="absolute left-[-5px] top-1/2 -translate-y-1/2 select-none pointer-events-none scale-[0.8]">
-                  <svg className="w-8 h-8 drop-shadow-3xs" viewBox="0 0 50 50">
-                    {/* Flame */}
-                    <path d="M 25 5 Q 29 17 25 22 Q 21 17 25 5" fill="#ea580c" />
-                    <path d="M 25 9 Q 27 17 25 21 Q 23 17 25 9" fill="#f59e0b" />
-                    {/* Clay pot base */}
-                    <path d="M 10 25 C 10 37 40 37 40 25 Z" fill="#b45309" />
-                    <circle cx="25" cy="28" r="2" fill="#f59e0b" />
-                  </svg>
-                </div>
                 <span>DIWALI LIVE</span>
-                <Sparkles className="w-2.5 h-2.5 text-amber-500 ml-1 shrink-0" />
+                <Sparkles className="w-2.5 h-2.5 text-amber-600 ml-1 shrink-0" />
               </Link>
             )}
           </div>
@@ -361,10 +312,10 @@ export default function Home() {
 
         {/* 7. Continue Browsing These Brands */}
         <div className="mx-3.5 mb-6">
-          <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-wider mb-3">Continue Browsing These Brands</h3>
+          <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-wider mb-3">Continue Browsing These Brands</h3>
           <div className="grid grid-cols-2 gap-3.5">
             {/* Left Image Card */}
-            <div className="relative h-52 rounded-2xl overflow-hidden border border-gray-150 shadow-xs group cursor-pointer bg-gray-50">
+            <div className="relative h-52 overflow-hidden border border-[#EFEFEF] group cursor-pointer bg-gray-50">
               <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=300&q=80" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
@@ -372,7 +323,7 @@ export default function Home() {
             <div className="relative h-52 rounded-2xl overflow-hidden shadow-xs group cursor-pointer bg-gray-50">
               <img src="/playtoslay.png" alt="" className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent flex items-end justify-center pb-3">
-                <div className="bg-black text-white text-[7.5px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-md border border-gray-800 select-none">
+                <div className="bg-black text-white text-[7.5px] font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm border border-gray-850 select-none">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> PLAY TO SLAY
                 </div>
               </div>
@@ -386,10 +337,10 @@ export default function Home() {
         {/* 8. Original Shop By Category Section */}
         <div className="max-w-7xl mx-auto w-full px-3.5 py-6 mt-2 border-t border-gray-100">
           <div className="text-left mb-6">
-            <h2 className="text-base font-black tracking-widest text-[#282c3f] uppercase">
+            <h2 className="text-[14px] font-bold tracking-wider text-gray-800 uppercase">
               SHOP BY CATEGORY
             </h2>
-            <div className="h-1 w-12 bg-[#ff3f6c] mt-2"></div>
+            <div className="h-0.5 w-10 bg-[#ff3f6c] mt-1"></div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -397,7 +348,8 @@ export default function Home() {
               <Link 
                 key={index}
                 href={`/Category/${encodeURIComponent(cat.name)}`}
-                className="bg-white border border-[#eaeaec] rounded-xl overflow-hidden hover:shadow-lg transition-all group flex flex-col cursor-pointer"
+                className="bg-white border border-[#EFEFEF] overflow-hidden flex flex-col cursor-pointer transition-transform duration-200 hover:translate-y-[-2px]"
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,.04)' }}
               >
                 {/* Image Container */}
                 <div className="h-36 overflow-hidden relative bg-slate-100">
@@ -412,10 +364,10 @@ export default function Home() {
                 {/* Info */}
                 <div className="p-3 text-center flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="font-bold text-[#282c3f] text-xs tracking-wide truncate">
+                    <h4 className="font-bold text-gray-800 text-[11px] tracking-wide truncate">
                       {cat.name}
                     </h4>
-                    <p className="text-[#ff3f6c] font-extrabold text-[10px] mt-0.5">
+                    <p className="text-[#ff3f6c] font-bold text-[10px] mt-0.5">
                       {cat.discount}
                     </p>
                   </div>
@@ -429,7 +381,6 @@ export default function Home() {
             ))}
           </div>
         </div>
-
       </main>
 
       {isGuessModalOpen && <SahiDaamModal onClose={() => setIsGuessModalOpen(false)} />}
