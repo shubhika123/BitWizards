@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.api import feed, search, bazaar, social, genie, sahidaam, admin
+from app.api import feed, search, bazaar, social, genie, sahidaam
 from app.api.OutfitCircle import router as outfit_circle_router
 from app.api.contest import router as contest_router
 
@@ -31,6 +31,7 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
+        "https://bitwizards.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -45,7 +46,6 @@ app.include_router(bazaar.router, prefix="/api")
 app.include_router(social.router, prefix="/api")
 app.include_router(genie.router, prefix="/api")
 app.include_router(sahidaam.router, prefix="/api")
-app.include_router(admin.router, prefix="/api")
 
 @app.get("/")
 def read_root():
