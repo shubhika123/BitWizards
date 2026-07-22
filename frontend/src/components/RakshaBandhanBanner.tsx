@@ -199,7 +199,6 @@ export default function RakshaBandhanBanner() {
                 : ""
             }`}
           >
-            {/* Top Section: High-Fidelity square image */}
             <div className="aspect-[4/3] w-full overflow-hidden bg-slate-50 relative">
               <img
                 src={
@@ -207,7 +206,7 @@ export default function RakshaBandhanBanner() {
                   "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80"
                 }
                 alt={cat.category_name}
-                className="w-full h-full object-cover filter brightness-[0.98]"
+                className="w-full h-full object-cover object-top filter brightness-[0.98]"
               />
             </div>
 
