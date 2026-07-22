@@ -96,7 +96,7 @@ export function GenieLegacyExperience() {
         };
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/genie/curate/alternatives`,
+          `${process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com"}/api/genie/curate/alternatives`,
           {
             method: "POST",
             headers: {
@@ -149,7 +149,8 @@ export function GenieLegacyExperience() {
 
     try {
       // Call live backend NLP parsing endpoint
-      const response = await fetch("http://localhost:8000/api/genie/parse", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+      const response = await fetch(`${API_BASE_URL}/api/genie/parse`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -286,7 +287,8 @@ export function GenieLegacyExperience() {
           .filter(Boolean);
 
         // Call backend curation API to fetch budget-compliant outfit
-        const curateResponse = await fetch("http://localhost:8000/api/genie/curate", {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+        const curateResponse = await fetch(`${API_BASE_URL}/api/genie/curate`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

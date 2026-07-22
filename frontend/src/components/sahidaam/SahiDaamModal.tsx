@@ -18,7 +18,8 @@ export function SahiDaamModal({ onClose }: Props) {
 
   useEffect(() => {
     const userId = user?.uid || "demo_user_123";
-    fetch("http://127.0.0.1:8000/api/sahidaam/deck/today", {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    fetch(`${API_BASE_URL}/api/sahidaam/deck/today`, {
       headers: {
         "X-User-Id": userId
       }

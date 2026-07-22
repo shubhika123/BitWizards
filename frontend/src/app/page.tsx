@@ -43,11 +43,11 @@ export default function Home() {
 
   const [activeFestival, setActiveFestival] = useState<string>("");
   const [simulatedDate, setSimulatedDate] = useState<string>("");
-
   const loadActiveFestivalName = () => {
     const dateStr = localStorage.getItem("simulated_date") || "";
     setSimulatedDate(dateStr);
-    const url = dateStr ? `http://127.0.0.1:8000/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : "http://127.0.0.1:8000/fetch-feed";
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    const url = dateStr ? `${API_BASE_URL}/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : `${API_BASE_URL}/fetch-feed`;
 
     fetch(url)
       .then((res) => res.json())

@@ -11,10 +11,10 @@ export function SahiDaamFAB() {
   const [showStreak, setShowStreak] = useState(false);
 
   const { user } = useAuthStore();
-
   useEffect(() => {
     const userId = user?.uid || "demo_user_123";
-    fetch("http://127.0.0.1:8000/api/sahidaam/rewards/summary", {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    fetch(`${API_BASE_URL}/api/sahidaam/rewards/summary`, {
       headers: {
         "X-User-Id": userId
       }

@@ -15,9 +15,9 @@ interface OverGuessedItem {
 export default function YouMayLikeThis() {
   const [items, setItems] = useState<OverGuessedItem[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/sahidaam/recommendations/over-guessed")
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    fetch(`${API_BASE_URL}/api/sahidaam/recommendations/over-guessed`)
       .then(res => res.json())
       .then(data => {
         if (data.items) {

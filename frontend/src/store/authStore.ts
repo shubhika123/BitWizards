@@ -5,7 +5,7 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const OUTFIT_CIRCLE_API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
 
 export interface UserProfile {
   uid: string;

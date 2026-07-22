@@ -87,7 +87,8 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
   // Mark as shown when it becomes active
   useEffect(() => {
     if (isActive && status === "pending") {
-      fetch(`http://127.0.0.1:8000/api/sahidaam/deck/card/${card.id}/shown`, { 
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+      fetch(`${API_BASE_URL}/api/sahidaam/deck/card/${card.id}/shown`, { 
         method: "POST",
         headers: { "X-User-Id": userId }
       })
@@ -107,7 +108,8 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
     if (status !== "shown") return;
     setStatus("submitted");
     
-    fetch(`http://127.0.0.1:8000/api/sahidaam/deck/card/${card.id}/submit`, {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    fetch(`${API_BASE_URL}/api/sahidaam/deck/card/${card.id}/submit`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
@@ -153,7 +155,8 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
       setStatus("dismissed");
     }
     
-    fetch(`http://127.0.0.1:8000/api/sahidaam/deck/card/${card.id}/swipe`, {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    fetch(`${API_BASE_URL}/api/sahidaam/deck/card/${card.id}/swipe`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
