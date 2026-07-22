@@ -8,9 +8,9 @@ and serve paginated alternatives for slot replacements.
 
 import os
 import logging
+import requests
 from typing import List, Dict, Any, Optional
 from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
 from app.config import settings
 from app.models.GenieSchema import GenieCurateRequest, GenieAlternativesRequest
 from app.services.database import MockDB
@@ -26,15 +26,39 @@ class CurationEngine:
     @classmethod
     def _get_resources(cls):
         """
-        Thread-safe lazy initialization of the Pinecone client and SentenceTransformer model.
+        Thread-safe lazy initialization of the Pinecone client.
         """
-        if cls._model is None:
-            logger.info("Loading SentenceTransformer model 'all-MiniLM-L6-v2' inside emulation engine...")
-            cls._model = SentenceTransformer('all-MiniLM-L6-v2')
         if cls._pc is None:
             cls._pc = Pinecone(api_key=settings.PINECONE_API_KEY)
             cls._index = cls._pc.Index("genie-catalog")
-        return cls._index, cls._model
+        return cls._index
+
+    @classmethod
+    def _get_embedding(cls, text: str) -> List[float]:
+        """
+        Retrieves embedding vector from HuggingFace Inference API, falling back
+        locally to sentence-transformers if not set or failed.
+        """
+        if settings.HF_API_KEY:
+            try:
+                url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+                headers = {"Authorization": f"Bearer {settings.HF_API_KEY}"}
+                response = requests.post(url, headers=headers, json={"inputs": text}, timeout=10)
+                response.raise_for_status()
+                res_data = response.json()
+                if isinstance(res_data, list) and res_data:
+                    if isinstance(res_data[0], float):
+                        return res_data
+                    elif isinstance(res_data[0], list):
+                        return res_data[0]
+            except Exception as e:
+                logger.warning(f"HuggingFace API embedding failed: {e}. Trying local fallback...")
+        
+        if cls._model is None:
+            logger.info("Loading SentenceTransformer model 'all-MiniLM-L6-v2' inside emulation engine...")
+            from sentence_transformers import SentenceTransformer
+            cls._model = SentenceTransformer('all-MiniLM-L6-v2')
+        return cls._model.encode(text).tolist()
 
     @staticmethod
     def map_frontend_category_to_pinecone(cat: str) -> str:
@@ -90,7 +114,7 @@ class CurationEngine:
         Generate a complete, cohesive 4-piece outfit using local sentence embeddings,
         Pinecone category queries, and constraint-based budget permutations.
         """
-        index, model = cls._get_resources()
+        index = cls._get_resources()
         SEMANTIC_SCORE_THRESHOLD = 0.40
         
         locked_items_by_slot = {}
@@ -127,7 +151,7 @@ class CurationEngine:
             
             # STABLE SEARCH TEXT (Do not change this order)
             search_text = f"Category: {pinecone_cat}. Name: {target_str}. Occasion: {req.occasion_category or ''}. Aesthetics: {', '.join(req.aesthetic_tags)}."
-            query_vector = model.encode(search_text).tolist()
+            query_vector = cls._get_embedding(search_text)
 
             # PINECONE DB FILTER SETUP
             filter_dict = {"category": pinecone_cat}
@@ -326,7 +350,7 @@ class CurationEngine:
 
     @classmethod
     def get_slot_alternatives(cls, req: GenieAlternativesRequest) -> List[Dict[str, Any]]:
-        index, model = cls._get_resources()
+        index = cls._get_resources()
 
         slot = req.category_to_refresh or req.slot_category
         active_ids = req.active_combination_ids or req.current_outfit_ids or []
@@ -350,7 +374,7 @@ class CurationEngine:
         target_str = ", ".join(target_items) if target_items else ""
 
         search_text = f"Category: {pinecone_cat}. Name: {target_str}. Occasion: {req.occasion_category or ''}. Aesthetics: {', '.join(req.aesthetic_tags)}."
-        query_vector = model.encode(search_text).tolist()
+        query_vector = cls._get_embedding(search_text)
 
         filter_dict = {
             "category": pinecone_cat,
