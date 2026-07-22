@@ -3,13 +3,21 @@
 import React, { useEffect, useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import { SahiDaamModal } from "./SahiDaamModal";
+import { useAuthStore } from "../../store/authStore";
 
 export function SahiDaamFAB() {
   const [isOpen, setIsOpen] = useState(false);
   const [stats, setStats] = useState<{ points_balance: number; streak_count: number } | null>(null);
 
+  const { user } = useAuthStore();
+
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/sahidaam/rewards/summary")
+    const userId = user?.uid || "demo_user_123";
+    fetch("http://127.0.0.1:8000/api/sahidaam/rewards/summary", {
+      headers: {
+        "X-User-Id": userId
+      }
+    })
       .then(res => res.json())
       .then(data => {
         setStats(data);
