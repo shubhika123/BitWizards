@@ -891,248 +891,162 @@ const getCityState = (city: string) => {
 // Dynamic local bazaar color/theme generator based on local festival
 const getFestiveTheme = (festivalName: string) => {
   const norm = festivalName.trim().toLowerCase();
+  
+  // Base default values
+  let name = "General Festive";
+  let hexColor = "#ff3f6c"; // default Myntra pink accent
+  let bannerTitle = "Explore Local Sellers with ";
+  let bannerHighlight = "Trust";
+  let bannerDesc = "Handcrafted accessories, direct handlooms, and traditional clothing.";
+  let bannerImg = "/aadi_bazaar_banner.png";
+  let bannerBtn = "Explore Collections";
+  let bannerBadge = "Bazaar Special";
+  let bannerTag = "✨ SUPPORT LOCAL ARTISANS";
+  let categories: { name: string; img: string | null; value?: string }[] = [
+    { name: "All", img: null, value: "All" },
+    { name: "Sarees", img: "/ethnic_wear_category.png", value: "Ethnic Wear" },
+    { name: "Jewellery", img: "/jewellery_category.png", value: "Jewellery" },
+    { name: "Footwear", img: "/traditional_food_category.png", value: "Footwear" },
+    { name: "Miscellaneous", img: "/pooja_essentials_category.png", value: "Miscellaneous" }
+  ];
+  let festiveBanner = "bg-gradient-to-r from-[#ff3f6c] to-[#e0355f] text-white";
+
   if (norm === "aadi festival") {
-    return {
-      name: "Aadi Festival",
-      bgGradient: "from-[#fffdf0] via-[#fffdf5] to-[#f2faf6]",
-      headerBg: "bg-[#fffbf0] border-amber-100/60 shadow-amber-50/50",
-      headerText: "text-[#78350f]",
-      locationBg: "from-[#fffdf4] to-[#fffaf0] border-amber-100/40 text-amber-900",
-      cardBg: "bg-[#fffefb] border-[#b45309]/15 shadow-amber-50/50",
-      textDark: "text-[#78350f]",
-      textMuted: "text-amber-800/75",
-      priceText: "text-[#2d5a27]", // Green prices!
-      mapBg: "bg-[#fdfbf6]",
-      mapGrid: "stroke-amber-200/20",
-      riverColor: "#a7f3d0", // Soft mint emerald
-      accentText: "text-[#b45309]",
-      badgeBg: "bg-[#2d5a27]", // Green badge
-      mapCircle: "bg-amber-500/5 border-amber-500/20",
-      festiveBanner: "bg-gradient-to-r from-[#b45309] to-[#047857] text-white",
-      hexColor: "#2d5a27", // Dark green theme accent
-      bannerTitle: "Happy\nAadi Festival!",
-      bannerHighlight: "",
-      bannerDesc: "Embrace tradition with Aadi Pooram silks, temple wear & festive cooking essentials.",
-      bannerImg: "/aadi_bazaar_banner.png",
-      bannerBtn: "Explore Aadi Collection",
-      bannerBadge: "Aadi Month Begins Now",
-      bannerTag: "🏺 AADI FESTIVAL SPECIAL",
-      categories: [
-        { name: "Aadi Silks", img: "/ethnic_wear_category.png" },
-        { name: "Aadi Essentials", img: "/pooja_essentials_category.png" },
-        { name: "Festive Jewellery", img: "/jewellery_category.png" },
-        { name: "Home Decor", img: "/pooja_setup_category.png" },
-        { name: "Pooja Items", img: "/pooja_essentials_category.png" }
-      ]
-    };
+    name = "Aadi Festival";
+    hexColor = "#2d5a27"; // Dark green theme accent
+    bannerTitle = "Happy\nAadi Festival!";
+    bannerHighlight = "";
+    bannerDesc = "Embrace tradition with Aadi Pooram silks, temple wear & festive cooking essentials.";
+    bannerImg = "/aadi_bazaar_banner.png";
+    bannerBtn = "Explore Aadi Collection";
+    bannerBadge = "Aadi Month Begins Now";
+    bannerTag = "🏺 AADI FESTIVAL SPECIAL";
+    categories = [
+      { name: "Aadi Silks", img: "/ethnic_wear_category.png" },
+      { name: "Aadi Essentials", img: "/pooja_essentials_category.png" },
+      { name: "Festive Jewellery", img: "/jewellery_category.png" },
+      { name: "Home Decor", img: "/pooja_setup_category.png" },
+      { name: "Pooja Items", img: "/pooja_essentials_category.png" }
+    ];
+    festiveBanner = "bg-[#2d5a27]";
+  } else if (norm === "chhath puja") {
+    name = "Chhath Puja";
+    hexColor = "#ea580c";
+    bannerTitle = "Happy";
+    bannerHighlight = "Chhath Puja";
+    bannerDesc = "Celebrate the festival of sun, faith & gratitude. Shop essentials from trusted local sellers.";
+    bannerImg = "/chhath_banner_bg.png";
+    bannerBtn = "Explore Collection";
+    bannerBadge = "Chhath Special";
+    bannerTag = "🌅 CHHATH PUJA SPECIAL";
+    categories = [
+      { name: "Puja Samagri", img: "/ganesh_category_puja.png" },
+      { name: "Sarees", img: "/ethnic_wear_category.png" },
+      { name: "Accessories", img: "/traditional_food_category.png" },
+      { name: "Gifts", img: "/pooja_essentials_category.png" }
+    ];
+    festiveBanner = "bg-[#2d1a3c]";
+  } else if (norm === "varalakshmi vratam") {
+    name = "Varalakshmi Vratam";
+    hexColor = "#7c3aed";
+    bannerTitle = "Happy";
+    bannerHighlight = "Varalakshmi Vratam";
+    bannerDesc = "Invite prosperity, health and happiness. Shop puja essentials, sarees, flowers & more.";
+    bannerImg = "/varalakshmi_banner_bg.png";
+    bannerBtn = "Explore Collection";
+    bannerBadge = "Varalakshmi Vratam Special";
+    bannerTag = "🪷 VARALAKSHMI VRATAM SPECIAL";
+    categories = [
+      { name: "Puja Samagri", img: "/ganesh_category_puja.png" },
+      { name: "Sarees", img: "/ethnic_wear_category.png" },
+      { name: "Flowers", img: "/fresh_pooja_flowers.png" },
+      { name: "Gifts", img: "/pooja_essentials_category.png" }
+    ];
+    festiveBanner = "bg-[#3b1154]";
+  } else if (norm === "ganesh chaturthi") {
+    name = "Ganesh Chaturthi";
+    hexColor = "#ea580c";
+    bannerTitle = "Happy";
+    bannerHighlight = "Ganesh Chaturthi!";
+    bannerDesc = "Welcome Bappa with love. Puja essentials, idols, decor, gifts & more from local sellers.";
+    bannerImg = "/ganesh_banner_bg.png";
+    bannerBtn = "Explore Collection";
+    bannerBadge = "Ganpati Bappa Morya!";
+    bannerTag = "🌼 GANESH CHATURTHI SPECIAL";
+    categories = [
+      { name: "Puja Essentials", img: "/ganesh_category_puja.png" },
+      { name: "Idols", img: "/ganesh_category_idols.png" },
+      { name: "Decorations", img: "/pooja_setup_category.png" },
+      { name: "Footwear & Juttis", img: "/traditional_food_category.png" },
+      { name: "Gifts & Hampers", img: "/pooja_essentials_category.png" }
+    ];
+    festiveBanner = "bg-[#ea580c]";
+  } else if (norm === "lohri") {
+    name = "Lohri";
+    hexColor = "#ea580c";
+    bannerTitle = "Happy";
+    bannerHighlight = "Lohri! 🔥";
+    bannerDesc = "Celebrate the harvest with warmth, food, music & joy. Shop from trusted local sellers.";
+    bannerImg = "/lohri_banner_bg.png";
+    bannerBtn = "Explore Lohri Collection";
+    bannerBadge = "Lohri Special";
+    bannerTag = "🔥 LOHRI SPECIAL";
+    categories = [
+      { name: "Attire", img: "/ethnic_wear_category.png" },
+      { name: "Footwear", img: "/traditional_food_category.png" },
+      { name: "Decor", img: "/pooja_setup_category.png" },
+      { name: "Accessories", img: "/pooja_essentials_category.png" },
+      { name: "Jewellery", img: "/jewellery_category.png" }
+    ];
+    festiveBanner = "bg-[#ea580c]";
+  } else if (norm === "durga puja") {
+    name = "Durga Puja";
+    hexColor = "#be123c";
+    bannerTitle = "Happy";
+    bannerHighlight = "Durga Puja!";
+    bannerDesc = "Celebrate the victory of good over evil with devotion, dhunuchi & festive shopping.";
+    bannerImg = "/durga_puja_banner_bg.png";
+    bannerBtn = "Explore Durga Puja Collection";
+    bannerBadge = "Pujo Special";
+    bannerTag = "🔱 DURGA PUJA SPECIAL";
+    categories = [
+      { name: "Pooja Essentials", img: "/ganesh_category_puja.png" },
+      { name: "Sarees", img: "/ethnic_wear_category.png" },
+      { name: "Dhak & Dhunuchi", img: "/pooja_setup_category.png" },
+      { name: "Decor", img: "/pooja_setup_category.png" },
+      { name: "Idols", img: "/ganesh_category_idols.png" },
+      { name: "Gifts & Hampers", img: "/pooja_essentials_category.png" }
+    ];
+    festiveBanner = "bg-[#7c1d2e]";
   }
-  if (norm === "chhath puja") {
-    return {
-      name: "Chhath Puja",
-      bgGradient: "from-[#fffcfb] via-[#fffbf9] to-[#fff8f8]",
-      headerBg: "bg-white border-b border-pink-100",
-      headerText: "text-[#7c1d2e]",
-      locationBg: "from-[#fffbfb] to-[#fff5f6] border-pink-150/40 text-[#ea2e5f]",
-      cardBg: "bg-white border-pink-100/40 shadow-rose-50/50",
-      textDark: "text-[#7c1d2e]",
-      textMuted: "text-rose-800/75",
-      priceText: "text-[#ea2e5f]",
-      mapBg: "bg-[#fdf9fa]",
-      mapGrid: "stroke-pink-200/20",
-      riverColor: "#fed7aa",
-      accentText: "text-[#ea2e5f]",
-      badgeBg: "bg-[#ea2e5f]",
-      mapCircle: "bg-pink-500/5 border-pink-500/20",
-      festiveBanner: "bg-[#2d1a3c]",
-      hexColor: "#ea2e5f",
-      bannerTitle: "Happy",
-      bannerHighlight: "Chhath Puja",
-      bannerDesc: "Celebrate the festival of sun, faith & gratitude. Shop essentials from trusted local sellers.",
-      bannerImg: "/chhath_banner_bg.png",
-      bannerBtn: "Explore Collection",
-      bannerBadge: "Chhath Special",
-      bannerTag: "🌅 CHHATH PUJA SPECIAL",
-      categories: [
-        { name: "Puja Samagri", img: "/ganesh_category_puja.png" },
-        { name: "Sarees", img: "/ethnic_wear_category.png" },
-        { name: "Accessories", img: "/traditional_food_category.png" },
-        { name: "Gifts", img: "/pooja_essentials_category.png" }
-      ]
-    };
-  }
-  if (norm === "varalakshmi vratam") {
-    return {
-      name: "Varalakshmi Vratam",
-      bgGradient: "from-[#fffcfb] via-[#fffbfb] to-[#f9f5ff]",
-      headerBg: "bg-white border-b border-purple-100 shadow-purple-50/50",
-      headerText: "text-[#581c87]",
-      locationBg: "from-[#fffdfc] to-[#f5f3ff] border-purple-150/40 text-[#7c3aed]",
-      cardBg: "bg-white border-purple-100/40 shadow-purple-50/50",
-      textDark: "text-[#581c87]",
-      textMuted: "text-purple-800/75",
-      priceText: "text-[#7c3aed]",
-      mapBg: "bg-[#faf8fe]",
-      mapGrid: "stroke-purple-200/20",
-      riverColor: "#bae6fd",
-      accentText: "text-[#7c3aed]",
-      badgeBg: "bg-[#7c3aed]",
-      mapCircle: "bg-purple-500/5 border-purple-500/20",
-      festiveBanner: "bg-[#3b1154]",
-      hexColor: "#7c3aed",
-      bannerTitle: "Happy",
-      bannerHighlight: "Varalakshmi Vratam",
-      bannerDesc: "Invite prosperity, health and happiness. Shop puja essentials, sarees, flowers & more.",
-      bannerImg: "/varalakshmi_banner_bg.png",
-      bannerBtn: "Explore Collection",
-      bannerBadge: "Varalakshmi Vratam Special",
-      bannerTag: "🪷 VARALAKSHMI VRATAM SPECIAL",
-      categories: [
-        { name: "Puja Samagri", img: "/ganesh_category_puja.png" },
-        { name: "Sarees", img: "/ethnic_wear_category.png" },
-        { name: "Flowers", img: "/fresh_pooja_flowers.png" },
-        { name: "Gifts", img: "/pooja_essentials_category.png" }
-      ]
-    };
-  }
-  if (norm === "ganesh chaturthi") {
-    return {
-      name: "Ganesh Chaturthi",
-      bgGradient: "from-[#fffdf9] via-[#fffbf6] to-[#fff9f2]",
-      headerBg: "bg-white border-b border-orange-100",
-      headerText: "text-[#7c2d12]",
-      locationBg: "from-[#fffbf5] to-[#fffcfc] border-orange-100/50 text-[#ea580c]",
-      cardBg: "bg-white border-orange-100/40 shadow-orange-50/50",
-      textDark: "text-[#7c2d12]",
-      textMuted: "text-orange-800/75",
-      priceText: "text-[#ea580c]",
-      mapBg: "bg-[#fdfbf6]",
-      mapGrid: "stroke-orange-200/20",
-      riverColor: "#ffe4e6",
-      accentText: "text-[#ea580c]",
-      badgeBg: "bg-[#ea580c]",
-      mapCircle: "bg-orange-500/5 border-orange-500/20",
-      festiveBanner: "bg-gradient-to-r from-[#ea580c] to-[#ca8a04] text-white",
-      hexColor: "#ea580c",
-      bannerTitle: "Happy",
-      bannerHighlight: "Ganesh Chaturthi!",
-      bannerDesc: "Welcome Bappa with love. Puja essentials, idols, decor, gifts & more from local sellers.",
-      bannerImg: "/ganesh_banner_bg.png",
-      bannerBtn: "Explore Collection",
-      bannerBadge: "Ganpati Bappa Morya!",
-      bannerTag: "🌼 GANESH CHATURTHI SPECIAL",
-      categories: [
-        { name: "Puja Essentials", img: "/ganesh_category_puja.png" },
-        { name: "Idols", img: "/ganesh_category_idols.png" },
-        { name: "Decorations", img: "/pooja_setup_category.png" },
-        { name: "Footwear & Juttis", img: "/traditional_food_category.png" },
-        { name: "Gifts & Hampers", img: "/pooja_essentials_category.png" }
-      ]
-    };
-  }
-  if (norm === "lohri") {
-    return {
-      name: "Lohri",
-      bgGradient: "from-[#fff9f3] via-[#fffbf7] to-[#fff8f2]",
-      headerBg: "bg-[#fff8f2] border-orange-100/60 shadow-orange-50/50",
-      headerText: "text-[#7c2d12]",
-      locationBg: "from-[#fff8f2] to-[#fff5ec] border-orange-150/50 text-[#ea580c]",
-      cardBg: "bg-[#fffefb] border-[#ea580c]/15 shadow-orange-50/50",
-      textDark: "text-[#7c2d12]",
-      textMuted: "text-orange-800/75",
-      priceText: "text-[#ea580c]",
-      mapBg: "bg-[#fdf9f5]",
-      mapGrid: "stroke-orange-200/20",
-      riverColor: "#fed7aa",
-      accentText: "text-[#ea580c]",
-      badgeBg: "bg-[#ea580c]",
-      mapCircle: "bg-orange-500/5 border-orange-500/20",
-      festiveBanner: "bg-gradient-to-r from-[#ea580c] to-[#dc2626] text-white",
-      hexColor: "#ea580c",
-      bannerTitle: "Happy",
-      bannerHighlight: "Lohri! 🔥",
-      bannerDesc: "Celebrate the harvest with warmth, food, music & joy. Shop from trusted local sellers.",
-      bannerImg: "/lohri_banner_bg.png",
-      bannerBtn: "Explore Lohri Collection",
-      bannerBadge: "Lohri Special",
-      bannerTag: "🔥 LOHRI SPECIAL",
-      categories: [
-        { name: "Attire", img: "/ethnic_wear_category.png" },
-        { name: "Footwear", img: "/traditional_food_category.png" },
-        { name: "Decor", img: "/pooja_setup_category.png" },
-        { name: "Accessories", img: "/pooja_essentials_category.png" },
-        { name: "Jewellery", img: "/jewellery_category.png" }
-      ]
-    };
-  }
-  if (norm === "durga puja") {
-    return {
-      name: "Durga Puja",
-      bgGradient: "from-[#fffcfc] via-[#fffbfb] to-[#fff5f5]",
-      headerBg: "bg-white border-b border-red-100 shadow-red-50/50",
-      headerText: "text-[#be123c]",
-      locationBg: "from-[#fffcfc] to-[#fff5f5] border-red-150/50 text-[#be123c]",
-      cardBg: "bg-white border-red-100/40 shadow-red-50/50",
-      textDark: "text-[#be123c]",
-      textMuted: "text-red-800/75",
-      priceText: "text-[#be123c]",
-      mapBg: "bg-[#fdf9f9]",
-      mapGrid: "stroke-red-200/20",
-      riverColor: "#93c5fd",
-      accentText: "text-[#be123c]",
-      badgeBg: "bg-[#be123c]",
-      mapCircle: "bg-red-500/5 border-red-500/20",
-      festiveBanner: "bg-[#7c1d2e]",
-      hexColor: "#be123c",
-      bannerTitle: "Happy",
-      bannerHighlight: "Durga Puja!",
-      bannerDesc: "Celebrate the victory of good over evil with devotion, dhunuchi & festive shopping.",
-      bannerImg: "/durga_puja_banner_bg.png",
-      bannerBtn: "Explore Durga Puja Collection",
-      bannerBadge: "Pujo Special",
-      bannerTag: "🔱 DURGA PUJA SPECIAL",
-      categories: [
-        { name: "Pooja Essentials", img: "/ganesh_category_puja.png" },
-        { name: "Sarees", img: "/ethnic_wear_category.png" },
-        { name: "Dhak & Dhunuchi", img: "/pooja_setup_category.png" },
-        { name: "Decor", img: "/pooja_setup_category.png" },
-        { name: "Idols", img: "/ganesh_category_idols.png" },
-        { name: "Gifts & Hampers", img: "/pooja_essentials_category.png" }
-      ]
-    };
-  }
+
+  // Pure neutral UI tokens as per Myntra spec
   return {
-    name: "General Festive",
-    bgGradient: "from-[#fff5f2] via-white to-[#fffcfb]",
-    headerBg: "bg-white border-gray-100 shadow-3xs",
+    name,
+    bgGradient: "from-white to-white", // Entire page is pure white
+    headerBg: "bg-white border-b border-gray-100 shadow-none", // Neutral header
     headerText: "text-gray-800",
-    locationBg: "from-[#fff5f2] to-[#fffcfb] border-orange-100/50 text-[#ff3f6c]",
-    cardBg: "bg-white border-gray-150 shadow-3xs",
-    textDark: "text-slate-800",
-    textMuted: "text-slate-500",
-    priceText: "text-slate-800",
-    mapBg: "bg-[#f4f3f0]",
-    mapGrid: "stroke-gray-200/60",
-    riverColor: "#dbeafe",
-    accentText: "text-[#ff3f6c]",
-    badgeBg: "bg-[#ff3f6c]",
-    mapCircle: "bg-[#ff3f6c]/5 border-[#ff3f6c]/20",
-    festiveBanner: "bg-gradient-to-r from-[#ff3f6c] to-[#e0355f] text-white",
-    hexColor: "#ff3f6c",
-    bannerTitle: "Explore Local Sellers with ",
-    bannerHighlight: "Trust",
-    bannerDesc: "Handcrafted accessories, direct handlooms, and traditional clothing.",
-    bannerImg: "/aadi_bazaar_banner.png",
-    bannerBtn: "Explore Collections",
-    bannerBadge: "Bazaar Special",
-    bannerTag: "✨ SUPPORT LOCAL ARTISANS",
-    categories: [
-      { name: "Pooja Essentials", img: "/pooja_essentials_category.png" },
-      { name: "Ethnic Wear", img: "/ethnic_wear_category.png" },
-      { name: "Pooja Setup", img: "/pooja_setup_category.png" },
-      { name: "Jewellery", img: "/jewellery_category.png" },
-      { name: "Handlooms", img: "/handlooms_category.png" },
-      { name: "Traditional Food", img: "/traditional_food_category.png" }
-    ]
+    locationBg: "bg-[#FAFAFA] border-b border-gray-100 text-gray-650", // Neutral location strip
+    cardBg: "bg-white border-[#EFEFEF]", // Product cards use Level 3 subtle border
+    textDark: "text-gray-800",
+    textMuted: "text-gray-500",
+    priceText: "text-gray-900",
+    mapBg: "bg-[#F5F5F5]", // Map bg is clean light grey
+    mapGrid: "stroke-gray-350",
+    riverColor: "#CBD5E1", // Obfuscated map rivers are clean grey
+    accentText: `text-[${hexColor}]`,
+    badgeBg: `bg-[${hexColor}]`,
+    mapCircle: "bg-gray-400/5 border-gray-400/20",
+    festiveBanner,
+    hexColor,
+    bannerTitle,
+    bannerHighlight,
+    bannerDesc,
+    bannerImg,
+    bannerBtn,
+    bannerBadge,
+    bannerTag,
+    categories
   };
 };
 
@@ -1577,108 +1491,46 @@ export default function LocalBazaar() {
           </header>
 
           {/* Location selector strip */}
-          <div className={`px-4 py-2.5 flex items-center justify-between text-xs border-b select-none transition-colors duration-300 ${themeColors.locationBg}`}>
-            {themeColors.name === "Ganesh Chaturthi" || themeColors.name === "Chhath Puja" ? (
-              <>
-                <div className="flex items-center gap-1.5 relative">
-                  <MapPin className="w-4 h-4" style={{ color: themeColors.hexColor }} />
-                  <span className="font-extrabold text-[12px] text-gray-800 flex items-center gap-1">
-                    Showing Sellers Near <span style={{ color: themeColors.hexColor }}>{activeCity}</span>
-                    <span className="text-[9px] text-gray-400 cursor-pointer" onClick={() => !user?.city && setShowCityDropdown(!showCityDropdown)}>∨</span>
-                  </span>
-                  {simulatedDate && (
-                    <span className="text-[8.5px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider ml-1 shadow-3xs">
-                      📅 {simulatedDate}
-                    </span>
-                  )}
-                </div>
+          <div className="px-3.5 py-1.5 flex items-center justify-between text-[10px] font-bold border-b border-gray-100 select-none bg-[#FAFAFA] text-gray-600">
+            <div className="flex items-center gap-1.5 truncate relative">
+              <MapPin className="w-3.5 h-3.5 shrink-0 text-purple-600" />
+              <span className="truncate cursor-pointer flex items-center gap-1" onClick={() => !user?.city && setShowCityDropdown(!showCityDropdown)}>
+                Delivering to {activeCity}, {getCityState(activeCity)}
+                {!user?.city && <span className="text-[8px] text-gray-400 font-bold">▼</span>}
+              </span>
 
-                <div className="relative">
-                  <button
-                    onClick={() => !user?.city && setShowCityDropdown(!showCityDropdown)}
-                    style={{ borderColor: themeColors.hexColor, color: themeColors.hexColor }}
-                    className="border bg-white px-3 py-1 rounded-full text-[9px] font-black uppercase flex items-center gap-1 cursor-pointer active:scale-95 transition-all shadow-3xs"
-                  >
-                    <span>{activeCity.toUpperCase()}, {activeCity.toLowerCase() === "belgaum" ? "KA" : activeCity.toLowerCase() === "patna" ? "BIHAR" : "IN"}</span>
-                  </button>
-
-                  {!user?.city && showCityDropdown && (
-                    <>
+              {!user?.city && showCityDropdown && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowCityDropdown(false)}
+                  />
+                  <div className="absolute top-[24px] left-0 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[160px] overflow-y-auto z-50 py-1 text-[10.5px] font-bold text-gray-700 w-36">
+                    {citiesList.map((c) => (
                       <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setShowCityDropdown(false)}
-                      />
-                      <div className="absolute top-[28px] right-0 bg-white border rounded-lg shadow-lg max-h-[160px] overflow-y-auto z-50 py-1 text-[10.5px] font-bold text-gray-700 w-36" style={{ borderColor: `${themeColors.hexColor}33` }}>
-                        {citiesList.map((c) => (
-                          <div
-                            key={c}
-                            onClick={() => {
-                              setActiveCity(c);
-                              localStorage.setItem("selectedCity", c);
-                              setShowCityDropdown(false);
-                            }}
-                            style={activeCity === c ? { color: themeColors.hexColor, backgroundColor: `${themeColors.hexColor}0f` } : {}}
-                            className={`px-3.5 py-2 cursor-pointer transition-colors hover:bg-slate-50`}
-                          >
-                            {c}
-                          </div>
-                        ))}
+                        key={c}
+                        onClick={() => {
+                          setActiveCity(c);
+                          localStorage.setItem("selectedCity", c);
+                          setShowCityDropdown(false);
+                        }}
+                        className={`px-3.5 py-2 cursor-pointer transition-colors hover:bg-pink-50 hover:text-[#ff3f6c] ${activeCity === c ? "text-[#ff3f6c] bg-pink-50/50" : ""}`}
+                      >
+                        {c}
                       </div>
-                    </>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 relative">
-                  <MapPin className="w-5 h-5 text-[#ff3f6c]" />
-                  <div className="flex flex-col text-left">
-                    <div
-                      onClick={() => !user?.city && setShowCityDropdown(!showCityDropdown)}
-                      className="font-extrabold text-[12px] text-gray-800 flex items-center gap-1 cursor-pointer select-none"
-                    >
-                      <span>{activeCity}, {getCityState(activeCity)}</span>
-                      {!user?.city && <span className="text-[9px] text-gray-500">▼</span>}
-                    </div>
-                    <span className="text-[9.5px] text-gray-500 font-medium tracking-wide">
-                      {selectedRadius === 2 ? '30 min delivery' : selectedRadius === 5 ? '2 hr delivery' : selectedRadius === 10 ? '4 hr delivery' : 'Same-day delivery'} • 38+ sellers nearby
-                    </span>
+                    ))}
                   </div>
-
-                  {!user?.city && showCityDropdown && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setShowCityDropdown(false)}
-                      />
-                      <div className="absolute top-[38px] left-4 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[160px] overflow-y-auto z-50 py-1 text-[10.5px] font-bold text-gray-700 w-36">
-                        {citiesList.map((c) => (
-                          <div
-                            key={c}
-                            onClick={() => {
-                              setActiveCity(c);
-                              localStorage.setItem("selectedCity", c);
-                              setShowCityDropdown(false);
-                            }}
-                            className={`px-3.5 py-2 cursor-pointer transition-colors hover:bg-pink-50 hover:text-[#ff3f6c] ${activeCity === c ? "text-[#ff3f6c] bg-pink-50/50" : ""}`}
-                          >
-                            {c}
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => setSelectedRadius(5)}
-                  className="border border-[#ff3f6c] text-[#ff3f6c] bg-white px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase flex items-center gap-1 hover:bg-rose-50 active:scale-95 transition-all shadow-3xs cursor-pointer"
-                >
-                  <Compass className="w-3.5 h-3.5 text-[#ff3f6c]" />
-                  <span>Near Me</span>
-                </button>
-              </>
-            )}
+                </>
+              )}
+            </div>
+            
+            <button
+              onClick={() => setSelectedRadius(5)}
+              className="border border-gray-200 bg-white text-slate-600 px-2 py-0.5 rounded-md text-[8.5px] font-black flex items-center gap-1 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all shadow-3xs animate-none"
+            >
+              <Compass className="w-3 h-3 text-gray-500" />
+              <span>Near Me</span>
+            </button>
           </div>
 
           {/* Dynamic Festival Hero Banner */}
@@ -2290,29 +2142,39 @@ export default function LocalBazaar() {
                     { name: "Footwear & Juttis", img: "/traditional_food_category.png", value: "Footwear" },
                     { name: "Gifts & Hampers", img: "/pooja_essentials_category.png", value: "Gifts" },
                     { name: "More", img: null, value: "All" }
-                  ].map((cat, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setActiveCategory(cat.value)}
-                      className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-                    >
-                      <div className="w-13 h-13 rounded-full overflow-hidden border border-orange-100 bg-[#fffbeb] flex items-center justify-center shadow-3xs group-hover:scale-105 group-hover:border-orange-500 transition-all">
-                        {cat.img ? (
-                          <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-                            <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
-                            <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
-                            <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
-                            <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
-                          </div>
-                        )}
+                  ].map((cat, idx) => {
+                    const isSelected = activeCategory === cat.value;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveCategory(cat.value)}
+                        className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
+                      >
+                        <div
+                          className={`w-13 h-13 rounded-full overflow-hidden border bg-white flex items-center justify-center transition-all ${
+                            isSelected ? "border-2 scale-102" : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
+                          }`}
+                          style={isSelected ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
+                        >
+                          {cat.img ? (
+                            <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+                              <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
+                              <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
+                              <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
+                              <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-[8.5px] font-bold tracking-tight leading-tight max-w-[62px] text-center ${
+                          isSelected ? "text-[#ff3f6c]" : "text-slate-700"
+                        }`}>
+                          {cat.name}
+                        </span>
                       </div>
-                      <span className="text-[8.5px] font-black text-slate-700 tracking-tight leading-tight max-w-[62px] text-center">
-                        {cat.name}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               ) : themeColors.name === "Chhath Puja" ? (
                 <>
@@ -2321,29 +2183,39 @@ export default function LocalBazaar() {
                     { name: "Accessories", img: "/traditional_food_category.png", value: "Accessories" },
                     { name: "Sarees", img: "/ethnic_wear_category.png", value: "Sarees" },
                     { name: "More", img: null, value: "All" }
-                  ].map((cat, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setActiveCategory(cat.value)}
-                      className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-                    >
-                      <div className="w-13 h-13 rounded-full overflow-hidden border border-pink-100 bg-[#fffbeb] flex items-center justify-center shadow-3xs group-hover:scale-105 group-hover:border-pink-500 transition-all">
-                        {cat.img ? (
-                          <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-                            <span className="border border-pink-400 rounded-2xs bg-pink-400"></span>
-                            <span className="border border-pink-400 rounded-2xs bg-pink-400"></span>
-                            <span className="border border-pink-400 rounded-2xs bg-pink-400"></span>
-                            <span className="border border-pink-400 rounded-2xs bg-pink-400"></span>
-                          </div>
-                        )}
+                  ].map((cat, idx) => {
+                    const isSelected = activeCategory === cat.value;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveCategory(cat.value)}
+                        className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
+                      >
+                        <div
+                          className={`w-13 h-13 rounded-full overflow-hidden border bg-white flex items-center justify-center transition-all ${
+                            isSelected ? "border-2 scale-102" : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
+                          }`}
+                          style={isSelected ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
+                        >
+                          {cat.img ? (
+                            <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+                              <span className="border border-pink-400 rounded-2xs bg-pink-400"></span>
+                              <span className="border border-pink-400 rounded-2xs bg-pink-400"></span>
+                              <span className="border border-pink-400 rounded-2xs bg-pink-400"></span>
+                              <span className="border border-pink-400 rounded-2xs bg-pink-400"></span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-[8.5px] font-bold tracking-tight leading-tight max-w-[62px] text-center ${
+                          isSelected ? "text-[#ff3f6c]" : "text-slate-700"
+                        }`}>
+                          {cat.name}
+                        </span>
                       </div>
-                      <span className="text-[8.5px] font-black text-slate-700 tracking-tight leading-tight max-w-[62px] text-center">
-                        {cat.name}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               ) : themeColors.name === "Lohri" ? (
                 <>
@@ -2355,29 +2227,39 @@ export default function LocalBazaar() {
                     { name: "Kites", img: "/pooja_setup_category.png", value: "All" },
                     { name: "Accessories", img: "/pooja_essentials_category.png", value: "Accessories" },
                     { name: "More", img: null, value: "All" }
-                  ].map((cat, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setActiveCategory(cat.value)}
-                      className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-                    >
-                      <div className="w-13 h-13 rounded-full overflow-hidden border border-orange-100 bg-[#fff8f0] flex items-center justify-center shadow-3xs group-hover:scale-105 group-hover:border-orange-400 transition-all">
-                        {cat.img ? (
-                          <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-                            <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
-                            <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
-                            <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
-                            <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
-                          </div>
-                        )}
+                  ].map((cat, idx) => {
+                    const isSelected = activeCategory === cat.value;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveCategory(cat.value)}
+                        className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
+                      >
+                        <div
+                          className={`w-13 h-13 rounded-full overflow-hidden border bg-white flex items-center justify-center transition-all ${
+                            isSelected ? "border-2 scale-102" : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
+                          }`}
+                          style={isSelected ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
+                        >
+                          {cat.img ? (
+                            <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+                              <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
+                              <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
+                              <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
+                              <span className="border border-orange-400 rounded-2xs bg-orange-400"></span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-[8.5px] font-bold tracking-tight leading-tight max-w-[62px] text-center ${
+                          isSelected ? "text-[#ff3f6c]" : "text-slate-700"
+                        }`}>
+                          {cat.name}
+                        </span>
                       </div>
-                      <span className="text-[8.5px] font-black text-slate-700 tracking-tight leading-tight max-w-[62px] text-center">
-                        {cat.name}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               ) : themeColors.name === "Varalakshmi Vratam" ? (
                 <>
@@ -2387,29 +2269,39 @@ export default function LocalBazaar() {
                     { name: "Sarees", img: "/ethnic_wear_category.png", value: "Sarees" },
                     { name: "Jewellery", img: "/pooja_essentials_category.png", value: "Accessories" },
                     { name: "More", img: null, value: "All" }
-                  ].map((cat, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setActiveCategory(cat.value)}
-                      className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-                    >
-                      <div className="w-13 h-13 rounded-full overflow-hidden border border-purple-100 bg-[#fffbeb] flex items-center justify-center shadow-3xs group-hover:scale-105 group-hover:border-purple-500 transition-all">
-                        {cat.img ? (
-                          <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-                            <span className="border border-purple-400 rounded-2xs bg-purple-400"></span>
-                            <span className="border border-purple-400 rounded-2xs bg-purple-400"></span>
-                            <span className="border border-purple-400 rounded-2xs bg-purple-400"></span>
-                            <span className="border border-purple-400 rounded-2xs bg-purple-400"></span>
-                          </div>
-                        )}
+                  ].map((cat, idx) => {
+                    const isSelected = activeCategory === cat.value;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveCategory(cat.value)}
+                        className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
+                      >
+                        <div
+                          className={`w-13 h-13 rounded-full overflow-hidden border bg-white flex items-center justify-center transition-all ${
+                            isSelected ? "border-2 scale-102" : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
+                          }`}
+                          style={isSelected ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
+                        >
+                          {cat.img ? (
+                            <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+                              <span className="border border-purple-400 rounded-2xs bg-purple-400"></span>
+                              <span className="border border-purple-400 rounded-2xs bg-purple-400"></span>
+                              <span className="border border-purple-400 rounded-2xs bg-purple-400"></span>
+                              <span className="border border-purple-400 rounded-2xs bg-purple-400"></span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-[8.5px] font-bold tracking-tight leading-tight max-w-[62px] text-center ${
+                          isSelected ? "text-[#ff3f6c]" : "text-slate-700"
+                        }`}>
+                          {cat.name}
+                        </span>
                       </div>
-                      <span className="text-[8.5px] font-black text-slate-700 tracking-tight leading-tight max-w-[62px] text-center">
-                        {cat.name}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               ) : themeColors.name === "Durga Puja" ? (
                 <>
@@ -2421,68 +2313,75 @@ export default function LocalBazaar() {
                     { name: "Idols", img: "/ganesh_category_idols.png", value: "Idols" },
                     { name: "Gifts & Hampers", img: "/pooja_essentials_category.png", value: "Gifts" },
                     { name: "More", img: null, value: "All" }
-                  ].map((cat, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setActiveCategory(cat.value)}
-                      className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-                    >
-                      <div className="w-13 h-13 rounded-full overflow-hidden border border-red-100 bg-[#fff8f8] flex items-center justify-center shadow-3xs group-hover:scale-105 group-hover:border-red-500 transition-all">
-                        {cat.img ? (
-                          <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-                            <span className="border border-red-400 rounded-2xs bg-red-400"></span>
-                            <span className="border border-red-400 rounded-2xs bg-red-400"></span>
-                            <span className="border border-red-400 rounded-2xs bg-red-400"></span>
-                            <span className="border border-red-400 rounded-2xs bg-red-400"></span>
-                          </div>
-                        )}
+                  ].map((cat, idx) => {
+                    const isSelected = activeCategory === cat.value;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveCategory(cat.value)}
+                        className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
+                      >
+                        <div
+                          className={`w-13 h-13 rounded-full overflow-hidden border bg-white flex items-center justify-center transition-all ${
+                            isSelected ? "border-2 scale-102" : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
+                          }`}
+                          style={isSelected ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
+                        >
+                          {cat.img ? (
+                            <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+                              <span className="border border-red-400 rounded-2xs bg-red-400"></span>
+                              <span className="border border-red-400 rounded-2xs bg-red-400"></span>
+                              <span className="border border-red-400 rounded-2xs bg-red-400"></span>
+                              <span className="border border-red-400 rounded-2xs bg-red-400"></span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-[8.5px] font-bold tracking-tight leading-tight max-w-[62px] text-center ${
+                          isSelected ? "text-[#ff3f6c]" : "text-slate-700"
+                        }`}>
+                          {cat.name}
+                        </span>
                       </div>
-                      <span className="text-[8.5px] font-black text-slate-700 tracking-tight leading-tight max-w-[62px] text-center">
-                        {cat.name}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               ) : (
                 <>
-                  {themeColors.categories.map((cat, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        if (cat.name === "Aadi Silks" || cat.name === "Handlooms") {
-                          setActiveCategory("Ethnic Wear");
-                        } else {
-                          setActiveCategory("Accessories");
-                        }
-                      }}
-                      className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-                    >
-                      <div className="w-13 h-13 rounded-full overflow-hidden border border-amber-100 bg-[#fffbeb] flex items-center justify-center shadow-3xs group-hover:scale-105 group-hover:border-[#2d5a27] transition-all">
-                        <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
+                  {themeColors.categories.map((cat: any, idx: number) => {
+                    const isSelected = activeCategory === (cat.value || cat.name);
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveCategory(cat.value || cat.name)}
+                        className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
+                      >
+                        <div 
+                          className={`w-13 h-13 rounded-full overflow-hidden border bg-white flex items-center justify-center transition-all ${
+                            isSelected ? "border-2 scale-102" : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
+                          }`}
+                          style={isSelected ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
+                        >
+                          {cat.img ? (
+                            <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+                              <span className="border border-gray-400 rounded-2xs"></span>
+                              <span className="border border-gray-400 rounded-2xs"></span>
+                              <span className="border border-gray-400 rounded-2xs"></span>
+                              <span className="border border-gray-400 rounded-2xs"></span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-[8.5px] font-bold tracking-tight leading-tight max-w-[62px] text-center ${
+                          isSelected ? "text-[#ff3f6c]" : "text-slate-700"
+                        }`}>
+                          {cat.name}
+                        </span>
                       </div>
-                      <span className="text-[8.5px] font-black text-slate-700 tracking-tight leading-tight max-w-[62px] text-center">
-                        {cat.name}
-                      </span>
-                    </div>
-                  ))}
-
-                  {/* More Category */}
-                  <div
-                    onClick={() => setActiveCategory("All")}
-                    className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-                  >
-                    <div className="w-13 h-13 rounded-full border border-gray-200 bg-slate-50 flex items-center justify-center shadow-3xs group-hover:scale-105 group-hover:border-[#2d5a27] transition-all">
-                      <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-                        <span className="border border-gray-400 rounded-2xs"></span>
-                        <span className="border border-gray-400 rounded-2xs"></span>
-                        <span className="border border-gray-400 rounded-2xs"></span>
-                        <span className="border border-gray-400 rounded-2xs"></span>
-                      </div>
-                    </div>
-                    <span className="text-[8.5px] font-black text-slate-700 tracking-tight">More</span>
-                  </div>
+                    );
+                  })}
                 </>
               )}
             </div>
@@ -2501,71 +2400,7 @@ export default function LocalBazaar() {
               </div>
             </div>
 
-            {/* Merged Category image grid deprecated */}
-            <div className="hidden flex items-center gap-4.5 overflow-x-auto pb-1 scrollbar-none w-full justify-start py-2 select-none">
-              {themeColors.categories.map((cat, idx) => {
-                // Determine active state based on category mapping
-                let isSelected = false;
-                if (cat.name === "Pooja Essentials" || cat.name === "Pooja Setup" || cat.name === "Jewellery") {
-                  isSelected = activeCategory === "Accessories";
-                } else if (cat.name === "Ethnic Wear" || cat.name === "Handlooms") {
-                  isSelected = activeCategory === "Ethnic Wear";
-                } else if (cat.name === "Traditional Food") {
-                  isSelected = activeCategory === "Footwear";
-                }
 
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => {
-                      if (cat.name === "Ethnic Wear" || cat.name === "Handlooms") {
-                        setActiveCategory("Ethnic Wear");
-                      } else if (cat.name === "Pooja Essentials" || cat.name === "Pooja Setup" || cat.name === "Jewellery") {
-                        setActiveCategory("Accessories");
-                      } else if (cat.name === "Traditional Food") {
-                        setActiveCategory("Footwear");
-                      }
-                    }}
-                    className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-                  >
-                    <div
-                      style={isSelected ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
-                      className={`w-13 h-13 rounded-full overflow-hidden border bg-[#fffbeb] flex items-center justify-center transition-all ${isSelected
-                        ? "border-2 scale-102 border-orange-500"
-                        : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
-                        }`}
-                    >
-                      <img src={cat.img} alt={cat.name} className="w-full h-full object-cover" />
-                    </div>
-                    <span className={`text-[8.5px] font-black tracking-tight leading-tight max-w-[62px] text-center ${isSelected ? "text-[#ff3f6c]" : "text-slate-600"}`}>
-                      {cat.name}
-                    </span>
-                  </div>
-                );
-              })}
-
-              {/* More / All Category */}
-              <div
-                onClick={() => setActiveCategory("All")}
-                className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group"
-              >
-                <div
-                  style={activeCategory === "All" ? { borderColor: themeColors.hexColor, boxShadow: `0 0 8px ${themeColors.hexColor}33` } : {}}
-                  className={`w-13 h-13 rounded-full border bg-slate-50 flex items-center justify-center transition-all ${activeCategory === "All"
-                    ? "border-2 border-slate-700 scale-102"
-                    : "border-gray-200 hover:scale-102 hover:border-[#ff3f6c]/50"
-                    }`}
-                >
-                  <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-                    <span className="border border-gray-400 rounded-2xs"></span>
-                    <span className="border border-gray-400 rounded-2xs"></span>
-                    <span className="border border-gray-400 rounded-2xs"></span>
-                    <span className="border border-gray-400 rounded-2xs"></span>
-                  </div>
-                </div>
-                <span className={`text-[8.5px] font-black tracking-tight ${activeCategory === "All" ? "text-[#ff3f6c]" : "text-slate-600"}`}>More</span>
-              </div>
-            </div>
 
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none py-1 select-none">
               {uniqueCategories.map((cat, idx) => {
@@ -2616,7 +2451,6 @@ export default function LocalBazaar() {
                     const discountPct = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
                     const isExpanded = expandedProductId === p.id;
 
-                    // Find the boutique info corresponding to the product to display detailed shop info when expanded
                     const boutiqueInfo = boutiques.find(b => b.name.toLowerCase() === p.boutique.toLowerCase());
                     const isFes = ["Ganesh Chaturthi", "Chhath Puja", "Varalakshmi Vratam", "Lohri", "Durga Puja"].includes(themeColors.name);
 
@@ -2625,19 +2459,19 @@ export default function LocalBazaar() {
                         <div
                           key={p.id}
                           onClick={() => setExpandedProductId(isExpanded ? null : p.id)}
-                          className="border border-gray-150/65 rounded-xl overflow-hidden cursor-pointer hover:shadow-md hover:border-gray-250 transition-all bg-white relative flex flex-col text-left group"
-                          style={isExpanded ? { borderColor: themeColors.hexColor, boxShadow: `0 0 0 1px ${themeColors.hexColor}` } : {}}
+                          className="border border-[#EFEFEF] overflow-hidden cursor-pointer hover:translate-y-[-2px] transition-transform duration-205 bg-white relative flex flex-col text-left group"
+                          style={isExpanded ? { borderColor: themeColors.hexColor, boxShadow: '0 2px 8px rgba(0,0,0,.05)' } : { boxShadow: '0 2px 8px rgba(0,0,0,.04)' }}
                         >
                           {/* Horizontal Layout for the Card */}
                           <div className="flex flex-row p-2.5 gap-3.5">
                             {/* Product/Shop Image */}
-                            <div className="relative w-[110px] h-[110px] rounded-lg overflow-hidden bg-slate-50 shrink-0">
+                            <div className="relative w-[110px] h-[110px] overflow-hidden bg-slate-50 shrink-0">
                               <img
                                 src={p.image}
                                 alt={p.name}
                                 className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                               />
-                              <div className="absolute top-1.5 left-1.5 text-white text-[7.5px] font-black px-1.5 py-0.5 rounded-full bg-slate-900/60 backdrop-blur-xs z-10 flex items-center gap-0.5">
+                              <div className="absolute top-1.5 left-1.5 text-white text-[7.5px] font-bold px-1.5 py-0.5 rounded bg-slate-900/60 backdrop-blur-xs z-10 flex items-center gap-0.5">
                                 <span>★</span>
                                 <span>{p.rating || 4.7}</span>
                               </div>
@@ -2648,7 +2482,7 @@ export default function LocalBazaar() {
                               <div>
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   {boutiqueInfo?.verified && (
-                                    <span className="text-[7px] font-extrabold px-1 rounded-sm border uppercase leading-none" style={{ color: themeColors.hexColor, borderColor: `${themeColors.hexColor}40`, backgroundColor: `${themeColors.hexColor}0a` }}>
+                                    <span className="text-[7.5px] font-bold px-1.5 py-0.5 rounded-sm border uppercase leading-none border-emerald-300 text-emerald-600 bg-emerald-50/50">
                                       VERIFIED
                                     </span>
                                   )}
@@ -2657,7 +2491,7 @@ export default function LocalBazaar() {
                                   </span>
                                 </div>
 
-                                <div className="font-extrabold text-[12.5px] text-slate-800 leading-tight mt-1">
+                                <div className="font-bold text-[12.5px] text-gray-800 leading-tight mt-1">
                                   {p.name}
                                 </div>
 
@@ -2674,11 +2508,11 @@ export default function LocalBazaar() {
                                       ₹{p.originalPrice}
                                     </span>
                                   )}
-                                  <span className="text-[12.5px] font-black leading-none mt-0.5" style={{ color: themeColors.hexColor }}>
+                                  <span className="text-[12.5px] font-bold text-gray-900 leading-none mt-0.5">
                                     ₹{p.price} onwards
                                   </span>
                                 </div>
-                                <div className="text-[8px] font-black text-emerald-600 flex items-center gap-0.5 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/60 leading-none">
+                                <div className="text-[8px] font-bold text-emerald-600 flex items-center gap-0.5 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/60 leading-none">
                                   <span>🚚</span>
                                   <span>{p.deliveryTime}</span>
                                 </div>
@@ -2689,10 +2523,10 @@ export default function LocalBazaar() {
                           {/* Expanded Details section */}
                           {isExpanded && (
                             <div className="border-t border-dashed border-gray-150 bg-slate-50/70 p-3 flex flex-col gap-2 animate-in slide-in-from-top-2 duration-250">
-                              <p className="text-[10px] text-slate-600 font-medium leading-normal">
+                              <p className="text-[10px] text-slate-650 font-medium leading-normal">
                                 {p.description}
                               </p>
-                              <div className="flex justify-between items-center text-[9px] font-black text-slate-500 bg-white border border-gray-100 rounded-lg p-2">
+                              <div className="flex justify-between items-center text-[9px] font-bold text-slate-500 bg-white border border-gray-100 p-2">
                                 <span className="flex items-center gap-1">
                                   <span>🚚</span> Delivery: {p.deliveryTime}
                                 </span>
@@ -2707,7 +2541,7 @@ export default function LocalBazaar() {
                                     setSelectedProduct(p);
                                     setStep(2);
                                   }}
-                                  className="flex-grow text-white text-[9.5px] font-black py-2 rounded-lg uppercase tracking-wider text-center shadow-3xs cursor-pointer active:scale-98 transition-all"
+                                  className="flex-grow text-white text-[9.5px] font-bold py-2 rounded uppercase tracking-wider text-center shadow-3xs cursor-pointer active:scale-98 transition-all border-none"
                                   style={{ backgroundColor: themeColors.hexColor }}
                                 >
                                   View Details & Bargain
@@ -2717,7 +2551,7 @@ export default function LocalBazaar() {
                                     e.stopPropagation();
                                     setExpandedProductId(null);
                                   }}
-                                  className="px-3.5 border border-gray-250 text-slate-500 hover:bg-slate-100 text-[9.5px] font-black py-2 rounded-lg uppercase tracking-wider text-center cursor-pointer transition-all"
+                                  className="px-3.5 border border-gray-300 text-slate-500 hover:bg-slate-100 text-[9.5px] font-bold py-2 rounded uppercase tracking-wider text-center cursor-pointer transition-all bg-white"
                                 >
                                   Close
                                 </button>
@@ -2785,14 +2619,14 @@ export default function LocalBazaar() {
                           <div className="border-t border-dashed border-gray-200 bg-slate-50/70 p-3 flex flex-col gap-2.5 animate-in slide-in-from-top-2 duration-250">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-[#fdf2f8] border border-pink-100 flex items-center justify-center font-black text-[10px] text-[#ff3f6c]">
+                                <div className="w-7 h-7 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center font-bold text-[10px] text-gray-600">
                                   {p.boutique.substring(0, 2).toUpperCase()}
                                 </div>
                                 <div className="flex flex-col text-left">
-                                  <span className="font-extrabold text-[11.5px] text-slate-800 flex items-center gap-1.5">
+                                  <span className="font-bold text-[11.5px] text-gray-850 flex items-center gap-1.5">
                                     {p.boutique}
                                     {boutiqueInfo?.verified && (
-                                      <span className="bg-emerald-50 border border-emerald-100 text-emerald-600 text-[7px] font-black uppercase px-1 rounded leading-none">
+                                      <span className="bg-emerald-50 border border-emerald-100 text-emerald-600 text-[7px] font-bold uppercase px-1 rounded leading-none">
                                         ✓ Verified
                                       </span>
                                     )}
