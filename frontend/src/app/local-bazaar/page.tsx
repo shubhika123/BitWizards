@@ -116,7 +116,7 @@ const getLocalBazaarData = (city: string) => {
       {
         id: "vratam_prod_3",
         name: "11 Sacred Lakshmi Pooja Samagri Kit",
-        category: "Pooja Items",
+        category: "Puja Essentials",
         price: 470,
         originalPrice: 900,
         image: "https://m.media-amazon.com/images/I/51rFfzqTQSL._SY300_SX300_QL70_FMwebp_.jpg",
@@ -152,9 +152,9 @@ const getLocalBazaarData = (city: string) => {
         description: "Exquisite gold-plated traditional necklace featuring detailed Goddess Lakshmi motifs."
       },
       {
-        id: "vratam_prod_4",
+        id: "vratam_prod_5",
         name: "Women's Kanjivaram Soft Saree",
-        category: "Saree",
+        category: "Sarees",
         price: 1450,
         originalPrice: 2000,
         image: "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcT2SCEqTP8jto_mGLzWLRCrchWaSGocz0WTqJjXFfIN2VaGCdo44SM5ynFEAj2v3Y6suSwb5GBFzJ0L33fDqvsEgAzAjEun8pzguJny0iyDT6XEf2xLl48Oqw",
@@ -171,9 +171,9 @@ const getLocalBazaarData = (city: string) => {
         description: "Women's Kanjivaram Soft Lichi Silk Saree With Blouse Piece"
       },
       {
-        id: "vratam_prod_4",
+        id: "vratam_prod_6",
         name: "Vahan Pooja Kit - Sacred Essentials for Divine Blessings",
-        category: "Pooja Kit",
+        category: "Puja Essentials",
         price: 1450,
         originalPrice: 2000,
         image: "https://www.pujashree.com/cdn/shop/files/ChatGPTImageApr20_2026_09_39_23PM_900x.png?v=1776701406",
@@ -348,9 +348,8 @@ const getLocalBazaarData = (city: string) => {
         yearsOnMyntra: 3,
         description: "Pujahome Chhat Puja Samagri Kit with NavShringaar Saman"
       },
-
       {
-        id: "chhath_prod_2",
+        id: "chhath_prod_4",
         name: "Chhath puja Combo Set supli and bahagi chhath puja specel",
         category: "Puja Essentials",
         price: 1299,
@@ -369,7 +368,7 @@ const getLocalBazaarData = (city: string) => {
         description: "Chhath puja Combo Set supli and bahagi chhath puja specel"
       },
       {
-        id: "chhath_prod_2",
+        id: "chhath_prod_5",
         name: "Chhath Poojan Kit with Multi 1 Soop",
         category: "Puja Essentials",
         price: 1299,
@@ -390,7 +389,7 @@ const getLocalBazaarData = (city: string) => {
       {
         id: "chhath_prod_3",
         name: "Handwoven Khadi Dhoti Set",
-        category: "Accessories",
+        category: "Ethnic Wear",
         price: 499,
         originalPrice: 799,
         image: "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcSepl-TtGde8b54kf6GdBrFOmWe-gyRvr1jthx7amFruIZgncKVo_jW0pphuP7cL3sGO6wrnJoDFVJ6tswzRrVenFZbb4cRrjeiWLuPc-uSyFKzzpB-qpMA2Q",
@@ -407,7 +406,7 @@ const getLocalBazaarData = (city: string) => {
         description: "Pure handspun khadi cotton dhoti and dupatta set for festive arghya rituals."
       },
       {
-        id: "chhath_prod_3",
+        id: "chhath_prod_6",
         name: "Handcrafted Bamboo Soop Tray for Pooja & Rituals",
         category: "Accessories",
         price: 499,
@@ -423,7 +422,7 @@ const getLocalBazaarData = (city: string) => {
         onTimeDelivery: 97,
         returnRate: 1,
         yearsOnMyntra: 2,
-        description: "raditional Muram Supa for Chhath Puja, Wedding & Religious Use, Eco-Friendly Cane Offering Tray"
+        description: "Traditional Muram Supa for Chhath Puja, Wedding & Religious Use, Eco-Friendly Cane Offering Tray"
       }
 
     ];
@@ -588,7 +587,7 @@ const getLocalBazaarData = (city: string) => {
       {
         id: "durga_prod_3",
         name: "Dhunuchi & Dhup Kit",
-        category: "Pujo Essentials",
+        category: "Puja Essentials",
         price: 349,
         originalPrice: 499,
         image: "/pooja_setup_category.png",
@@ -626,7 +625,7 @@ const getLocalBazaarData = (city: string) => {
       {
         id: "durga_prod_5",
         name: "Brass Pujo Thali Set",
-        category: "Pujo Essentials",
+        category: "Puja Essentials",
         price: 799,
         originalPrice: 1199,
         image: "/ganesh_category_puja.png",
@@ -1349,12 +1348,21 @@ export default function LocalBazaar() {
 
   useEffect(() => {
     setSelectedBoutique(null);
+    setActiveCategory("All");
   }, [activeCity]);
+
+  useEffect(() => {
+    setSelectedBoutique(null);
+  }, [selectedRadius]);
 
   // Dynamically load local bazaar boutiques and products matching selected city
   const { boutiques, products: allProducts } = getLocalBazaarData(activeCity);
 
-  const productCategories = ["All", "Ethnic Wear", "Accessories", "Footwear"];
+  // Filter products by active city to dynamically derive available categories
+  const cityProducts = allProducts.filter(
+    p => p.location.toLowerCase() === activeCity.toLowerCase()
+  );
+  const uniqueCategories = ["All", ...Array.from(new Set(cityProducts.map(p => p.category)))];
 
   // Set default product on mount
   useEffect(() => {
@@ -1372,7 +1380,7 @@ export default function LocalBazaar() {
     }
   }, [activeCity, activeCategory]);
 
-  // Filters boutiques & products based on radius, city, and selected category
+  // Filters boutiques & products based on radius, city, boutique, and selected category
   const filteredBoutiques = boutiques.filter(b => b.distance <= selectedRadius);
   const displayedBoutiques = selectedBoutique
     ? filteredBoutiques.filter(b => b.name === selectedBoutique)
@@ -1380,7 +1388,8 @@ export default function LocalBazaar() {
   const filteredProducts = allProducts.filter(
     p => p.distance <= selectedRadius &&
       p.location.toLowerCase() === activeCity.toLowerCase() &&
-      (activeCategory === "All" || p.category === activeCategory)
+      (activeCategory === "All" || p.category === activeCategory) &&
+      (!selectedBoutique || p.boutique.toLowerCase() === selectedBoutique.toLowerCase())
   );
 
   // Bargain Bid Acceptance Probability Meter
@@ -2116,179 +2125,121 @@ export default function LocalBazaar() {
 
 
 
-          {/* Interactive Geofence Map */}
-          <div className={`mx-3.5 mt-3.5 border border-gray-100 rounded-2xl overflow-hidden shadow-3xs relative select-none ${themeColors.cardBg}`}>
-            <div className="px-4 py-2 bg-amber-500/5 border-b border-gray-100/60 flex justify-between items-center text-[10px] font-extrabold uppercase tracking-wider">
-              <div className="flex items-center gap-1">
-                <Compass className="w-3.5 h-3.5" style={{ color: themeColors.hexColor }} />
-                <span>Hyper-Local Geofence Map</span>
-              </div>
-              <span style={{ color: themeColors.hexColor }}>{filteredBoutiques.length} Active within {selectedRadius === 2 ? '30 mins' : selectedRadius === 5 ? '2 hours' : selectedRadius === 10 ? '4 hours' : '24 hours'}</span>
+          {/* Nearby Sellers — Delivery Speed Chips + Seller List */}
+          <div className="mx-3.5 mt-3.5 select-none">
+            {/* Delivery Speed Chips */}
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+              {[
+                { r: 2, label: "Under 30 min", icon: "⚡" },
+                { r: 5, label: "Within 2 hrs", icon: "🚀" },
+                { r: 10, label: "Within 4 hrs", icon: "📦" },
+                { r: 15, label: "Same Day", icon: "🛍️" }
+              ].map((item) => {
+                const isActive = selectedRadius === item.r;
+                const count = boutiques.filter(b => b.distance <= item.r).length;
+                return (
+                  <button
+                    key={item.r}
+                    onClick={() => setSelectedRadius(item.r)}
+                    className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold border transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-[#ff3f6c] border-[#ff3f6c] text-white shadow-sm"
+                        : "bg-white border-gray-200 text-[#282c3f] hover:border-gray-300"
+                    }`}
+                  >
+                    <span className="text-xs">{item.icon}</span>
+                    <span>{item.label}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                      isActive ? "bg-white/20 text-white" : "bg-gray-100 text-[#535766]"
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            <div className={`relative w-full h-[180px] overflow-hidden ${themeColors.mapBg} flex flex-row`}>
-              <div className={`h-full relative shrink-0 ${themeColors.name === "Ganesh Chaturthi" ? "w-[60%]" : "w-full"}`}>
-                {/* Floating Sellers count box */}
-                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-xl shadow-md border border-gray-100 flex items-center gap-1.5 z-20 select-none">
-                  <div className="w-6 h-6 rounded-full bg-emerald-50 text-[#2d5a27] flex items-center justify-center">
-                    <User className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="font-black text-[9.5px] text-slate-800 leading-none">12 Sellers</span>
-                    <span className="text-[7px] font-extrabold text-gray-400 uppercase tracking-wider mt-0.5">Within 2 hours</span>
-                  </div>
-                </div>
-                {/* Map grid decoration */}
-                <svg className={`absolute inset-0 w-full h-full ${themeColors.mapGrid}`} strokeWidth="1" fill="none">
-                  <defs>
-                    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-                      <path d="M 24 0 L 0 0 0 24" />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)" />
-                  {/* River/Water vector */}
-                  <path d="M-10,50 Q100,120 200,60 T420,130" fill="none" stroke={themeColors.riverColor} strokeWidth="18" strokeLinecap="round" />
-                  {/* Parks */}
-                  <rect x="20" y="80" width="60" height="40" rx="10" fill="#f0fdf4" stroke="#dcfce7" strokeWidth="1" />
-                  <rect x="290" y="30" width="80" height="45" rx="12" fill="#f0fdf4" stroke="#dcfce7" strokeWidth="1" />
-                </svg>
-
-                {/* Shaded geofence circle overlay based on radius slider */}
-                <div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed transition-all duration-500 ease-out"
-                  style={{
-                    width: `${selectedRadius * 26}px`,
-                    backgroundColor: `${themeColors.hexColor}0c`,
-                    borderColor: `${themeColors.hexColor}33`,
-                    height: `${selectedRadius * 26}px`,
-                    maxWidth: "92%",
-                    maxHeight: "92%"
-                  }}
-                />
-
-                {/* User Home Pin marker */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-20">
-                  <span className="absolute w-8 h-8 bg-sky-500/25 rounded-full animate-ping"></span>
-                  <div className="w-5 h-5 bg-sky-600 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[8px] text-white font-black">
-                    YOU
-                  </div>
-                </div>
-
-                {/* Boutique Markers */}
-                {boutiques.map((b) => {
-                  const isActive = b.distance <= selectedRadius;
-                  const isGanesh = themeColors.name === "Ganesh Chaturthi";
-                  return (
-                    <div
-                      key={b.id}
-                      className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-500"
-                      style={{ left: `${b.x}%`, top: `${b.y}%` }}
-                      onMouseEnter={() => setHoveredBoutique(b.name)}
-                      onMouseLeave={() => setHoveredBoutique(null)}
-                    >
-                      <div
-                        onClick={() => {
-                          if (isActive) {
-                            setSelectedBoutique(b.name === selectedBoutique ? null : b.name);
-                          }
-                        }}
-                        className={`relative flex items-center justify-center p-1.5 rounded-full shadow-md border cursor-pointer transition-all ${isActive
-                          ? (selectedBoutique === b.name
-                            ? (isGanesh ? "bg-[#fff3e0] border-[#ea580c] text-[#ea580c] scale-110" : "bg-[#e2f0d9] border-[#2d5a27] text-[#2d5a27] scale-110")
-                            : (isGanesh ? "bg-white border-[#ea580c] text-[#ea580c] scale-100 hover:scale-110" : "bg-white border-[#ff3f6c] text-[#ff3f6c] scale-100 hover:scale-110"))
-                          : "bg-gray-100 border-gray-300 text-gray-400 scale-90 opacity-40 cursor-not-allowed"
-                          }`}
-                      >
-                        <Store className="w-4 h-4" />
-
-                        {/* Interactive Tooltip popup */}
-                        {(hoveredBoutique === b.name || selectedBoutique === b.name || (isActive && hoveredBoutique === null && selectedBoutique === null && b.id === "b_ganesh_1")) && (
-                          <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-[7.5px] py-1 px-2 rounded-lg font-black tracking-wide whitespace-nowrap shadow-md z-30 animate-in fade-in duration-200 flex items-center gap-1 border ${isGanesh ? "bg-[#07362a] border-[#07362a]" : "bg-[#2d5a27] border-[#2d5a27]"
-                            }`}>
-                            <span>{b.name} ({b.distance <= 1.5 ? '10-15m' : b.distance <= 2.5 ? '20-30m' : b.distance <= 4.0 ? '1-2h' : b.distance <= 6.0 ? '2-3h' : 'Same-Day'})</span>
-                            <span>•</span>
-                            <span>★ {b.rating}</span>
-                          </div>
-                        )}
+            {/* Seller Cards — Horizontal Scroll */}
+            <div className="mt-3 -mx-3.5 px-3.5">
+              <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2">
+                {filteredBoutiques.map((b) => (
+                  <div
+                    key={b.id}
+                    onClick={() => setSelectedBoutique(b.name === selectedBoutique ? null : b.name)}
+                    className={`shrink-0 w-[200px] bg-white border rounded-lg p-3 cursor-pointer transition-all hover:shadow-md ${
+                      selectedBoutique === b.name
+                        ? "border-[#ff3f6c] shadow-sm"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    {/* Header row */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
+                          <Store className="w-4 h-4 text-[#ff3f6c]" />
+                        </div>
+                        <div>
+                          <div className="text-[12px] font-bold text-[#282c3f] leading-tight line-clamp-1 max-w-[120px]">{b.name}</div>
+                          {b.verified && (
+                            <div className="flex items-center gap-0.5 mt-0.5">
+                              <CheckCircle className="w-2.5 h-2.5 text-teal-600" />
+                              <span className="text-[9px] font-bold text-teal-600">Verified</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-0.5 bg-[#14958f] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm shrink-0">
+                        <span>{b.rating}</span>
+                        <span className="text-[8px]">★</span>
                       </div>
                     </div>
-                  );
-                })}
 
-                {/* Floating Slider control merged at bottom of map grid */}
-                <div className="absolute bottom-1.5 left-1.5 right-1.5 z-30 bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between gap-2.5">
-                  <div className="flex flex-col text-left shrink-0">
-                    <span className="text-[6.5px] font-black text-gray-400 uppercase tracking-wider">Delivery Time</span>
-                    <span className="text-[9px] font-black text-slate-800" style={{ color: themeColors.hexColor }}>
-                      &lt; {selectedRadius === 2 ? '30m' : selectedRadius === 5 ? '2h' : selectedRadius === 10 ? '4h' : '24h'}
-                    </span>
-                  </div>
+                    {/* Speciality */}
+                    <p className="text-[10px] text-[#535766] mt-2 line-clamp-2 leading-relaxed">{b.speciality}</p>
 
-                  <div className="flex-1 flex items-center gap-2">
-                    <input
-                      type="range"
-                      min="2"
-                      max="15"
-                      value={selectedRadius}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        const steps = [2, 5, 10, 15];
-                        const closest = steps.reduce((prev, curr) => Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev);
-                        setSelectedRadius(closest);
-                      }}
-                      className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      style={{ accentColor: themeColors.hexColor }}
-                    />
-                    <div className="flex gap-1 shrink-0">
-                      {[
-                        { r: 2, label: "30m" },
-                        { r: 5, label: "2h" },
-                        { r: 10, label: "4h" },
-                        { r: 15, label: "24h" }
-                      ].map((item) => (
-                        <button
-                          key={item.r}
-                          onClick={() => setSelectedRadius(item.r)}
-                          style={selectedRadius === item.r ? { backgroundColor: themeColors.hexColor, borderColor: themeColors.hexColor, color: '#fff' } : {}}
-                          className={`px-1.5 py-0.5 text-[8px] font-black rounded border transition-all cursor-pointer ${selectedRadius === item.r
-                            ? "text-white animate-pulse"
-                            : "bg-white text-gray-550 border-gray-200 hover:bg-gray-50"
-                            }`}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
+                    {/* Footer */}
+                    <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-1 text-[10px] text-[#282c3f]">
+                        <MapPin className="w-3 h-3 text-[#ff3f6c]" />
+                        <span className="font-bold">{b.distance} km away</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-[#14958f]">
+                        {b.distance <= 1.5 ? '10-15 min' : b.distance <= 2.5 ? '20-30 min' : b.distance <= 4.0 ? '1-2 hrs' : b.distance <= 6.0 ? '2-3 hrs' : 'Same-Day'}
+                      </span>
                     </div>
                   </div>
-                </div>
+                ))}
+
+                {filteredBoutiques.length === 0 && (
+                  <div className="w-full py-6 text-center">
+                    <p className="text-[12px] text-[#535766]">No sellers found in this delivery window.</p>
+                    <button
+                      onClick={() => setSelectedRadius(15)}
+                      className="text-[12px] font-bold text-[#ff3f6c] mt-1 hover:underline"
+                    >
+                      Try Same-Day delivery →
+                    </button>
+                  </div>
+                )}
               </div>
+            </div>
 
-              {/* Trust Badges (40%) */}
-              {themeColors.name === "Ganesh Chaturthi" ? (
-                <div className="w-[40%] h-full bg-white/95 border-l border-orange-100/50 flex flex-col justify-center p-2.5 gap-2 select-none relative z-10 shrink-0">
-                  <div className="flex items-start gap-1.5 text-left">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-[9px] font-black text-slate-800 leading-tight">Verified Sellers</div>
-                      <div className="text-[7.5px] text-gray-500 font-bold leading-tight">Quality you can trust</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-1.5 text-left">
-                    <Truck className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-[9px] font-black text-slate-800 leading-tight">Same-Day Delivery</div>
-                      <div className="text-[7.5px] text-gray-500 font-bold leading-tight">From nearby sellers</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-1.5 text-left">
-                    <Clock className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-[9px] font-black text-slate-800 leading-tight">Easy Returns</div>
-                      <div className="text-[7.5px] text-gray-500 font-bold leading-tight">Hassle-free returns</div>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
+            {/* Trust strip */}
+            <div className="mt-3 flex items-center justify-between bg-[#fafafa] border border-gray-100 rounded-lg px-4 py-2.5">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#14958f]" />
+                <span className="text-[11px] font-bold text-[#282c3f]">All Sellers Verified</span>
+              </div>
+              <div className="h-3 w-px bg-gray-200" />
+              <div className="flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-[#14958f]" />
+                <span className="text-[11px] font-bold text-[#282c3f]">Easy Returns</span>
+              </div>
+              <div className="h-3 w-px bg-gray-200" />
+              <div className="flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-[#14958f]" />
+                <span className="text-[11px] font-bold text-[#282c3f]">Fast Delivery</span>
+              </div>
             </div>
           </div>
 
@@ -2617,58 +2568,19 @@ export default function LocalBazaar() {
             </div>
 
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none py-1 select-none">
-              {(themeColors.name === "Ganesh Chaturthi" ? [
-                { name: "All", value: "All" },
-                { name: "Puja Essentials", value: "Puja Essentials" },
-                { name: "Idols", value: "Idols" },
-                { name: "Decorations", value: "Decor" },
-                { name: "Footwear", value: "Footwear" },
-                { name: "Gifts", value: "Gifts" }
-              ] : themeColors.name === "Chhath Puja" ? [
-                { name: "All", value: "All" },
-                { name: "Puja Essentials", value: "Puja Essentials" },
-                { name: "Sarees", value: "Sarees" },
-                { name: "Accessories", value: "Accessories" }
-              ] : themeColors.name === "Lohri" ? [
-                { name: "All", value: "All" },
-                { name: "Men", value: "Men" },
-                { name: "Women", value: "Women" },
-                { name: "Kids", value: "Kids" },
-                { name: "Phulkari", value: "Phulkari" },
-                { name: "Accessories", value: "Accessories" }
-              ] : themeColors.name === "Durga Puja" ? [
-                { name: "All", value: "All" },
-                { name: "Sarees", value: "Sarees" },
-                { name: "Pujo Essentials", value: "Pujo Essentials" },
-                { name: "Decor", value: "Decor" },
-                { name: "Idols", value: "Idols" },
-                { name: "Gifts & Hampers", value: "Gifts" }
-              ] : themeColors.name === "Varalakshmi Vratam" ? [
-                { name: "All", value: "All" },
-                { name: "Puja Samagri", value: "Puja Essentials" },
-                { name: "Sarees", value: "Sarees" },
-                { name: "Flowers", value: "Flowers" },
-                { name: "Jewellery", value: "Accessories" }
-              ] : [
-                { name: "All", value: "All" },
-                { name: "Aadi Silks", value: "Ethnic Wear" },
-                { name: "Ethnic Wear", value: "Ethnic Wear" },
-                { name: "Accessories", value: "Accessories" },
-                { name: "Footwear", value: "Footwear" },
-                { name: "Pooja Items", value: "Accessories" }
-              ]).map((pill, idx) => {
-                const isActive = activeCategory === pill.value;
+              {uniqueCategories.map((cat, idx) => {
+                const isActive = activeCategory === cat;
                 return (
                   <button
                     key={idx}
-                    onClick={() => setActiveCategory(pill.value)}
+                    onClick={() => setActiveCategory(cat)}
                     style={isActive ? { backgroundColor: themeColors.hexColor, borderColor: themeColors.hexColor, color: '#fff' } : {}}
-                    className={`shrink-0 px-3.5 py-1 rounded-md text-[9px] font-black border transition-all cursor-pointer ${isActive
-                      ? "text-white"
-                      : "bg-white text-slate-600 border-gray-200 hover:border-slate-300"
+                    className={`shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-bold border transition-all cursor-pointer ${isActive
+                      ? "text-white shadow-sm"
+                      : "bg-white text-slate-700 border-gray-200 hover:border-slate-300"
                       }`}
                   >
-                    {pill.name}
+                    {cat}
                   </button>
                 );
               })}
@@ -2822,48 +2734,47 @@ export default function LocalBazaar() {
                         onClick={() => {
                           setExpandedProductId(isExpanded ? null : p.id);
                         }}
-                        className={`border border-gray-150/60 rounded-xl overflow-hidden cursor-pointer hover:shadow-md hover:border-gray-250/80 transition-all bg-white relative flex flex-col text-left group ${isExpanded ? "col-span-2 ring-1 ring-[#ff3f6c]/30" : ""
+                        className={`cursor-pointer bg-white relative flex flex-col text-left group ${isExpanded ? "col-span-2 border border-gray-200 shadow-sm rounded-sm" : "border border-gray-100 rounded-sm"
                           }`}
                       >
                         {/* Flex layout for expanded vs non-expanded state */}
-                        <div className={isExpanded ? "flex flex-row" : "flex flex-col"}>
+                        <div className={isExpanded ? "flex flex-row p-2 gap-3" : "flex flex-col"}>
                           {/* Product Image */}
-                          <div className={`relative bg-slate-50 overflow-hidden shrink-0 ${isExpanded ? "w-[120px] h-[120px]" : "w-full h-[120px]"}`}>
+                          <div className={`relative bg-slate-50 shrink-0 ${isExpanded ? "w-[120px] h-[160px]" : "w-full aspect-[3/4]"}`}>
                             <img
                               src={p.image}
                               alt={p.name}
                               className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                             />
-                            <div className="absolute top-1.5 left-1.5 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full bg-[#2d5a27] z-10">
-                              ★ {p.rating || 4.7}
+                            <div className="absolute bottom-2 left-2 flex items-center gap-0.5 bg-white/80 backdrop-blur-sm text-slate-800 text-[10px] font-bold px-1.5 py-0.5 rounded-sm">
+                              <span>{p.rating || 4.7}</span>
+                              <span className="text-teal-600 text-[9px]">★</span>
+                              <span className="text-gray-400 pl-1 border-l border-gray-300">| 1k</span>
                             </div>
                           </div>
 
                           {/* Product Details */}
-                          <div className="p-2.5 flex-grow flex flex-col justify-between">
+                          <div className={`flex flex-col flex-grow ${isExpanded ? "py-1" : "pt-2 pb-3 px-2"}`}>
                             <div>
-                              <div className="font-extrabold text-[11px] text-slate-800 line-clamp-1 leading-tight">
-                                {p.name.split(" • ")[0]}
+                              <div className="font-bold text-[13px] text-[#282c3f] truncate">
+                                {p.boutique || p.name.split(" • ")[0]}
                               </div>
-                              <div className="text-[8.5px] text-gray-400 font-bold mt-0.5">
-                                {p.category}
+                              <div className="text-[11px] text-[#535766] font-normal line-clamp-1 mt-0.5">
+                                {p.name}
                               </div>
                             </div>
 
                             <div className="mt-1.5">
-                              <div className="flex items-baseline gap-1.5 flex-wrap">
-                                <span className="text-[11px] font-black text-slate-900">₹{p.price}</span>
-                                <span className="text-[8px] text-gray-400 line-through font-bold">₹{p.originalPrice}</span>
+                              <div className="flex items-baseline gap-1 flex-wrap">
+                                <span className="text-[13px] font-bold text-[#282c3f]">Rs. {p.price}</span>
+                                <span className="text-[11px] text-[#7e818c] line-through">Rs. {p.originalPrice}</span>
+                                <span className="text-[11px] font-bold text-[#ff905a]">({discountPct}% OFF)</span>
                               </div>
-                              <span className="text-[8px] text-rose-500 font-black">
-                                ({discountPct}% OFF)
-                              </span>
                             </div>
 
                             {!isExpanded && (
-                              <div className="mt-2 pt-1 border-t border-gray-50 flex items-center justify-between text-[7.5px] font-extrabold text-slate-500">
-                                <span className="text-[#2d5a27] font-black">🚚 {p.deliveryTime}</span>
-                                <span className="text-gray-450">Click to expand</span>
+                              <div className="mt-2 text-[10px] font-bold text-[#535766]">
+                                Delivery by <span className="font-bold text-[#282c3f]">{p.deliveryTime}</span>
                               </div>
                             )}
                           </div>

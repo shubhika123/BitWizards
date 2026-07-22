@@ -111,7 +111,7 @@ export default function RootLayout({
           </nav>
         )}
 
-        <SahiDaamFAB />
+        {pathname === "/" && <SahiDaamFAB />}
       </body>
     </html>
   );
