@@ -170,10 +170,7 @@ class GeminiService:
             # Dynamically ensure the incoming text context matches Pydantic expectations
             if "query" not in parsed:
                 parsed["query"] = query
-                
-            print("\n==================== GROQ PARSED DATA ====================")
-            print(json.dumps(parsed, indent=2))
-            print("==========================================================\n")
+
                 
             validated = NLPParseResponse(**parsed)
             return validated.dict()
