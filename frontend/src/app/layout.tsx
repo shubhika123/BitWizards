@@ -8,6 +8,7 @@ import { useAuthStore } from "../store/authStore";
 import Splash from "../components/Splash";
 import LoginScreen from "../components/LoginScreen";
 import React, { useState, useEffect } from "react";
+import { SahiDaamFAB } from "../components/sahidaam/SahiDaamFAB";
 
 const MyntraLogo = ({ className = "w-5.5 h-5.5" }: { className?: string }) => (
   <svg viewBox="10 5 80 70" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -108,6 +109,7 @@ export default function RootLayout({
           </nav>
         )}
 
+        <SahiDaamFAB />
       </body>
     </html>
   );
