@@ -1328,9 +1328,9 @@ export default function LocalBazaar() {
     setChatMessages([
       { sender: "user", text: `Namaste! Can I purchase this for ₹${proposedBid}?`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
     ]);
-
     try {
-      const response = await fetch("http://localhost:8000/api/bazaar/negotiate", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+      const response = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1384,7 +1384,8 @@ export default function LocalBazaar() {
     setChatMessages(prev => [...prev, userMsg]);
 
     try {
-      const response = await fetch("http://localhost:8000/api/bazaar/negotiate", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+      const response = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

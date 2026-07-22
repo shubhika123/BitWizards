@@ -10,7 +10,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/admin/dashboard')
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    fetch(`${API_BASE_URL}/api/admin/dashboard`)
       .then(res => res.json())
       .then(d => {
         setData(d);
