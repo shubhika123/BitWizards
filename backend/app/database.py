@@ -4,16 +4,26 @@ from sqlalchemy import inspect
 
 from sqlmodel import create_engine, Session, SQLModel, select
 
+# 1. Define your default local MySQL URL
 password = quote_plus("jiya@123")
-DATABASE_URL = f"mysql+pymysql://root:{password}@localhost:3306/myntra"
+DEFAULT_LOCAL_URL = f"mysql+pymysql://root:{password}@localhost:3306/myntra"
 
-# Fallback to SQLite if MySQL connection fails
+# 2. Check for Render's Environment Variable first, otherwise use local
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_LOCAL_URL)
+
+# 3. Setup the engine safely
 try:
-    engine = create_engine(DATABASE_URL, echo=True)
+    # If using SQLite (via Render env var), we need specific connect_args
+    connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+    
+    engine = create_engine(DATABASE_URL, echo=True, connect_args=connect_args)
+    
+    # Test connection immediately
     with engine.connect() as conn:
         pass
+        
 except Exception as e:
-    print(f"⚠️ MySQL connection failed: {e}. Falling back to SQLite.")
+    print(f"⚠️ Primary DB connection failed: {e}. Falling back to local SQLite.")
     sqlite_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "myntra.db"))
     DATABASE_URL = f"sqlite:///{sqlite_path}"
     engine = create_engine(DATABASE_URL, echo=True, connect_args={"check_same_thread": False})
