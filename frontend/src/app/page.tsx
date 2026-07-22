@@ -168,7 +168,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col pb-4">
         {/* 1. Location Indicator Row */}
-        <div className="px-3.5 py-1.5 flex items-center justify-between text-[10px] font-bold border-b border-gray-100 select-none bg-[#FAFAFA] text-gray-600">
+        <div className={`px-3.5 py-1.5 flex items-center justify-between text-[10px] font-bold border-b border-gray-100 select-none ${isDiwali ? 'bg-[#f3e8ff]' : 'bg-[#FAFAFA]'} text-gray-600`}>
           <div className="flex items-center gap-1.5 truncate">
             <MapPin className="w-3.5 h-3.5 shrink-0 text-gray-500" />
             <span className="truncate">Delivering to {getCityState(user?.city || "Bengaluru")}</span>
@@ -177,7 +177,7 @@ export default function Home() {
         </div>
 
         {/* 2. Category Tab Bar */}
-        <div className="flex items-center justify-between px-3.5 bg-white border-b border-gray-100 relative h-10 select-none text-[11px] font-bold text-gray-700">
+        <div className={`flex items-center justify-between px-3.5 ${isDiwali ? 'bg-[#faf5ff]' : 'bg-white'} border-b border-gray-100 relative h-10 select-none text-[11px] font-bold text-gray-700`}>
           <div className="flex items-center gap-4.5 h-full">
             <div className="border-b-2 border-[#ff3f6c] text-[#ff3f6c] h-full flex items-center justify-center font-bold px-1 gap-1">
               <span>ALL</span>

@@ -215,7 +215,7 @@ export default function Header() {
   };
 
   // Dynamic Theme Classes
-  const headerBg = "bg-white border-b border-[#eaeaec]";
+  const headerBg = activeFestival === "Diwali" ? "bg-[#faf5ff] border-b border-purple-100" : "bg-white border-b border-[#eaeaec]";
   const textColor = "text-[#282c3f]";
   const hoverBorderColor = "hover:border-[#ff3f6c]";
   const inputBg = "bg-[#f5f5f6] focus-within:bg-white focus-within:border-[#eaeaec]";
@@ -301,7 +301,7 @@ export default function Header() {
               </div>
               <input
                 type="text"
-                placeholder="Search for Rakhi, Gifts & more..."
+                placeholder={activeFestival === "Diwali" ? "Search for gifts, saree" : "Search for Rakhi, Gifts & more..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={`flex-1 min-w-0 bg-transparent text-[13px] pl-2 pr-3 py-2.5 rounded-md focus:outline-none ${inputTextColor}`}
