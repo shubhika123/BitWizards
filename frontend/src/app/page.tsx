@@ -2,6 +2,7 @@
 import RakshaBandhanBanner from "../components/RakshaBandhanBanner";
 import YouMayLikeThis from "../components/YouMayLikeThis";
 import React, { useState, useEffect, useRef } from "react";
+import { SahiDaamModal } from "../components/sahidaam/SahiDaamModal";
 import Link from "next/link";
 import Header from "../components/Header";
 import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck, Heart, Gem, Gift } from "lucide-react";
@@ -38,6 +39,7 @@ export default function Home() {
   const { user } = useAuthStore();
   const [currentSlide, setCurrentSlide] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const [isGuessModalOpen, setIsGuessModalOpen] = useState(false);
 
   const [activeFestival, setActiveFestival] = useState<string>("");
   const [simulatedDate, setSimulatedDate] = useState<string>("");
@@ -208,22 +210,20 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 3. Category Story Reels */}
-        <div className="grid grid-cols-5 gap-3 px-3.5 py-4 bg-white border-b border-gray-50 select-none w-full">
+        {/* Subcategory Capsules Reel (Moved from below) */}
+        <div className="sticky top-[125px] z-[45] grid grid-cols-5 gap-2.5 px-3.5 py-4 bg-white border-b border-gray-50 select-none w-full shadow-sm">
           {[
-            { label: "Fashion", img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=150&q=80", bg: "bg-[#1c2536]", href: "/", active: true },
-            { label: "Beauty", img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=150&q=80", bg: "bg-[#f5f5f7]", href: "/" },
-            { label: "Footwear", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=150&q=80", bg: "bg-[#fcf3f3]", href: "/" },
-            { label: "Homeliving", img: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=150&q=80", bg: "bg-[#ffffff]", href: "/" },
-            { label: "Accessories", img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80", bg: "bg-[#3a4439]", href: "/" },
-          ].map((story, i) => (
-            <Link key={i} href={story.href} className="flex flex-col items-center cursor-pointer w-full">
-              <div className={`w-full aspect-square overflow-hidden ${story.bg} border border-gray-150 relative shadow-2xs hover:scale-95 transition-all duration-200 p-0.5`}>
-                <img src={story.img} alt={story.label} className="w-full h-full object-cover" />
+            { label: "Shirt", img: "/shirts.png", href: "/Category/Shirt" },
+            { label: "Kurta Sets", img: "/kurtasets.png", href: "/Category/Kurta Sets" },
+            { label: "Jeans", img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=100&q=80", href: "/Category/Jeans" },
+            { label: "Home Decor", img: "/homedecor.png", href: "/Category/Decor" },
+            { label: "T-Shirt", img: "/tshirt.png", href: "/Category/T-Shirt" },
+          ].map((capsule, i) => (
+            <Link key={i} href={capsule.href} className="flex flex-col items-center cursor-pointer w-full">
+              <div className="w-full aspect-square rounded-full border border-gray-100 overflow-hidden bg-gray-50 shadow-sm relative group hover:scale-95 transition-transform duration-200">
+                <img src={capsule.img} alt={capsule.label} className="w-full h-full object-cover object-top" />
               </div>
-              <span className={`text-[9px] mt-1.5 tracking-tight font-black ${story.active ? "text-[#ff3f6c]" : "text-gray-500"}`}>
-                {story.label}
-              </span>
+              <span className="text-[10px] font-bold text-gray-700 mt-1.5 whitespace-nowrap">{capsule.label}</span>
             </Link>
           ))}
         </div>
@@ -320,6 +320,24 @@ export default function Home() {
               </div>
             </Link>
 
+            {/* Slide 5: Guess the Price */}
+            <div 
+              onClick={() => setIsGuessModalOpen(true)}
+              className="w-full h-full shrink-0 snap-center relative block select-none cursor-pointer bg-white"
+            >
+              <img 
+                src="/guesstheprice.png" 
+                alt="Guess The Price"
+                className="w-full h-full object-contain pb-9"
+              />
+              <div className="absolute bottom-0 left-0 right-0 h-9 bg-[#282c3f] flex items-center justify-between px-4">
+                <span className="text-[#ffd166] text-[9.5px] font-black uppercase tracking-wider">GUESS & WIN REWARDS!</span>
+                <span className="text-white text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1">
+                  PLAY NOW <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </div>
+
           </div>
           
           {/* Circular Pagination dots floating on top */}
@@ -337,71 +355,9 @@ export default function Home() {
 
 
 
-        {/* 4. Main Campaign Banner */}
-        <div className="mt-4 bg-[#fff9f3] border-y border-orange-100 overflow-hidden shadow-xs flex items-center justify-between relative">
-          {/* Left Gym Image */}
-          <div className="w-1/2 h-44 bg-gray-50 overflow-hidden relative">
-            <img src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80" alt="Fitness Campaign" className="w-full h-full object-cover" />
-          </div>
-          {/* Right Text details */}
-          <div className="w-1/2 p-4 flex flex-col justify-center text-center">
-            <div className="flex items-center justify-center gap-1.5 mb-1.5">
-              <span className="font-extrabold text-[8px] bg-black text-white px-1.5 py-0.5 rounded tracking-widest uppercase scale-90">HRX</span>
-              <span className="text-[9px] text-gray-500 font-bold border-l pl-1 border-gray-300">ENRIZZ</span>
-            </div>
-            <span className="text-[8px] text-gray-400 font-bold uppercase tracking-wider block mb-0.5">& More</span>
-            <h3 className="text-xs font-black text-gray-700 leading-tight">Fuel Your Fitness</h3>
-            <div className="text-lg font-black text-gray-800 mt-1 uppercase tracking-tight">
-              UNDER <span className="text-[#ff3f6c]">₹899</span>
-            </div>
-            <div className="absolute bottom-2.5 right-2.5 bg-white/80 p-1 rounded-full border border-gray-150 shadow-xs scale-90 hover:bg-white cursor-pointer transition-colors">
-              <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-            </div>
-          </div>
-        </div>
 
-        {/* 4b. Banner Pagination Dots */}
-        <div className="flex justify-center items-center gap-1 mt-2.5 mb-4 select-none">
-          {[...Array(9)].map((_, i) => (
-            <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? "bg-gray-700" : "bg-gray-200"}`} />
-          ))}
-        </div>
 
-        {/* 5. Axis Bank Cashback Strip Offer */}
-        <div className="mx-3.5 mb-4 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl p-3 border border-emerald-100 flex items-center justify-between shadow-xs select-none">
-          <div className="flex items-center gap-2">
-            {/* Small Card Icon */}
-            <div className="w-7 h-5 bg-[#0b1329] rounded border border-gray-700 relative overflow-hidden flex items-center justify-center shrink-0">
-              <div className="absolute top-0.5 left-0.5 w-1.5 h-0.8 bg-yellow-500 rounded-3xs"></div>
-              <span className="text-[4px] text-teal-400 font-extrabold uppercase scale-[0.6] mt-2">AXIS</span>
-            </div>
-            <div>
-              <span className="text-[9px] font-black text-gray-800 block leading-tight">Get 7.5% Cashback* | 0 Joining Fee</span>
-              <span className="text-[8px] text-gray-500 font-bold block leading-none">With FLIPKART AXIS BANK Credit Card</span>
-            </div>
-          </div>
-          <button className="bg-[#ff3f6c] text-white text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-wider hover:bg-[#e0355f] cursor-pointer shrink-0 transition-colors">
-            Apply Now ›
-          </button>
-        </div>
 
-        {/* 6. Subcategory Capsules Reel */}
-        <div className="grid grid-cols-5 gap-2.5 px-3.5 py-2 bg-white mb-6 select-none w-full">
-          {[
-            { label: "Shirt", img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=100&q=80", href: "/shirts" },
-            { label: "Kurta Sets", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=100&q=80", href: "/" },
-            { label: "Jeans", img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=100&q=80", href: "/" },
-            { label: "Jeans", img: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&w=100&q=80", href: "/" },
-            { label: "T-Shirt", img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=100&q=80", href: "/shirts" },
-          ].map((capsule, i) => (
-            <Link key={i} href={capsule.href} className="flex flex-col items-center cursor-pointer w-full">
-              <div className="w-full aspect-[3/4] border border-gray-150 overflow-hidden bg-gray-50 shadow-3xs relative group hover:scale-95 transition-transform duration-200">
-                <img src={capsule.img} alt={capsule.label} className="w-full h-full object-cover" />
-              </div>
-              <span className="text-[9px] font-black text-gray-500 mt-1">{capsule.label}</span>
-            </Link>
-          ))}
-        </div>
 
         {/* 7. Continue Browsing These Brands */}
         <div className="mx-3.5 mb-6">
@@ -413,8 +369,8 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
             {/* Right Image Card with PLAY TO SLAY */}
-            <div className="relative h-52 rounded-2xl overflow-hidden border border-gray-150 shadow-xs group cursor-pointer bg-gray-50">
-              <img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80" alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <div className="relative h-52 rounded-2xl overflow-hidden shadow-xs group cursor-pointer bg-gray-50">
+              <img src="/playtoslay.png" alt="" className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent flex items-end justify-center pb-3">
                 <div className="bg-black text-white text-[7.5px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-md border border-gray-800 select-none">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> PLAY TO SLAY
@@ -448,7 +404,7 @@ export default function Home() {
                   <img 
                     src={cat.image} 
                     alt={cat.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
@@ -475,6 +431,8 @@ export default function Home() {
         </div>
 
       </main>
+
+      {isGuessModalOpen && <SahiDaamModal onClose={() => setIsGuessModalOpen(false)} />}
     </div>
   );
 }
