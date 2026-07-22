@@ -57,7 +57,7 @@ class Category(SQLModel, table=True):
     category_id: Optional[int] = Field(default=None, primary_key=True)
     category_name: str = Field(max_length=100, nullable=False, unique=True)
 class SearchRequest(BaseModel):
-    query: str
+    query: str = Field(..., max_length=100)
     region: Optional[str] = None
     weather: Optional[str] = None
 
