@@ -18,6 +18,62 @@ from app.services.database import MockDB
 logger = logging.getLogger("app.services.curation_engine")
 
 
+# --- RUNTIME DNS PATCH FOR DEPLOYMENT ENVIRONMENT (RENDER) ---
+import urllib3.util.connection as connection
+
+_hf_resolved_ip = None
+
+def get_hf_ip():
+    global _hf_resolved_ip
+    if _hf_resolved_ip:
+        return _hf_resolved_ip
+    
+    # Try Cloudflare DNS-over-HTTPS (DoH)
+    try:
+        r = requests.get("https://cloudflare-dns.com/dns-query?name=api-inference.huggingface.co&type=A", 
+                         headers={"accept": "application/dns-json"}, timeout=3)
+        if r.ok:
+            answers = r.json().get("Answer", [])
+            for ans in answers:
+                if ans.get("type") == 1:
+                    _hf_resolved_ip = ans.get("data")
+                    logger.info(f"Resolved api-inference.huggingface.co to {_hf_resolved_ip} via Cloudflare DoH")
+                    return _hf_resolved_ip
+    except Exception:
+        pass
+        
+    # Try Google DNS-over-HTTPS (DoH)
+    try:
+        r = requests.get("https://dns.google/resolve?name=api-inference.huggingface.co&type=A", timeout=3)
+        if r.ok:
+            answers = r.json().get("Answer", [])
+            for ans in answers:
+                if ans.get("type") == 1:
+                    _hf_resolved_ip = ans.get("data")
+                    logger.info(f"Resolved api-inference.huggingface.co to {_hf_resolved_ip} via Google DoH")
+                    return _hf_resolved_ip
+    except Exception:
+        pass
+        
+    # Static hardcoded Virginia AWS load balancer IP fallback
+    _hf_resolved_ip = "3.235.136.216"
+    logger.warning(f"DoH resolution failed. Falling back to static IP: {_hf_resolved_ip}")
+    return _hf_resolved_ip
+
+# Store original create_connection
+if not hasattr(connection, "org_create_connection"):
+    connection.org_create_connection = connection.create_connection
+
+def patched_create_connection(address, *args, **kwargs):
+    host, port = address
+    if host == "api-inference.huggingface.co":
+        target_ip = get_hf_ip()
+        return connection.org_create_connection((target_ip, port), *args, **kwargs)
+    return connection.org_create_connection(address, *args, **kwargs)
+
+connection.create_connection = patched_create_connection
+
+
 class CurationEngine:
     _model = None
     _pc = None
@@ -53,7 +109,7 @@ class CurationEngine:
                     elif isinstance(res_data[0], list):
                         return res_data[0]
             except Exception as e:
-                logger.error(f"HuggingFace API embedding failed: {e}")
+                logger.error(f"HuggingFace API embedding failed: {e}", exc_info=True)
                 if os.environ.get("RENDER") == "true":
                     logger.error("Local fallback disabled on Render to prevent OOM crash.")
                     raise RuntimeError("HuggingFace API embedding failed and local fallback is disabled on Render.") from e
