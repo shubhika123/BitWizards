@@ -37,11 +37,12 @@ class CurationEngine:
     def _get_embedding(cls, text: str) -> List[float]:
         """
         Retrieves embedding vector from HuggingFace Inference API, falling back
-        locally to sentence-transformers if not set or failed.
+        locally to sentence-transformers if not set or failed (and not on Render).
         """
         if settings.HF_API_KEY:
             try:
-                url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+                # Use the standard HuggingFace Inference API model endpoint
+                url = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
                 headers = {"Authorization": f"Bearer {settings.HF_API_KEY}"}
                 response = requests.post(url, headers=headers, json={"inputs": text}, timeout=10)
                 response.raise_for_status()
@@ -52,8 +53,15 @@ class CurationEngine:
                     elif isinstance(res_data[0], list):
                         return res_data[0]
             except Exception as e:
-                logger.warning(f"HuggingFace API embedding failed: {e}. Trying local fallback...")
+                logger.error(f"HuggingFace API embedding failed: {e}")
+                if os.environ.get("RENDER") == "true":
+                    logger.error("Local fallback disabled on Render to prevent OOM crash.")
+                    raise RuntimeError("HuggingFace API embedding failed and local fallback is disabled on Render.") from e
+                logger.warning("Trying local fallback...")
         
+        if os.environ.get("RENDER") == "true":
+            raise RuntimeError("HuggingFace API key is missing or failed, and local fallback is disabled on Render.")
+
         if cls._model is None:
             logger.info("Loading SentenceTransformer model 'all-MiniLM-L6-v2' inside emulation engine...")
             from sentence_transformers import SentenceTransformer
