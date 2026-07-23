@@ -7,8 +7,8 @@ from app.config import settings
 
 logger = logging.getLogger("pruna")
 
-PRUNA_FILES_URL = "http://localhost:3000/pruna-api/v1/files"
-PRUNA_PREDICTIONS_URL = "http://localhost:3000/pruna-api/v1/predictions"
+PRUNA_FILES_URL = "https://api.pruna.ai/v1/files"
+PRUNA_PREDICTIONS_URL = "https://api.pruna.ai/v1/predictions"
 
 # Absolute path to the frontend's public directory where catalog images live
 FRONTEND_PUBLIC_DIR = Path(__file__).resolve().parents[3] / "frontend" / "public"
