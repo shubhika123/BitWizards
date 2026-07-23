@@ -19,59 +19,59 @@ logger = logging.getLogger("app.services.curation_engine")
 
 
 # --- RUNTIME DNS PATCH FOR DEPLOYMENT ENVIRONMENT (RENDER) ---
-import urllib3.util.connection as connection
+import socket
 
-_hf_resolved_ip = None
+org_getaddrinfo = socket.getaddrinfo
+_doh_cache = {}
 
-def get_hf_ip():
-    global _hf_resolved_ip
-    if _hf_resolved_ip:
-        return _hf_resolved_ip
+def get_doh_ip(host):
+    if host in _doh_cache:
+        return _doh_cache[host]
     
     # Try Cloudflare DNS-over-HTTPS (DoH)
     try:
-        r = requests.get("https://cloudflare-dns.com/dns-query?name=api-inference.huggingface.co&type=A", 
-                         headers={"accept": "application/dns-json"}, timeout=3)
+        r = requests.get(f"https://cloudflare-dns.com/dns-query?name={host}&type=A", 
+                         headers={"accept": "application/dns-json"}, timeout=2)
         if r.ok:
-            answers = r.json().get("Answer", [])
-            for ans in answers:
+            for ans in r.json().get("Answer", []):
                 if ans.get("type") == 1:
-                    _hf_resolved_ip = ans.get("data")
-                    logger.info(f"Resolved api-inference.huggingface.co to {_hf_resolved_ip} via Cloudflare DoH")
-                    return _hf_resolved_ip
+                    ip = ans.get("data")
+                    _doh_cache[host] = ip
+                    return ip
     except Exception:
         pass
         
     # Try Google DNS-over-HTTPS (DoH)
     try:
-        r = requests.get("https://dns.google/resolve?name=api-inference.huggingface.co&type=A", timeout=3)
+        r = requests.get(f"https://dns.google/resolve?name={host}&type=A", timeout=2)
         if r.ok:
-            answers = r.json().get("Answer", [])
-            for ans in answers:
+            for ans in r.json().get("Answer", []):
                 if ans.get("type") == 1:
-                    _hf_resolved_ip = ans.get("data")
-                    logger.info(f"Resolved api-inference.huggingface.co to {_hf_resolved_ip} via Google DoH")
-                    return _hf_resolved_ip
+                    ip = ans.get("data")
+                    _doh_cache[host] = ip
+                    return ip
     except Exception:
         pass
         
-    # Static hardcoded Virginia AWS load balancer IP fallback
-    _hf_resolved_ip = "3.235.136.216"
-    logger.warning(f"DoH resolution failed. Falling back to static IP: {_hf_resolved_ip}")
-    return _hf_resolved_ip
+    return None
 
-# Store original create_connection
-if not hasattr(connection, "org_create_connection"):
-    connection.org_create_connection = connection.create_connection
+def patched_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    # Force family to AF_INET (IPv4) instead of AF_UNSPEC to prevent IPv6 DNS failures
+    if family == socket.AF_UNSPEC:
+        family = socket.AF_INET
+        
+    try:
+        return org_getaddrinfo(host, port, family, type, proto, flags)
+    except socket.gaierror as e:
+        # If standard DNS resolution failed, attempt dynamic DNS-over-HTTPS fallback
+        if host == "api-inference.huggingface.co":
+            ip = get_doh_ip(host)
+            if ip:
+                logger.info(f"Resolved {host} to {ip} via fallback DoH after resolution failure")
+                return [(socket.AF_INET, socket.SOCK_STREAM, 6, '', (ip, port))]
+        raise e
 
-def patched_create_connection(address, *args, **kwargs):
-    host, port = address
-    if host == "api-inference.huggingface.co":
-        target_ip = get_hf_ip()
-        return connection.org_create_connection((target_ip, port), *args, **kwargs)
-    return connection.org_create_connection(address, *args, **kwargs)
-
-connection.create_connection = patched_create_connection
+socket.getaddrinfo = patched_getaddrinfo
 
 
 class CurationEngine:
