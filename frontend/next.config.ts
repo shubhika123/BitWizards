@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
+    const isProd = process.env.NODE_ENV === "production";
+    const defaultApiUrl = isProd ? "https://bitwizards.onrender.com" : "http://127.0.0.1:8000";
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || defaultApiUrl;
+    
     return [
       {
         source: '/pruna-api/:path*',
@@ -23,7 +27,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/api/:path*',
-        destination: 'http://127.0.0.1:8000/api/:path*',
+        destination: `${apiBase}/api/:path*`,
       },
     ];
   },
