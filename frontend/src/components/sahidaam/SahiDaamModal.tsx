@@ -5,6 +5,8 @@ import { X } from "lucide-react";
 import { CardDeck } from "./CardDeck";
 import { useAuthStore } from "../../store/authStore";
 
+import { API_BASE_URL } from "@/lib/apiConfig";
+
 interface Props {
   onClose: () => void;
 }
@@ -18,7 +20,6 @@ export function SahiDaamModal({ onClose }: Props) {
 
   useEffect(() => {
     const userId = user?.uid || "demo_user_123";
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
     fetch(`${API_BASE_URL}/api/sahidaam/deck/today`, {
       headers: {
         "X-User-Id": userId

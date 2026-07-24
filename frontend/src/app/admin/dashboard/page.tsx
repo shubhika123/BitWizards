@@ -5,12 +5,13 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+import { API_BASE_URL } from "@/lib/apiConfig";
+
 export default function AdminDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
     fetch(`${API_BASE_URL}/api/admin/dashboard`)
       .then(res => res.json())
       .then(d => {

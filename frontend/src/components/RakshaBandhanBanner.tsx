@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { Gift, Gem, ShoppingBag, Sparkles, Truck, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 interface CategoryBoost {
   category_id: number;
@@ -41,7 +42,6 @@ export default function RakshaBandhanBanner() {
 
   const loadActiveFestival = () => {
     const dateStr = localStorage.getItem("simulated_date") || "";
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
     const url = dateStr ? `${API_BASE_URL}/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : `${API_BASE_URL}/fetch-feed`;
 
     fetch(url)

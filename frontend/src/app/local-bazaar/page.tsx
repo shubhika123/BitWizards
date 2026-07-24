@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../../store/authStore";
+import { API_BASE_URL } from "@/lib/apiConfig";
 import {
   MapPin,
   Search,
@@ -1329,7 +1330,6 @@ export default function LocalBazaar() {
       { sender: "user", text: `Namaste! Can I purchase this for ₹${proposedBid}?`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
     ]);
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
       const response = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1384,7 +1384,6 @@ export default function LocalBazaar() {
     setChatMessages(prev => [...prev, userMsg]);
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
       const response = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
