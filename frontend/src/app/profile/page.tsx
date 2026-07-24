@@ -25,10 +25,6 @@ import { useAuthStore } from "../../store/authStore";
 
 export default function MyProfile() {
   const { user, logout, initAuth } = useAuthStore();
-  const [showPreferenceModal, setShowPreferenceModal] = useState(false);
-  const [height, setHeight] = useState(162);
-  const [weight, setWeight] = useState(58);
-  const [size, setSize] = useState("S");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [simulatedDate, setSimulatedDate] = useState<string>("");
   const [showCustomCalendar, setShowCustomCalendar] = useState(false);
@@ -57,31 +53,10 @@ export default function MyProfile() {
 
 
 
-  // Initialize auth session and load settings
+  // Initialize auth session
   useEffect(() => {
     initAuth();
-
-    const saved = localStorage.getItem("dummySettings");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.height) setHeight(parsed.height);
-        if (parsed.weight) setWeight(parsed.weight);
-        if (parsed.size) setSize(parsed.size);
-      } catch (e) {
-        console.error(e);
-      }
-    }
   }, []);
-
-  // Save preferences to localStorage
-  const handleSavePreferences = () => {
-    const settings = { height, weight, size };
-    localStorage.setItem("dummySettings", JSON.stringify(settings));
-    setShowPreferenceModal(false);
-    // Dispatch a storage event to alert other pages if open
-    window.dispatchEvent(new Event("storage"));
-  };
 
   return (
     <div className="bg-[#f5f5f7] min-h-screen flex flex-col font-sans relative">
@@ -161,17 +136,9 @@ export default function MyProfile() {
                   <span className="text-[9px] text-gray-400 font-semibold">{user?.age || 23} Yrs</span>
                   <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                   <span className="text-[9px] text-gray-400 font-semibold">{user?.city || "Bengaluru"}</span>
-                  <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                  <span className="text-[9px] text-gray-400 font-semibold truncate max-w-[120px]">{user?.phone || "+91 9876543210"}</span>
-                </div>
               </div>
             </div>
-            <button 
-              onClick={() => setShowPreferenceModal(true)}
-              className="flex items-center gap-0.5 text-gray-550 border border-gray-250 hover:bg-gray-50 rounded-lg px-2.5 py-1 text-[10px] font-bold shadow-3xs cursor-pointer"
-            >
-              <Plus className="w-3 h-3 text-gray-500" /> Add
-            </button>
+          </div>
           </div>
 
           <div className="w-full h-[1px] bg-gray-100"></div>
@@ -303,23 +270,6 @@ export default function MyProfile() {
               )}
             </div>
           </div>
-
-          <div className="w-full h-[1px] bg-gray-100"></div>
-
-          {/* Preferences list item */}
-          <div 
-            onClick={() => setShowPreferenceModal(true)}
-            className="flex items-center justify-between cursor-pointer hover:bg-gray-50/50 p-1 rounded-lg transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Sliders className="w-4 h-4 text-gray-500" />
-              <div>
-                <h5 className="text-[11.5px] font-black text-gray-800">Shubhika's Preferences</h5>
-                <p className="text-[9.5px] text-gray-400 font-semibold mt-0.5">Basic Details, Size, Hair & Colour Match</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-          </div>
         </div>
 
         {/* 4. Main Links List */}
@@ -443,85 +393,6 @@ export default function MyProfile() {
       </main>
 
       {/* 9. Interactive Preference Modal */}
-      {showPreferenceModal && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end justify-center select-none animate-fade-in">
-          {/* Overlay click to close */}
-          <div onClick={() => setShowPreferenceModal(false)} className="absolute inset-0" />
-          
-          {/* Modal Container */}
-          <div className="relative bg-white w-full rounded-t-3xl p-5 border-t border-gray-150 z-10 shadow-2xl flex flex-col gap-4 animate-in slide-in-from-bottom duration-300">
-            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-              <h3 className="text-xs font-black text-gray-800 uppercase tracking-wide">Edit Twin Preferences</h3>
-              <button 
-                onClick={() => setShowPreferenceModal(false)}
-                className="text-gray-400 hover:text-gray-650 text-base font-bold p-1 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Height Setting */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Height (cm)</label>
-              <div className="flex items-center gap-4">
-                <input 
-                  type="range" 
-                  min="140" 
-                  max="195" 
-                  value={height}
-                  onChange={(e) => setHeight(Number(e.target.value))}
-                  className="flex-1 accent-[#ff3f6c] cursor-pointer"
-                />
-                <span className="text-xs font-black text-[#282c3f] border border-gray-200 px-2 py-0.5 rounded min-w-[50px] text-center bg-gray-50">{height} cm</span>
-              </div>
-            </div>
-
-            {/* Weight Setting */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Weight (kg)</label>
-              <div className="flex items-center gap-4">
-                <input 
-                  type="range" 
-                  min="40" 
-                  max="110" 
-                  value={weight}
-                  onChange={(e) => setWeight(Number(e.target.value))}
-                  className="flex-1 accent-[#ff3f6c] cursor-pointer"
-                />
-                <span className="text-xs font-black text-[#282c3f] border border-gray-200 px-2 py-0.5 rounded min-w-[50px] text-center bg-gray-50">{weight} kg</span>
-              </div>
-            </div>
-
-            {/* Size Setting */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Garment Size</label>
-              <div className="flex gap-2">
-                {["XS", "S", "M", "L", "XL"].map((sz) => (
-                  <button 
-                    key={sz}
-                    onClick={() => setSize(sz)}
-                    className={`flex-1 text-center py-2.5 rounded-lg border text-xs font-black transition-all cursor-pointer ${
-                      size === sz 
-                        ? "border-[#ff3f6c] bg-pink-50 text-[#ff3f6c] shadow-3xs" 
-                        : "border-gray-200 text-gray-600 hover:bg-gray-50 bg-white"
-                    }`}
-                  >
-                    {sz}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Save Button */}
-            <button 
-              onClick={handleSavePreferences}
-              className="bg-gradient-to-r from-[#ff3f6c] to-[#ff6b8b] hover:from-[#e02f59] hover:to-[#f05275] text-white text-xs font-extrabold w-full py-3.5 rounded-xl uppercase tracking-wider shadow-md hover:scale-[1.01] transition-all cursor-pointer text-center"
-            >
-              Save Twin Preferences
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

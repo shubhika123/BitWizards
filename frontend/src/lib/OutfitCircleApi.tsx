@@ -42,8 +42,8 @@ async function handle(res: Response) {
   return res.json();
 }
 
-export async function getUserByUsername(username: string) {
-  const res = await fetch(`${BASE}/users/by-username/${encodeURIComponent(username)}`);
+export async function getUserByPhone(phone: string) {
+  const res = await fetch(`${BASE}/users/by-phone/${encodeURIComponent(phone)}`);
   if (res.status === 404) return null;
   return handle(res);
 }
@@ -83,17 +83,17 @@ export async function createBoard(
   return handle(res);
 }
 
-export async function addMemberByUsername(boardId: number, username: string) {
-  const res = await fetch(`${BASE}/boards/${boardId}/members/by-username/${encodeURIComponent(username)}`, {
+export async function addMemberByPhone(boardId: number, phone: string) {
+  const res = await fetch(`${BASE}/boards/${boardId}/members/by-phone/${encodeURIComponent(phone)}`, {
     method: "POST",
   });
   return handle(res);
 }
 
-export async function acceptBoardInvite(boardId: number, userId: number, username: string) {
+export async function acceptBoardInvite(boardId: number, userId: number, phone: string) {
   const res = await fetch(`${BASE}/boards/${boardId}/members/${userId}/accept`, {
     method: "POST",
-    headers: { "X-User-Username": username },
+    headers: { "X-User-Phone": phone },
   });
   return handle(res);
 }

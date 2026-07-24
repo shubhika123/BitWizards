@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.api import feed, search, bazaar, social, genie, sahidaam, admin
+from app.api import feed, search, bazaar, social, genie, sahidaam, admin, auth
 from app.api.OutfitCircle import router as outfit_circle_router
 
 # Configure logging so pipeline steps are visible in the uvicorn terminal
@@ -46,6 +46,7 @@ app.include_router(social.router, prefix="/api")
 app.include_router(genie.router, prefix="/api")
 app.include_router(sahidaam.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(auth.router, prefix="/auth")
 
 @app.get("/")
 def read_root():

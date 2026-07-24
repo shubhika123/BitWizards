@@ -1,10 +1,10 @@
 // components/RakshaBandhanBanner.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Gift, Gem, ShoppingBag, Sparkles, Truck, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { API_BASE_URL } from "@/lib/apiConfig";
+import { useFeedStore } from "@/store/feedStore";
 
 interface CategoryBoost {
   category_id: number;
@@ -32,66 +32,16 @@ const CATEGORY_IMAGES: Record<string, string> = {
   "Women Ethnic Wear": "https://images.pexels.com/photos/20516292/pexels-photo-20516292.jpeg",
   "Rakhi": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSvn03YsqLkgWtoMWhak0kBwqLtlVIfS4jqTKNotFF7-1d3eaVe684s1cl0AIKaTnDY4mWowIY3CRfniSF95QHora3ci7Fd2OO1yxgmK-o",
   "Jewellery": "https://images.pexels.com/photos/7700270/pexels-photo-7700270.jpeg",
-  "Decor": "https://images.pexels.com/photos/5709661/pexels-photo-5709661.jpeg?auto=format&fit=crop&w=300&q=80",
+  "Decor": "/woman_holding_diya.png",
 };
 
 export default function RakshaBandhanBanner() {
-  const [categories, setCategories] = useState<CategoryBoost[]>(FALLBACK_CATEGORIES);
-  const [loading, setLoading] = useState(true);
-  const [festivalName, setFestivalName] = useState<string>("");
+  const { activeFestival } = useFeedStore();
+  
+  if (activeFestival !== "Diwali" && activeFestival !== "Raksha Bandhan") return null;
 
-  const loadActiveFestival = () => {
-    const dateStr = localStorage.getItem("simulated_date") || "";
-    const url = dateStr ? `${API_BASE_URL}/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : `${API_BASE_URL}/fetch-feed`;
-
-    fetch(url)
-      .then((res) => res.json())
-      .then((data: any) => {
-        let currentFest = "";
-        if (data?.national_festival) {
-          currentFest = data.national_festival;
-        } else if (data?.active_festivals && data.active_festivals.length > 0) {
-          // Find if either diwali or raksha bandhan is active
-          const matches = data.active_festivals.filter((name: string) => name === "Diwali" || name === "Raksha Bandhan");
-          if (matches.length > 0) currentFest = matches[0];
-        } else {
-          // Date fallback
-          if (dateStr >= "2026-11-08" && dateStr <= "2026-11-12") {
-            currentFest = "Diwali";
-          } else if (dateStr === "2026-08-28") {
-            currentFest = "Raksha Bandhan";
-          }
-        }
-
-        if (currentFest === "Diwali" || currentFest === "Raksha Bandhan") {
-          setFestivalName(currentFest);
-          if (currentFest === "Diwali") {
-            setCategories(DIWALI_CATEGORIES);
-          } else {
-            setCategories(FALLBACK_CATEGORIES);
-          }
-        } else {
-          setFestivalName("");
-        }
-      })
-      .catch(() => {
-        setFestivalName("");
-      })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    loadActiveFestival();
-    window.addEventListener("storage", loadActiveFestival);
-    return () => {
-      window.removeEventListener("storage", loadActiveFestival);
-    };
-  }, []);
-
-  if (loading) return null;
-  if (festivalName !== "Diwali" && festivalName !== "Raksha Bandhan") return null;
-
-  const isDiwali = festivalName === "Diwali";
+  const isDiwali = activeFestival === "Diwali";
+  const categories = isDiwali ? DIWALI_CATEGORIES : FALLBACK_CATEGORIES;
 
   return (
     <div className={`mt-3 mb-4 overflow-hidden relative select-none p-5 flex flex-col gap-4 ${
@@ -168,7 +118,7 @@ export default function RakshaBandhanBanner() {
               ? "text-3xl bg-clip-text text-transparent bg-gradient-to-b from-[#fef08a] via-[#f59e0b] to-[#b45309] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" 
               : "text-xl text-[#5c0f1e]"
           }`}>
-            {festivalName}
+            {activeFestival}
           </h2>
           <span className={`${isDiwali ? 'text-[#fcd34d]' : 'text-amber-500'} font-extrabold text-base`}>✦</span>
         </div>
@@ -181,6 +131,14 @@ export default function RakshaBandhanBanner() {
               : "Celebrate The Bond, Festively Styled"}
           </span>
           <span className={`w-8 h-[1px] ${isDiwali ? "bg-amber-300/50" : "bg-amber-400"}`}></span>
+        </div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 h-full aspect-square opacity-70 pointer-events-none">
+          <img 
+            src={isDiwali ? "/diwali-mandala.png" : "/rakhi-mandala.png"} 
+            alt="festive bg"
+            className="w-full h-full object-cover mix-blend-multiply"
+            onError={(e) => e.currentTarget.style.display = 'none'}
+          />
         </div>
       </div>
 

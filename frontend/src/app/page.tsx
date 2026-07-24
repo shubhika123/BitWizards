@@ -8,6 +8,7 @@ import Header from "../components/Header";
 import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, Zap, MapPin, LayoutGrid, Truck, Heart, Gem, Gift } from "lucide-react";
 import { categories } from "../lib/Categories";
 import { useAuthStore } from "../store/authStore";
+import { useFeedStore } from "../store/feedStore";
 
 import { API_BASE_URL as API_BASE_URL_CONFIG } from "../lib/apiConfig";
 
@@ -43,40 +44,7 @@ export default function Home() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isGuessModalOpen, setIsGuessModalOpen] = useState(false);
 
-  const [activeFestival, setActiveFestival] = useState<string>("");
-  const [simulatedDate, setSimulatedDate] = useState<string>("");
-  const loadActiveFestivalName = () => {
-    const dateStr = localStorage.getItem("simulated_date") || "";
-    setSimulatedDate(dateStr);
-    const API_BASE_URL = API_BASE_URL_CONFIG;
-    const url = dateStr ? `${API_BASE_URL}/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : `${API_BASE_URL}/fetch-feed`;
-
-    fetch(url)
-      .then((res) => res.json())
-      .then((data: any) => {
-        let currentFest = "";
-        if (data?.national_festival) {
-          currentFest = data.national_festival;
-        } else if (data?.active_festivals && data.active_festivals.length > 0) {
-          const matches = data.active_festivals.filter((name: string) => name === "Diwali" || name === "Raksha Bandhan");
-          if (matches.length > 0) currentFest = matches[0];
-        } else {
-          // Date fallback
-          if (dateStr >= "2026-11-08" && dateStr <= "2026-11-12") {
-            currentFest = "Diwali";
-          } else if (dateStr === "2026-08-28") {
-            currentFest = "Raksha Bandhan";
-          }
-        }
-        
-        if (currentFest === "Diwali" || currentFest === "Raksha Bandhan") {
-          setActiveFestival(currentFest);
-        } else {
-          setActiveFestival("");
-        }
-      })
-      .catch(() => setActiveFestival(""));
-  };
+  const { activeFestival, loadActiveFestivalName } = useFeedStore();
 
   useEffect(() => {
     loadActiveFestivalName();
@@ -115,7 +83,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col pb-4">
         {/* 1. Location Indicator Row */}
-        <div className={`px-3.5 py-1.5 flex items-center justify-between text-[10px] font-bold border-b border-gray-100 select-none ${isDiwali ? 'bg-[#f3e8ff]' : 'bg-[#FAFAFA]'} text-gray-600`}>
+        <div className="px-3.5 py-1.5 flex items-center justify-between text-[10px] font-bold border-b border-gray-100 select-none bg-[#FAFAFA] text-gray-600">
           <div className="flex items-center gap-1.5 truncate">
             <MapPin className="w-3.5 h-3.5 shrink-0 text-gray-500" />
             <span className="truncate">Delivering to {getCityState(user?.city || "Bengaluru")}</span>
@@ -124,7 +92,7 @@ export default function Home() {
         </div>
 
         {/* 2. Category Tab Bar */}
-        <div className={`flex items-center justify-between px-3.5 ${isDiwali ? 'bg-[#faf5ff]' : 'bg-white'} border-b border-gray-100 relative h-10 select-none text-[11px] font-bold text-gray-700`}>
+        <div className="flex items-center justify-between px-3.5 bg-white border-b border-gray-100 relative h-10 select-none text-[11px] font-bold text-gray-700">
           <div className="flex items-center gap-4.5 h-full">
             <div className="border-b-2 border-[#ff3f6c] text-[#ff3f6c] h-full flex items-center justify-center font-bold px-1 gap-1">
               <span>ALL</span>
@@ -169,10 +137,10 @@ export default function Home() {
             { label: "Shirt", img: "/shirts.png", href: "/Category/Shirt" },
             { label: "Kurta Sets", img: "/kurtasets.png", href: "/Category/Kurta Sets" },
             { label: "Jeans", img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=100&q=80", href: "/Category/Jeans" },
-            { label: "Home Decor", img: "/homedecor.png", href: "/Category/Decor" },
+            { label: "Diwali Decor", img: isDiwali ? "/pooja_setup_category.png" : "/homedecor.png", href: "/Category/Decor" },
             { label: "T-Shirt", img: "/tshirt.png", href: "/Category/T-Shirt" },
           ].map((capsule, i) => (
-            <Link key={i} href={capsule.href} className="flex flex-col items-center cursor-pointer w-full">
+            <Link key={i} href={capsule.href} className="flex flex-col items-center cursor-pointer w-full animate-in fade-in slide-in-from-bottom-4 duration-300 ease-out" style={{ animationDelay: `${i * 75}ms`, animationFillMode: 'both' }}>
               <div className="w-full aspect-square rounded-full border border-gray-100 overflow-hidden bg-gray-50 shadow-sm relative group hover:scale-95 transition-transform duration-200">
                 <img src={capsule.img} alt={capsule.label} className="w-full h-full object-cover object-top" />
               </div>
@@ -182,7 +150,7 @@ export default function Home() {
         </div>
 
         {/* HIGH-FIDELITY CAMPAIGN CAROUSEL (AUTO-PLAYING SLIDER) */}
-        <div className="relative mt-3.5 mb-2.5 overflow-hidden shadow-sm aspect-[4/3] max-h-[260px] border-y border-gray-100/50 bg-[#282c3f]">
+        <div className="relative mt-3.5 mb-2.5 overflow-hidden shadow-sm aspect-[4/3] max-h-[260px] border-y border-gray-100/50 bg-[#282c3f] animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
           <div 
             ref={carouselRef}
             className="flex h-full overflow-x-auto snap-x snap-mandatory scrollbar-none"

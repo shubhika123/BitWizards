@@ -1,0 +1,134 @@
+{
+  "default": {
+    "name": "General Festive",
+    "hexColor": "#ff3f6c",
+    "bannerTitle": "Explore Local Sellers with ",
+    "bannerHighlight": "Trust",
+    "bannerDesc": "Handcrafted accessories, direct handlooms, and traditional clothing.",
+    "bannerImg": "/aadi_bazaar_banner.png",
+    "bannerBtn": "Explore Collections",
+    "bannerBadge": "Bazaar Special",
+    "bannerTag": "✨ SUPPORT LOCAL ARTISANS",
+    "festiveBanner": "bg-gradient-to-r from-[#ff3f6c] to-[#e0355f] text-white",
+    "categories": [
+      { "name": "All", "img": null, "value": "All" },
+      { "name": "Sarees", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear" },
+      { "name": "Jewellery", "img": "/jewellery_category.png", "value": "Jewellery" },
+      { "name": "Footwear", "img": "/traditional_food_category.png", "value": "Footwear" },
+      { "name": "Miscellaneous", "img": "/pooja_essentials_category.png", "value": "Miscellaneous" }
+    ]
+  },
+  "aadi festival": {
+    "name": "Aadi Festival",
+    "hexColor": "#2d5a27",
+    "bannerTitle": "Happy\nAadi Festival!",
+    "bannerHighlight": "",
+    "bannerDesc": "Embrace tradition with Aadi Pooram silks, temple wear & festive cooking essentials.",
+    "bannerImg": "/aadi_bazaar_banner.png",
+    "bannerBtn": "Explore Aadi Collection",
+    "bannerBadge": "Aadi Month Begins Now",
+    "bannerTag": "🏺 AADI FESTIVAL SPECIAL",
+    "festiveBanner": "bg-[#2d5a27]",
+    "categories": [
+      { "name": "Aadi Silks", "img": "/ethnic_wear_category.png" },
+      { "name": "Aadi Essentials", "img": "/pooja_essentials_category.png" },
+      { "name": "Festive Jewellery", "img": "/jewellery_category.png" },
+      { "name": "Home Decor", "img": "/pooja_setup_category.png" },
+      { "name": "Pooja Items", "img": "/pooja_essentials_category.png" }
+    ]
+  },
+  "chhath puja": {
+    "name": "Chhath Puja",
+    "hexColor": "#ea580c",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Chhath Puja",
+    "bannerDesc": "Celebrate the festival of sun, faith & gratitude. Shop essentials from trusted local sellers.",
+    "bannerImg": "/chhath_banner_bg.png",
+    "bannerBtn": "Explore Collection",
+    "bannerBadge": "Chhath Special",
+    "bannerTag": "🌅 CHHATH PUJA SPECIAL",
+    "festiveBanner": "bg-[#2d1a3c]",
+    "categories": [
+      { "name": "Puja Samagri", "img": "/ganesh_category_puja.png" },
+      { "name": "Sarees", "img": "/ethnic_wear_category.png" },
+      { "name": "Accessories", "img": "/traditional_food_category.png" },
+      { "name": "Gifts", "img": "/pooja_essentials_category.png" }
+    ]
+  },
+  "varalakshmi vratam": {
+    "name": "Varalakshmi Vratam",
+    "hexColor": "#7c3aed",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Varalakshmi Vratam",
+    "bannerDesc": "Invite prosperity, health and happiness. Shop puja essentials, sarees, flowers & more.",
+    "bannerImg": "/varalakshmi_banner_bg.png",
+    "bannerBtn": "Explore Collection",
+    "bannerBadge": "Varalakshmi Vratam Special",
+    "bannerTag": "🪷 VARALAKSHMI VRATAM SPECIAL",
+    "festiveBanner": "bg-[#3b1154]",
+    "categories": [
+      { "name": "Puja Samagri", "img": "/ganesh_category_puja.png" },
+      { "name": "Sarees", "img": "/ethnic_wear_category.png" },
+      { "name": "Flowers", "img": "/fresh_pooja_flowers.png" },
+      { "name": "Gifts", "img": "/pooja_essentials_category.png" }
+    ]
+  },
+  "ganesh chaturthi": {
+    "name": "Ganesh Chaturthi",
+    "hexColor": "#ea580c",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Ganesh Chaturthi!",
+    "bannerDesc": "Welcome Bappa with love. Puja essentials, idols, decor, gifts & more from local sellers.",
+    "bannerImg": "/ganesh_banner_bg.png",
+    "bannerBtn": "Explore Collection",
+    "bannerBadge": "Ganpati Bappa Morya!",
+    "bannerTag": "🌼 GANESH CHATURTHI SPECIAL",
+    "festiveBanner": "bg-[#ea580c]",
+    "categories": [
+      { "name": "Puja Essentials", "img": "/ganesh_category_puja.png" },
+      { "name": "Idols", "img": "/ganesh_category_idols.png" },
+      { "name": "Decorations", "img": "/pooja_setup_category.png" },
+      { "name": "Footwear & Juttis", "img": "/traditional_food_category.png" },
+      { "name": "Gifts & Hampers", "img": "/pooja_essentials_category.png" }
+    ]
+  },
+  "lohri": {
+    "name": "Lohri",
+    "hexColor": "#ea580c",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Lohri! 🔥",
+    "bannerDesc": "Celebrate the harvest with warmth, food, music & joy. Shop from trusted local sellers.",
+    "bannerImg": "/lohri_banner_bg.png",
+    "bannerBtn": "Explore Lohri Collection",
+    "bannerBadge": "Lohri Special",
+    "bannerTag": "🔥 LOHRI SPECIAL",
+    "festiveBanner": "bg-[#ea580c]",
+    "categories": [
+      { "name": "Attire", "img": "/ethnic_wear_category.png" },
+      { "name": "Footwear", "img": "/traditional_food_category.png" },
+      { "name": "Decor", "img": "/pooja_setup_category.png" },
+      { "name": "Accessories", "img": "/pooja_essentials_category.png" },
+      { "name": "Jewellery", "img": "/jewellery_category.png" }
+    ]
+  },
+  "durga puja": {
+    "name": "Durga Puja",
+    "hexColor": "#be123c",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Durga Puja!",
+    "bannerDesc": "Celebrate the victory of good over evil with devotion, dhunuchi & festive shopping.",
+    "bannerImg": "/durga_puja_banner_bg.png",
+    "bannerBtn": "Explore Durga Puja Collection",
+    "bannerBadge": "Pujo Special",
+    "bannerTag": "🔱 DURGA PUJA SPECIAL",
+    "festiveBanner": "bg-[#7c1d2e]",
+    "categories": [
+      { "name": "Pooja Essentials", "img": "/ganesh_category_puja.png" },
+      { "name": "Sarees", "img": "/ethnic_wear_category.png" },
+      { "name": "Dhak & Dhunuchi", "img": "/pooja_setup_category.png" },
+      { "name": "Decor", "img": "/pooja_setup_category.png" },
+      { "name": "Idols", "img": "/ganesh_category_idols.png" },
+      { "name": "Gifts & Hampers", "img": "/pooja_essentials_category.png" }
+    ]
+  }
+}

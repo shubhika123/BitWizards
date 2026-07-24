@@ -48,7 +48,7 @@ export default function YouMayLikeThis() {
 
       <div className="flex overflow-x-auto gap-4 px-4 pb-4 snap-x snap-mandatory scrollbar-none relative z-10">
         {items.map((item, idx) => (
-          <Link href="/" key={idx} className="shrink-0 w-[140px] aspect-[3/4] snap-center group relative overflow-hidden rounded-[16px] shadow-sm hover:shadow-md transition-shadow">
+          <Link href="/" key={idx} className="shrink-0 w-[140px] aspect-[3/4] snap-center group relative overflow-hidden rounded-[16px] shadow-sm hover:shadow-md transition-shadow animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out" style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}>
             <img 
               src={item.image_url} 
               alt={item.name} 

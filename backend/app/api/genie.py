@@ -1,7 +1,6 @@
-# pyrefly: ignore [missing-import]
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Dict, Any, Optional
-# pyrefly: ignore [missing-import]
+from sqlmodel import Session
 from pydantic import BaseModel
 from app.models.GenieSchema import (
     NLPParseRequest,
@@ -15,6 +14,7 @@ import traceback
 from app.services.gemini import GeminiService
 from app.services.curation_engine import CurationEngine
 from app.services.pruna import PrunaService
+from app.database import get_session
 
 route_logger = logging.getLogger("genie.try-on")
 
@@ -57,13 +57,13 @@ def parse_genie_prompt(req: NLPParseRequest):
 
 
 @router.post("/curate", response_model=GenieCurateResponse)
-def curate_genie_outfit(req: GenieCurateRequest):
+def curate_genie_outfit(req: GenieCurateRequest, session: Session = Depends(get_session)):
     """
     Curates a budget-compliant 4-piece outfit (Top, Bottom, Footwear, Accessory)
     using the local vector-similarity curation engine. Supports hard exclusions,
     item pinning, and a local-boutique consent prompt.
     """
-    result = CurationEngine.generate_outfit(req)
+    result = CurationEngine.generate_outfit(req, session)
     return GenieCurateResponse(
         outfit=result["outfit"],
         swap_boxes=result.get("swap_boxes"),
@@ -74,7 +74,7 @@ def curate_genie_outfit(req: GenieCurateRequest):
 
 
 @router.post("/curate/alternatives", response_model=List[Dict[str, Any]])
-def get_genie_alternatives(req: GenieAlternativesRequest):
+def get_genie_alternatives(req: GenieAlternativesRequest, session: Session = Depends(get_session)):
     """
     Returns exactly 3 ranked alternatives for a single outfit slot while
     respecting the remaining budget after accounting for the other 3 locked items.
@@ -87,7 +87,7 @@ def get_genie_alternatives(req: GenieAlternativesRequest):
             detail=f"Invalid slot_category. Must be one of ['TOP', 'BOTTOM', 'FOOTWEAR', 'ACCESSORY']."
         )
 
-    alternatives = CurationEngine.get_slot_alternatives(req)
+    alternatives = CurationEngine.get_slot_alternatives(req, session)
     return alternatives
 
 
