@@ -45,9 +45,10 @@ export default function LocalBazaarPage() {
   }, []);
 
   useEffect(() => {
+    if (!activeCity) return;
     const fetchActiveFestival = async () => {
       try {
-        const url = `/api/festivals/active?city=${encodeURIComponent(activeCity)}` +
+        const url = `${API_BASE_URL}/api/festivals/active?city=${encodeURIComponent(activeCity)}` +
           (simulatedDate ? `&simulated_date=${encodeURIComponent(simulatedDate)}` : "");
         const res = await fetch(url);
         if (!res.ok) throw new Error("HTTP error");
