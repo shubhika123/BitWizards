@@ -9,6 +9,7 @@ export interface Boutique {
   verified: boolean;
   x: number;
   y: number;
+  deliveryTime?: string;
 }
 
 export interface Product {
@@ -38,6 +39,8 @@ export interface ThemeColors {
   bgGradient: string;
   headerBg: string;
   headerText: string;
+  hexColor?: string;
+  festiveBanner?: string;
   bannerTitle: string;
   bannerHighlight: string;
   bannerDesc: string;
@@ -45,7 +48,7 @@ export interface ThemeColors {
   bannerBtn: string;
   bannerBadge: string;
   bannerTag: string;
-  categories: { name: string; img: string; value?: string }[];
+  categories: { name: string; img: string | null; value?: string }[];
 }
 
 export interface BazaarState {

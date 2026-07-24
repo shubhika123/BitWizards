@@ -21,6 +21,16 @@ def get_local_bazaar_data(city: Optional[str] = Query(None, description="Filter 
     """
     return BazaarRepository.get_local_bazaar_data(city)
 
+
+@router.get("/cities", response_model=List[Dict[str, str]])
+def get_bazaar_cities():
+    """
+    List cities that have Local Bazaar catalog data.
+    Response: [{ "city": "Belgaum", "state": "Karnataka" }, ...]
+    """
+    return BazaarRepository.get_bazaar_cities()
+
+
 @router.get("/theme", response_model=Dict[str, Any])
 def get_bazaar_theme(festival: Optional[str] = Query(None, description="Festival name to get theme config for")):
     """

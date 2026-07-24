@@ -14,3 +14,7 @@ class BazaarRepository:
     @staticmethod
     def get_local_bazaar_data(city: Optional[str] = None) -> Dict[str, Any]:
         return MockDB.get_local_bazaar_data(city)
+
+    @staticmethod
+    def get_bazaar_cities() -> List[Dict[str, str]]:
+        return MockDB.get_bazaar_cities()
