@@ -2,12 +2,10 @@ fastapi
 uvicorn[standard]
 sqlmodel
 sqlalchemy
-pymysql
 pydantic
 pydantic-settings
 python-dotenv   
 requests
 pinecone
-sentence-transformers
 psycopg2-binary
 pgvector
