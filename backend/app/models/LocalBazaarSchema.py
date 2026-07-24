@@ -78,5 +78,13 @@ class BargainSession(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
+class BazaarNegotiationRequest(BaseModel):
+    boutique_id: str
+    product_id: str
+    proposed_price: int
+    original_price: int
 
-
+class BazaarNegotiationResponse(BaseModel):
+    status: str  # "accepted", "counter-offered", "rejected"
+    final_price: int
+    message: str

@@ -707,10 +707,80 @@ class MockDB:
         return None
 
     @classmethod
-    def get_boutiques(cls, city: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_local_bazaar_data(cls, city: Optional[str] = None) -> Dict[str, Any]:
+        import json
+        import os
+        from pathlib import Path
+        
         if not city:
-            return LOCAL_BOUTIQUES
-        return [b for b in LOCAL_BOUTIQUES if b["city"].lower() == city.lower()]
+            city = "belgaum"
+            
+        city = city.lower().strip()
+        
+        file_path = Path(__file__).resolve().parent / "bazaar_data.json"
+        if file_path.exists():
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                
+            if city in data:
+                entry = data[city]
+                return {
+                    "boutiques": entry.get("boutiques", []),
+                    "products": entry.get("products", []),
+                    "state": entry.get("state", "")
+                }
+                
+            # Handle alias fallbacks
+            alias_map = {
+                "mysuru": "vizag",
+                "madurai": "coimbatore",
+                "salem": "coimbatore",
+                "bengaluru": "coimbatore",
+                "mumbai": "belgaum",
+                "vijayawada": "vizag",
+                "ludhiana": "amritsar",
+            }
+            if city in alias_map:
+                fallback_key = alias_map[city]
+                entry = data.get(fallback_key, {})
+                return {
+                    "boutiques": entry.get("boutiques", []),
+                    "products": entry.get("products", []),
+                    "state": entry.get("state", "")
+                }
+                
+            # Default fallback
+            entry = data.get("belgaum", {})
+            return {
+                "boutiques": entry.get("boutiques", []),
+                "products": entry.get("products", []),
+                "state": entry.get("state", "")
+            }
+            
+        return {"boutiques": [], "products": [], "state": ""}
+
+    @classmethod
+    def get_bazaar_theme(cls, festival: Optional[str] = None) -> Dict[str, Any]:
+        import json
+        from pathlib import Path
+        
+        file_path = Path(__file__).resolve().parent / "bazaar_themes.json"
+        if not file_path.exists():
+            return {}
+        
+        with open(file_path, "r", encoding="utf-8") as f:
+            themes = json.load(f)
+        
+        if festival:
+            key = festival.strip().lower()
+            if key in themes:
+                return themes[key]
+        
+        return themes.get("default", {})
+
+    @classmethod
+    def get_boutiques(cls, city: Optional[str] = None) -> List[Dict[str, Any]]:
+        return cls.get_local_bazaar_data(city).get("boutiques", [])
 
     @classmethod
     def get_genie_products(cls) -> List[Dict[str, Any]]:

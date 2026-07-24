@@ -1,65 +1,17 @@
-import uuid
 import datetime
 import random
 from typing import List, Dict, Any, Optional
 
-from app.services.database import CATALOG
-
-# In-memory stores (mock DB)
-challenge_items: Dict[str, Any] = {}
-daily_decks: Dict[str, Any] = {}
-deck_cards: Dict[str, Any] = {}
-user_reward_ledger: Dict[str, Any] = {}
-user_interactions_log: List[Dict[str, Any]] = []
-user_preferences: Dict[str, Dict[str, set]] = {}
+from app.repository.sahidaam_repo import SahiDaamRepository
 
 def get_user_preferences(user_id: str) -> Dict[str, set]:
-    if user_id not in user_preferences:
-        user_preferences[user_id] = {
-            "wishlist": set(),
-            "unrecommend": set()
-        }
-    return user_preferences[user_id]
-
-ppi_aggregates: List[Dict[str, Any]] = [
-    {
-        "category": "Topwear",
-        "region": "North",
-        "age_band": "18-24",
-        "gender": "Unisex",
-        "median_ppi": 1.15,  # Perceived 15% higher than actual
-        "sample_size": 1240,
-        "computed_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
-    }
-]
+    return SahiDaamRepository.get_user_preferences(user_id)
 
 def init_mock_db():
-    if not challenge_items:
-        for item in CATALOG:
-            c_id = str(uuid.uuid4())
-            challenge_items[c_id] = {
-                "id": c_id,
-                "product_id": item["id"],
-                "actual_price": item["price"],
-                "category": item["category"],
-                "detail_tiers": [
-                    {"reveal_at_seconds": 15, "label": "Category", "value": item["category"]},
-                    {"reveal_at_seconds": 30, "label": "Gender", "value": item.get("gender", "Unisex")},
-                    {"reveal_at_seconds": 45, "label": "Style", "value": ", ".join(item.get("aesthetic_tags", [])[:2])}
-                ],
-                "image_url": item.get("image_url"),
-                "name": item.get("name")
-            }
+    SahiDaamRepository.init_mock_db()
 
 def get_user_ledger(user_id: str) -> Dict[str, Any]:
-    if user_id not in user_reward_ledger:
-        user_reward_ledger[user_id] = {
-            "user_id": user_id,
-            "points_balance": 0,
-            "streak_count": 0,
-            "last_played_date": None
-        }
-    return user_reward_ledger[user_id]
+    return SahiDaamRepository.get_user_ledger(user_id)
 
 def update_streak(user_id: str):
     ledger = get_user_ledger(user_id)
@@ -77,6 +29,7 @@ def update_streak(user_id: str):
 
 def expire_stale_cards(user_id: str):
     now = datetime.datetime.now(datetime.timezone.utc)
+    deck_cards = SahiDaamRepository.get_deck_cards()
     for cid, card in deck_cards.items():
         if card["user_id"] == user_id and card["status"] == "shown":
             if card["shown_at"] is not None:
@@ -90,6 +43,10 @@ def get_today_deck(user_id: str) -> List[Dict[str, Any]]:
     
     today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
     
+    daily_decks = SahiDaamRepository.get_daily_decks()
+    deck_cards = SahiDaamRepository.get_deck_cards()
+    challenge_items = SahiDaamRepository.get_challenge_items()
+    
     # 1. Find or create today's deck
     deck_id = None
     for did, d in daily_decks.items():
@@ -98,13 +55,14 @@ def get_today_deck(user_id: str) -> List[Dict[str, Any]]:
             break
             
     if not deck_id:
+        import uuid
         deck_id = str(uuid.uuid4())
-        daily_decks[deck_id] = {
+        SahiDaamRepository.add_daily_deck(deck_id, {
             "id": deck_id,
             "user_id": user_id,
             "date": today,
             "generated_at": datetime.datetime.now(datetime.timezone.utc)
-        }
+        })
     
     # 2. Count how many cards are played vs pending for this user today
     played_count = 0
@@ -137,6 +95,7 @@ def get_today_deck(user_id: str) -> List[Dict[str, Any]]:
         selected = items[:needed]
         
         for i, item in enumerate(selected):
+            import uuid
             card_id = str(uuid.uuid4())
             new_card = {
                 "id": card_id,
@@ -158,7 +117,7 @@ def get_today_deck(user_id: str) -> List[Dict[str, Any]]:
                 "image_url": item["image_url"],
                 "detail_tiers": item["detail_tiers"]
             }
-            deck_cards[card_id] = new_card
+            SahiDaamRepository.add_deck_card(card_id, new_card)
             pending_cards.append(new_card)
 
     # Sort by position so they are presented in order
@@ -167,6 +126,7 @@ def get_today_deck(user_id: str) -> List[Dict[str, Any]]:
 
 def mark_card_shown(card_id: str, user_id: str) -> Optional[datetime.datetime]:
     expire_stale_cards(user_id)
+    deck_cards = SahiDaamRepository.get_deck_cards()
     card = deck_cards.get(card_id)
     if not card or card["user_id"] != user_id:
         raise ValueError("Card not found")
@@ -201,6 +161,7 @@ def speed_bonus_curve(elapsed_seconds: float) -> int:
 
 def submit_card(card_id: str, user_id: str, guess_amount: float) -> Dict[str, Any]:
     expire_stale_cards(user_id)
+    deck_cards = SahiDaamRepository.get_deck_cards()
     card = deck_cards.get(card_id)
     if not card or card["user_id"] != user_id:
         raise ValueError("Card not found")
@@ -235,7 +196,7 @@ def submit_card(card_id: str, user_id: str, guess_amount: float) -> Dict[str, An
     card["total_points"] = total_points
     
     # Log interaction for data processing
-    user_interactions_log.append({
+    SahiDaamRepository.log_interaction({
         "timestamp": now.isoformat(),
         "user_id": user_id,
         "card_id": card_id,
@@ -257,6 +218,7 @@ def submit_card(card_id: str, user_id: str, guess_amount: float) -> Dict[str, An
     }
 
 def swipe_card(card_id: str, user_id: str, action: str):
+    deck_cards = SahiDaamRepository.get_deck_cards()
     card = deck_cards.get(card_id)
     if not card or card["user_id"] != user_id:
         raise ValueError("Card not found")
@@ -284,7 +246,7 @@ def swipe_card(card_id: str, user_id: str, action: str):
         prefs["unrecommend"].add(card["item_id"])
         
     # Log interaction for data processing
-    user_interactions_log.append({
+    SahiDaamRepository.log_interaction({
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "user_id": user_id,
         "card_id": card_id,
@@ -293,3 +255,6 @@ def swipe_card(card_id: str, user_id: str, action: str):
         "action": action,
         "intent": intent
     })
+
+ppi_aggregates = SahiDaamRepository.get_ppi_aggregates()
+

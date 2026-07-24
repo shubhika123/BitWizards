@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Dict, Any, Optional
-from app.models.FestivalSchema import BazaarNegotiationRequest, BazaarNegotiationResponse
-from app.services.database import MockDB
+from app.models.LocalBazaarSchema import BazaarNegotiationRequest, BazaarNegotiationResponse
+from app.repository.bazaar_repo import BazaarRepository
+from app.services.bazaar_service import BazaarService
 
 router = APIRouter(prefix="/bazaar", tags=["bazaar"])
 
@@ -10,61 +11,43 @@ def get_local_boutiques(city: Optional[str] = Query(None, description="Filter bo
     """
     Get all nearby verified local boutiques.
     """
-    return MockDB.get_boutiques(city)
+    return BazaarRepository.get_local_boutiques(city)
+
+@router.get("/data", response_model=Dict[str, Any])
+def get_local_bazaar_data(city: Optional[str] = Query(None, description="Filter bazaar data by city")):
+    """
+    Get all nearby verified local boutiques and their products for the bazaar feed.
+    Response includes: boutiques[], products[], state (city's state name).
+    """
+    return BazaarRepository.get_local_bazaar_data(city)
+
+@router.get("/theme", response_model=Dict[str, Any])
+def get_bazaar_theme(festival: Optional[str] = Query(None, description="Festival name to get theme config for")):
+    """
+    Get the UI theme configuration for a given festival.
+    Returns banner images, colors, categories, and text copy for the Local Bazaar page.
+    Falls back to the default theme if festival not found.
+    """
+    from app.services.database import MockDB
+    return MockDB.get_bazaar_theme(festival)
+
+
+@router.get("/probability", response_model=Dict[str, Any])
+def get_bargain_probability(original_price: int, proposed_price: int):
+    """
+    Get the probability of a boutique accepting a proposed bargain.
+    """
+    if original_price <= 0:
+        raise HTTPException(status_code=400, detail="Original price must be greater than zero")
+    return BazaarService.get_bargain_probability(original_price, proposed_price)
 
 @router.post("/negotiate", response_model=BazaarNegotiationResponse)
 def negotiate_price(req: BazaarNegotiationRequest):
     """
     Interactive 'Request Best Price' feature. Simulates local bazaar bargaining response.
     """
-    original = req.original_price
-    proposed = req.proposed_price
-    
-    if proposed <= 0:
+    if req.proposed_price <= 0:
         raise HTTPException(status_code=400, detail="Proposed price must be greater than zero")
         
-    if proposed >= original:
-        return BazaarNegotiationResponse(
-            status="accepted",
-            final_price=original,
-            message="Thank you! The item is available at the standard listing price. Added to cart."
-        )
-        
-    ratio = proposed / original
-    
-    # Negotiation Logic
-    if ratio >= 0.92:
-        # Accept proposed price
-        return BazaarNegotiationResponse(
-            status="accepted",
-            final_price=proposed,
-            message=f"Acceptable! The boutique has agreed to your price of ₹{proposed}. Limited festival stock reserved for you!"
-        )
-    elif ratio >= 0.82:
-        # Counter-offer
-        counter = int((original + proposed) / 2)
-        # Ensure it's a clean round number
-        counter = (counter // 10) * 10
-        return BazaarNegotiationResponse(
-            status="counter-offered",
-            final_price=counter,
-            message=f"Boutique response: 'Since you are shopping for the festival, we can do ₹{counter}. That is our absolute best price!'"
-        )
-    elif ratio >= 0.70:
-        # Reject and suggest 85%
-        counter = int(original * 0.85)
-        counter = (counter // 10) * 10
-        return BazaarNegotiationResponse(
-            status="counter-offered",
-            final_price=counter,
-            message=f"Boutique response: '₹{proposed} is too low for pure handloom fabric. We can offer a festive discount down to ₹{counter}.'"
-        )
-    else:
-        # Flat rejection
-        counter = int(original * 0.90)
-        counter = (counter // 10) * 10
-        return BazaarNegotiationResponse(
-            status="rejected",
-            final_price=counter,
-            message=f"Boutique response: 'Sorry, we cannot offer the item at ₹{proposed}. The lowest we can do for this premium work is ₹{counter}.'"
-        )
+    result = BazaarService.calculate_negotiation(req.original_price, req.proposed_price)
+    return BazaarNegotiationResponse(**result)

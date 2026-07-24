@@ -13,7 +13,8 @@ from typing import List, Dict, Any, Optional
 from pinecone import Pinecone
 from app.config import settings
 from app.models.GenieSchema import GenieCurateRequest, GenieAlternativesRequest
-from app.services.database import MockDB
+from app.repository.product_repo import ProductRepository
+from sqlmodel import Session
 
 logger = logging.getLogger("app.services.curation_engine")
 
@@ -173,7 +174,7 @@ class CurationEngine:
         return True
 
     @classmethod
-    def generate_outfit(cls, req: GenieCurateRequest) -> Dict[str, Any]:
+    def generate_outfit(cls, req: GenieCurateRequest, session: Session) -> Dict[str, Any]:
         """
         Generate a complete, cohesive 4-piece outfit using local sentence embeddings,
         Pinecone category queries, and constraint-based budget permutations.
@@ -183,8 +184,9 @@ class CurationEngine:
         
         locked_items_by_slot = {}
         for p_id in req.locked_item_ids:
-            item = MockDB.get_product(p_id)
-            if item:
+            product_obj = ProductRepository.get_product_by_id(session, p_id)
+            if product_obj:
+                item = product_obj.model_dump()
                 front_cat = cls.map_pinecone_category_to_frontend(item["category"])
                 locked_items_by_slot[front_cat] = {
                     "id": item["id"],
@@ -250,9 +252,10 @@ class CurationEngine:
                     continue
 
                 meta = match.metadata
-                full_product = MockDB.get_product(match.id)
-                if not full_product:
+                product_obj = ProductRepository.get_product_by_id(session, match.id)
+                if not product_obj:
                     continue
+                full_product = product_obj.model_dump()
                 
                 if cls._is_gender_mismatched(req.user_gender, full_product.get("gender")):
                     continue
@@ -312,7 +315,7 @@ class CurationEngine:
                 })
 
             if not candidates:
-                fallback_items = [p for p in MockDB.get_products() if p["category"] == pinecone_cat]
+                fallback_items = [p.model_dump() for p in ProductRepository.get_all_products(session) if p.category == pinecone_cat]
                 for p in fallback_items:
                     if cls._is_gender_mismatched(req.user_gender, p.get("gender")):
                         continue
@@ -413,7 +416,7 @@ class CurationEngine:
         }
 
     @classmethod
-    def get_slot_alternatives(cls, req: GenieAlternativesRequest) -> List[Dict[str, Any]]:
+    def get_slot_alternatives(cls, req: GenieAlternativesRequest, session: Session) -> List[Dict[str, Any]]:
         index = cls._get_resources()
 
         slot = req.category_to_refresh or req.slot_category
@@ -428,9 +431,9 @@ class CurationEngine:
 
         other_total = 0.0
         for p_id in active_ids:
-            p = MockDB.get_product(p_id)
-            if p:
-                other_total += float(p["price"])
+            product_obj = ProductRepository.get_product_by_id(session, p_id)
+            if product_obj:
+                other_total += float(product_obj.price)
         
         remaining_budget = float(req.max_budget) - other_total if req.max_budget else 100000
 
@@ -470,9 +473,10 @@ class CurationEngine:
             if match.id in active_set:
                 continue
 
-            full_product = MockDB.get_product(match.id)
-            if not full_product:
+            product_obj = ProductRepository.get_product_by_id(session, match.id)
+            if not product_obj:
                 continue
+            full_product = product_obj.model_dump()
                 
             if cls._is_gender_mismatched(req.user_gender, full_product.get("gender")):
                 continue

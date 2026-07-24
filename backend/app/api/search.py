@@ -1,9 +1,11 @@
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlmodel import Session
 from typing import List, Dict, Any
-from app.models.FestivalSchema import SearchRequest, SearchResponse
-from app.services.database import MockDB
+from app.models.SearchSchema import SearchRequest, SearchResponse
+from app.repository.product_repo import ProductRepository
 from app.services.gemini import GeminiService
+from app.database import get_session
 
 logger = logging.getLogger("app.api.search")
 
@@ -15,7 +17,7 @@ PARSED_INTENT_CACHE: Dict[str, Any] = {}
 
 
 @router.post("", response_model=SearchResponse)
-def search_products(req: SearchRequest):
+def search_products(req: SearchRequest, session: Session = Depends(get_session)):
     """
     NLP powered Search. CURRENTLY IN PARSER-ONLY TESTING MODE.
     Extracts search attributes from the natural language prompt and returns immediately
@@ -61,7 +63,7 @@ def search_products(req: SearchRequest):
     style = parsed_intent.get("style")
     categories = parsed_intent.get("categories") or []
     
-    products = MockDB.get_products()
+    products = ProductRepository.get_all_products(session)
     matched_products = []
     
     context = {

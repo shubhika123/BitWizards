@@ -99,7 +99,7 @@ export default function Header() {
   };
 
   // Dynamic Theme Classes
-  const headerBg = activeFestival === "Diwali" ? "bg-[#faf5ff] border-b border-purple-100" : "bg-white border-b border-[#eaeaec]";
+  const headerBg = "bg-white border-b border-[#eaeaec]";
   const textColor = "text-[#282c3f]";
   const hoverBorderColor = "hover:border-[#ff3f6c]";
   const inputBg = "bg-[#f5f5f6] focus-within:bg-white focus-within:border-[#eaeaec]";

@@ -1,15 +1,15 @@
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, Query
+# pyrefly: ignore [missing-import]
 from sqlmodel import Session
 from typing import Optional
 
 from app.database import get_session
 from app.services.feedService import get_active_festivals, get_category_boost_map
-from app.api.OutfitCircle import router as outfit_circle_router
 
 from datetime import datetime, date
 
 router = APIRouter()
-router.include_router(outfit_circle_router)
 
 @router.get("/fetch-feed")
 def fetch_feed(

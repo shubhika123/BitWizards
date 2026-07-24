@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Column, JSON
 from typing import Optional, List
 from datetime import datetime
@@ -106,3 +107,14 @@ class PollVote(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("poll_id", "user_id", name="uq_poll_user_vote"),
     )
+
+class VoteRequest(BaseModel):
+    group_id: str
+    item_id: str
+    user: str
+
+class CommentRequest(BaseModel):
+    group_id: str
+    item_id: str
+    user: str
+    text: str

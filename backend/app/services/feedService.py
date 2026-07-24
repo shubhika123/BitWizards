@@ -2,10 +2,10 @@
 from datetime import date as date_type
 from decimal import Decimal
 from typing import List, Optional
-
-from sqlmodel import Session, select
-
-from app.models.FestivalSchema import Festival, FestivalBoostRule, Category
+from sqlmodel import Session
+from app.models.FestivalSchema import Festival
+from app.models.CategorySchema import Category
+from app.repository.feed_repo import FeedRepository
 
 
 def get_active_festivals(
@@ -16,12 +16,7 @@ def get_active_festivals(
     """Return festivals active today, optionally filtered by city or national tag."""
     today = today or date_type.today()
 
-    statement = select(Festival).where(
-        Festival.is_active == True,
-        Festival.start_date <= today,
-        Festival.end_date >= today,
-    )
-    festivals = session.exec(statement).all()
+    festivals = FeedRepository.get_active_festivals(session, today)
 
     if city:
         city_lower = city.strip().lower()
@@ -49,12 +44,7 @@ def get_category_boost_map(
 
     festival_ids = [f.festival_id for f in festivals]
 
-    statement = (
-        select(FestivalBoostRule, Category.category_name)
-        .join(Category, Category.category_id == FestivalBoostRule.category_id)
-        .where(FestivalBoostRule.festival_id.in_(festival_ids))
-    )
-    rows = session.exec(statement).all()
+    rows = FeedRepository.get_boost_rules_with_category_name(session, festival_ids)
 
     boost_map: dict[int, dict] = {}
     for rule, category_name in rows:

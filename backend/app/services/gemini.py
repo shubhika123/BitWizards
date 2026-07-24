@@ -347,8 +347,8 @@ class GeminiService:
         3. Finds a combination of 4 items whose sum is <= max_budget.
         4. Employs fallback logic if the budget is tight.
         """
-        from app.services.database import MockDB
-        all_products = MockDB.get_genie_products()
+        from app.repository.product_repo import ProductRepository
+        all_products = ProductRepository.get_genie_products()
         
         # Filter by occasion (or default to Casual if no match)
         matched_products = [

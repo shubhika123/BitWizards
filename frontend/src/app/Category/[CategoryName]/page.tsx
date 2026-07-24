@@ -31,9 +31,9 @@ export default function CategoryPage() {
           {products.map((product) => (
             <div
               key={product.product_id}
-              className="bg-white border border-[#eaeaec] rounded-xl overflow-hidden shadow-sm flex flex-col justify-between"
+              className="bg-white border border-[#eaeaec] rounded-xl overflow-hidden shadow-sm flex flex-col justify-between animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out"
             >
-              <div className="h-40 relative bg-slate-100">
+              <div className="aspect-[3/4] relative bg-slate-100">
                 <PinButton product={product} />
                 <img
                   src={product.product_image_url}
