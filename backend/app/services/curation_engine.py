@@ -64,7 +64,7 @@ def patched_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
         return org_getaddrinfo(host, port, family, type, proto, flags)
     except socket.gaierror as e:
         # If standard DNS resolution failed, attempt dynamic DNS-over-HTTPS fallback
-        if host == "api-inference.huggingface.co":
+        if host == "router.huggingface.co":
             ip = get_doh_ip(host)
             if ip:
                 logger.info(f"Resolved {host} to {ip} via fallback DoH after resolution failure")
@@ -98,7 +98,7 @@ class CurationEngine:
         if settings.HF_API_KEY:
             try:
                 # Use the standard HuggingFace Inference API model endpoint
-                url = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
+                url = "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2"
                 headers = {"Authorization": f"Bearer {settings.HF_API_KEY}"}
                 response = requests.post(url, headers=headers, json={"inputs": text}, timeout=10)
                 response.raise_for_status()
