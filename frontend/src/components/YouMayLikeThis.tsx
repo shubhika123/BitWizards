@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
+import { API_BASE_URL } from "@/lib/apiConfig";
+
 interface OverGuessedItem {
   name: string;
   image_url: string;
@@ -16,7 +18,6 @@ export default function YouMayLikeThis() {
   const [items, setItems] = useState<OverGuessedItem[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
     fetch(`${API_BASE_URL}/api/sahidaam/recommendations/over-guessed`)
       .then(res => res.json())
       .then(data => {

@@ -2,9 +2,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.api import feed, search, bazaar, social, genie, sahidaam
+from app.api import feed, search, bazaar, social, genie, sahidaam, admin
 from app.api.OutfitCircle import router as outfit_circle_router
-from app.api.contest import router as contest_router
 
 # Configure logging so pipeline steps are visible in the uvicorn terminal
 logging.basicConfig(
@@ -17,8 +16,8 @@ logging.basicConfig(
 
 
 app = FastAPI(
-    title="Myntra Bharat Layer API",
-    description="AI-powered Hyper-local Context and Discovery Layer for Tier 2/3 Markets.",
+    title="BitWizards",
+    description="AI-powered Fashion App",
     version="1.0.0",
     debug=settings.DEBUG
 )
@@ -46,12 +45,13 @@ app.include_router(bazaar.router, prefix="/api")
 app.include_router(social.router, prefix="/api")
 app.include_router(genie.router, prefix="/api")
 app.include_router(sahidaam.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
 
 @app.get("/")
 def read_root():
     return {
         "status": "online",
-        "service": "Myntra Bharat Layer Backend",
+        "service": "BitWizards Backend",
         "version": "1.0.0",
         "groq_api_configured": bool(settings.GROQ_API_KEY)
     }

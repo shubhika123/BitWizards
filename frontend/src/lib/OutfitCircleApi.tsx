@@ -1,5 +1,5 @@
-// lib/OutfitCircleApi.ts
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";const BASE = `${API_BASE_URL}/outfit-circle`;
+import { API_BASE_URL } from "./apiConfig";
+const BASE = `${API_BASE_URL}/outfit-circle`;
 export interface PinnedProduct {
   pin_id: number;
   board_id: number;
@@ -201,32 +201,5 @@ export async function updatePinCanvas(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(canvas),
   });
-  return handle(res);
-}
-
-export async function submitContestGuess(payload: {
-  user_id: number;
-  product_name: string;
-  category: string;
-  guessed_price: number;
-  actual_price: number;
-  coins_won: number;
-  result_msg: string;
-}) {
-  const res = await fetch(`/api/contest/submit`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return handle(res);
-}
-
-export async function getContestHistory(userId: number) {
-  const res = await fetch(`/api/contest/history?user_id=${userId}`);
-  return handle(res);
-}
-
-export async function getContestStatus(userId: number) {
-  const res = await fetch(`/api/contest/status?user_id=${userId}`);
   return handle(res);
 }

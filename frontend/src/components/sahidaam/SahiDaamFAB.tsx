@@ -5,6 +5,8 @@ import { Sparkles, X } from "lucide-react";
 import { SahiDaamModal } from "./SahiDaamModal";
 import { useAuthStore } from "../../store/authStore";
 
+import { API_BASE_URL } from "@/lib/apiConfig";
+
 export function SahiDaamFAB() {
   const [isOpen, setIsOpen] = useState(false);
   const [stats, setStats] = useState<{ points_balance: number; streak_count: number } | null>(null);
@@ -13,7 +15,6 @@ export function SahiDaamFAB() {
   const { user } = useAuthStore();
   useEffect(() => {
     const userId = user?.uid || "demo_user_123";
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
     fetch(`${API_BASE_URL}/api/sahidaam/rewards/summary`, {
       headers: {
         "X-User-Id": userId

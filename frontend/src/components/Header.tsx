@@ -16,6 +16,8 @@ import { GenieEntryButton } from "./genie/GenieEntryButton";
 import { useAuthStore } from "../store/authStore";
 import { categories } from "../lib/Categories";
 
+import { API_BASE_URL as API_BASE_URL_CONFIG } from "../lib/apiConfig";
+
 const MyntraLogo = ({ className = "w-7 h-7" }: { className?: string }) => (
   <svg viewBox="10 5 80 70" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M22 68 C14 68 12 55 18 35 C24 15 31 10 35 10 C39 10 41 16 38 30 C34 50 30 68 22 68 Z" fill="#E71B5A" opacity="0.95" />
@@ -38,7 +40,7 @@ export default function Header() {
 
   const loadActiveFestivalHeader = () => {
     const dateStr = localStorage.getItem("simulated_date") || "";
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    const API_BASE_URL = API_BASE_URL_CONFIG;
     const url = dateStr ? `${API_BASE_URL}/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : `${API_BASE_URL}/fetch-feed`;
 
     fetch(url)

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
 import { CheckCircle2, XCircle, Heart, ThumbsDown, X } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 interface DetailTier {
   reveal_at_seconds: number;
@@ -87,7 +88,6 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
   // Mark as shown when it becomes active
   useEffect(() => {
     if (isActive && status === "pending") {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
       fetch(`${API_BASE_URL}/api/sahidaam/deck/card/${card.id}/shown`, { 
         method: "POST",
         headers: { "X-User-Id": userId }
@@ -108,7 +108,6 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
     if (status !== "shown") return;
     setStatus("submitted");
     
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
     fetch(`${API_BASE_URL}/api/sahidaam/deck/card/${card.id}/submit`, {
       method: "POST",
       headers: { 
@@ -155,7 +154,6 @@ export function Card({ card, isActive, onSwipe, onAdvance }: Props) {
       setStatus("dismissed");
     }
     
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
     fetch(`${API_BASE_URL}/api/sahidaam/deck/card/${card.id}/swipe`, {
       method: "POST",
       headers: { 

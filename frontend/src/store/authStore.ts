@@ -4,8 +4,7 @@ import { isMockAuth, auth, db } from "../lib/firebase";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
-const OUTFIT_CIRCLE_API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+import { API_BASE_URL as OUTFIT_CIRCLE_API_BASE } from "../lib/apiConfig";
 
 export interface UserProfile {
   uid: string;

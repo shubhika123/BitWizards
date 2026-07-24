@@ -9,6 +9,8 @@ import { Sparkles, ArrowRight, Percent, ChevronRight, ShoppingBag, ShieldCheck, 
 import { categories } from "../lib/Categories";
 import { useAuthStore } from "../store/authStore";
 
+import { API_BASE_URL as API_BASE_URL_CONFIG } from "../lib/apiConfig";
+
 // State mapping lookup for target Indian cities celebrative of festivals
 const cityToStateMap: Record<string, string> = {
   "amritsar": "Punjab",
@@ -46,7 +48,7 @@ export default function Home() {
   const loadActiveFestivalName = () => {
     const dateStr = localStorage.getItem("simulated_date") || "";
     setSimulatedDate(dateStr);
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://bitwizards.onrender.com";
+    const API_BASE_URL = API_BASE_URL_CONFIG;
     const url = dateStr ? `${API_BASE_URL}/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : `${API_BASE_URL}/fetch-feed`;
 
     fetch(url)
