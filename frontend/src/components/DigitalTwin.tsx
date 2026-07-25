@@ -23,6 +23,8 @@ import { useGenieStore, GenieItem } from "../store/genieStore";
 import { fetchImageAsBlob } from "../utils/imageUtils";
 import PinToBoardModal from "./OutfitCircle/PinToBoardModal";
 import { PromoCarousel } from "./PromoCarousel";
+import { API_BASE_URL } from "../lib/apiConfig";
+
 
 const STARTER_MODELS = [
   {
@@ -149,8 +151,9 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
         };
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ""}/api/genie/curate/alternatives`,
+          `${API_BASE_URL}/api/genie/curate/alternatives`,
           {
+
             method: "POST",
             headers: {
               "Content-Type": "application/json",

@@ -2,8 +2,8 @@
 
 import { useCallback, useState, useRef } from "react";
 import { useGenieStore, GenieParsedContext } from "../store/genieStore";
+import { API_BASE_URL as API_BASE } from "../lib/apiConfig";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 // =============================================================================
 // HACKATHON DEMO MODE — Pre-baked outfits for pitch-safe demos
