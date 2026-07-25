@@ -1,56 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
 import { useBazaarStore } from "../../../store/useBazaarStore";
-import { Search, MapPin, BadgeCheck, Clock, Navigation, Sparkles } from "lucide-react";
-import { getImageUrl } from "../../../utils/imageUtils";
+import { MapPin, BadgeCheck, Clock, Navigation, Sparkles } from "lucide-react";
+import BazaarSearchBar from "./BazaarSearchBar";
 
 export default function SellerDiscoveryStep() {
   const {
     boutiques,
     themeColors,
-    searchQuery,
-    setSearchQuery,
-    fetchSearchResults,
     setStep,
   } = useBazaarStore();
-
-  const [localQuery, setLocalQuery] = useState(searchQuery);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (localQuery.trim()) {
-      fetchSearchResults(localQuery);
-      setSearchQuery(localQuery);
-      setStep(1.5); // Search Results step
-    }
-  };
 
   const accent = themeColors?.hexColor || "#ff3f6c";
 
   return (
     <div className="w-full flex flex-col pb-24 overflow-y-auto animate-fade-in bg-gray-50/50 min-h-screen">
-      {/* Search Bar */}
-      <div className="px-3.5 py-4 sticky top-0 z-20 bg-gray-50/90 backdrop-blur-md border-b border-gray-100">
-        <form onSubmit={handleSearchSubmit} className="relative shadow-sm rounded-xl overflow-hidden group">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-pink-600 text-gray-400">
-            <Search className="w-4 h-4" />
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-200 focus:border-pink-300 focus:ring-4 focus:ring-pink-500/10 transition-all rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 outline-none"
-            placeholder="Search local sellers and products..."
-            value={localQuery}
-            onChange={(e) => setLocalQuery(e.target.value)}
-          />
-        </form>
+      {/* Search Bar — high z so typeahead sits above theme banner */}
+      <div className="px-3.5 py-4 sticky top-0 z-50 bg-gray-50/90 backdrop-blur-md border-b border-gray-100">
+        <BazaarSearchBar variant="discover" />
       </div>
 
       {/* Theme banner */}
       {themeColors && (
         <div
-          className="mx-3.5 mt-3.5 rounded-2xl overflow-hidden border border-gray-100 relative flex flex-col p-4 select-none min-h-[170px] text-left shadow-3xs"
+          className="mx-3.5 mt-3.5 rounded-2xl overflow-hidden border border-gray-100 relative z-0 flex flex-col p-4 select-none min-h-[170px] text-left shadow-3xs"
           style={{ backgroundColor: "#fffdf5" }}
         >
-          <div className="absolute right-0 top-0 bottom-0 w-[55%] overflow-hidden pointer-events-none rounded-r-2xl">
+          <div className="absolute right-0 top-0 bottom-0 w-[55%] overflow-hidden pointer-events-none rounded-r-2xl z-0">
             <div
               className="absolute inset-0 z-10 w-[45%]"
               style={{ backgroundImage: "linear-gradient(to right, #fffdf5, transparent)" }}
@@ -65,7 +40,7 @@ export default function SellerDiscoveryStep() {
           {/* Circular festive seal */}
           {themeColors.bannerBadge && (
             <div
-              className="absolute top-3 right-3 z-20 text-white rounded-full w-[56px] h-[56px] flex flex-col items-center justify-center text-center shadow-md rotate-6 leading-tight border border-white/40"
+              className="absolute top-3 right-3 z-10 text-white rounded-full w-[56px] h-[56px] flex flex-col items-center justify-center text-center shadow-md rotate-6 leading-tight border border-white/40"
               style={{ backgroundColor: accent }}
             >
               <span className="text-[7.5px] font-black uppercase tracking-wide">
@@ -77,7 +52,7 @@ export default function SellerDiscoveryStep() {
             </div>
           )}
 
-          <div className="relative z-20 flex flex-col items-start w-[62%]">
+          <div className="relative z-10 flex flex-col items-start w-[62%]">
             {themeColors.bannerTag && (
               <span className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: accent }}>
                 {themeColors.bannerTag}

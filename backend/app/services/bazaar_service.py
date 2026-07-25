@@ -72,7 +72,7 @@ class BazaarService:
         user_lat: Optional[float] = None,
         user_lng: Optional[float] = None,
         session: Optional[Session] = None,
-    ) -> list:
+    ) -> Dict[str, Any]:
         from app.repository.bazaar_repo import BazaarRepository
         from app.utils.geo import get_city_centroid
         

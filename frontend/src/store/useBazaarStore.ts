@@ -5,6 +5,10 @@ import { API_BASE_URL } from "../lib/apiConfig";
 let bazaarFetchSeq = 0;
 let bazaarAbortController: AbortController | null = null;
 
+/** Monotonic id so only the latest search fetch can write store state. */
+let searchFetchSeq = 0;
+let searchAbortController: AbortController | null = null;
+
 function resolveSimulatedDate(explicit?: string): string {
   if (explicit !== undefined) return explicit;
   if (typeof window === "undefined") return "";
@@ -122,7 +126,8 @@ export interface BazaarState {
   
   // Search State
   searchQuery: string;
-  searchResults: SearchResult[];
+  searchProductResults: SearchResult[];
+  searchSellerResults: Boutique[];
   searchLoading: boolean;
 
   // Shop State
@@ -163,7 +168,8 @@ export interface BazaarState {
   setExpandedProductId: (id: string | null) => void;
   
   setSearchQuery: (query: string) => void;
-  fetchSearchResults: (query: string) => Promise<void>;
+  fetchSearch: (query: string) => Promise<void>;
+  clearSearch: () => void;
   
   fetchSellerShop: (sellerId: string) => Promise<void>;
 
@@ -207,7 +213,8 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   expandedProductId: null,
   
   searchQuery: "",
-  searchResults: [],
+  searchProductResults: [],
+  searchSellerResults: [],
   searchLoading: false,
 
   shopSeller: null,
@@ -252,23 +259,62 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   setExpandedProductId: (id) => set({ expandedProductId: id }),
   
   setSearchQuery: (query) => set({ searchQuery: query }),
-  fetchSearchResults: async (query) => {
-    set({ searchLoading: true, searchQuery: query });
+  clearSearch: () =>
+    set({
+      searchQuery: "",
+      searchProductResults: [],
+      searchSellerResults: [],
+      searchLoading: false,
+    }),
+  fetchSearch: async (query) => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      set({
+        searchQuery: "",
+        searchProductResults: [],
+        searchSellerResults: [],
+        searchLoading: false,
+      });
+      return;
+    }
+
+    const requestId = ++searchFetchSeq;
+    searchAbortController?.abort();
+    const controller = new AbortController();
+    searchAbortController = controller;
+
+    set({ searchLoading: true, searchQuery: trimmed });
     try {
       const { activeCity, userLat, userLng } = get();
       const url = new URL(`${API_BASE_URL}/api/bazaar/search`);
-      url.searchParams.append("q", query);
+      url.searchParams.append("q", trimmed);
       url.searchParams.append("city", activeCity);
       if (userLat) url.searchParams.append("lat", userLat.toString());
       if (userLng) url.searchParams.append("lng", userLng.toString());
 
-      const res = await fetch(url.toString());
+      const res = await fetch(url.toString(), { signal: controller.signal });
       if (!res.ok) throw new Error("Search failed");
       const data = await res.json();
-      set({ searchResults: data, searchLoading: false });
+
+      if (requestId !== searchFetchSeq) return;
+
+      set({
+        searchProductResults: data.products || [],
+        searchSellerResults: data.sellers || [],
+        searchLoading: false,
+      });
     } catch (err) {
+      const isAbort =
+        (err instanceof DOMException && err.name === "AbortError") ||
+        (err instanceof Error && err.name === "AbortError");
+      if (isAbort) return;
+      if (requestId !== searchFetchSeq) return;
       console.warn("Search fetch failed:", err);
-      set({ searchResults: [], searchLoading: false });
+      set({
+        searchProductResults: [],
+        searchSellerResults: [],
+        searchLoading: false,
+      });
     }
   },
 
@@ -341,7 +387,8 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
       completedRituals: [],
       
       searchQuery: "",
-      searchResults: [],
+      searchProductResults: [],
+      searchSellerResults: [],
       shopSeller: null,
       shopProducts: [],
     });

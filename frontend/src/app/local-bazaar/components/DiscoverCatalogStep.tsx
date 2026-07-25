@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Star,
   MapPin,
@@ -13,9 +13,9 @@ import {
   BadgeCheck,
   Clock,
   Navigation,
-  Search
 } from "lucide-react";
 import { useBazaarStore } from "@/store/useBazaarStore";
+import BazaarSearchBar from "./BazaarSearchBar";
 
 const DELIVERY_TIERS = [
   { r: 2, label: "Under 30 min", icon: "⚡" },
@@ -39,22 +39,8 @@ export default function DiscoverCatalogStep() {
     setSelectedProduct,
     setStep,
     activeCity,
-    searchQuery,
-    setSearchQuery,
-    fetchSearchResults,
     activeFestivalName,
   } = useBazaarStore();
-
-  const [localQuery, setLocalQuery] = useState(searchQuery);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (localQuery.trim()) {
-      fetchSearchResults(localQuery);
-      setSearchQuery(localQuery);
-      setStep(1.5); // Search Results step
-    }
-  };
 
   if (!themeColors) return null;
 
@@ -84,25 +70,14 @@ export default function DiscoverCatalogStep() {
 
   return (
     <div className="flex flex-col font-sans min-h-screen pb-20 bg-white">
-      {/* Search Bar */}
-      <div className="px-3.5 py-4 sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <form onSubmit={handleSearchSubmit} className="relative rounded-xl overflow-hidden group border border-gray-200">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-pink-600 text-gray-400">
-            <Search className="w-4 h-4" />
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-4 py-3 bg-gray-50 focus:bg-white border-none focus:ring-2 focus:ring-pink-500/20 transition-all text-sm font-medium text-gray-800 placeholder-gray-400 outline-none"
-            placeholder="Search local sellers and products..."
-            value={localQuery}
-            onChange={(e) => setLocalQuery(e.target.value)}
-          />
-        </form>
+      {/* Search Bar — high z so typeahead sits above festival banner */}
+      <div className="px-3.5 py-4 sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <BazaarSearchBar variant="festival" />
       </div>
 
       {/* Theme banner */}
       {activeFestivalName === "Chhath Puja" ? (
-        <div className="mx-3.5 mt-3.5 rounded-2xl overflow-hidden border border-rose-200 relative flex flex-col p-5 select-none bg-[#FFF0F2]/50 text-center items-center justify-center">
+        <div className="mx-3.5 mt-3.5 rounded-2xl overflow-hidden border border-rose-200 relative z-0 flex flex-col p-5 select-none bg-[#FFF0F2]/50 text-center items-center justify-center">
           {/* Top pink line */}
           <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#ff3f6c]" />
 
@@ -173,10 +148,10 @@ export default function DiscoverCatalogStep() {
         </div>
       ) : activeFestivalName ? (
         <div
-          className="mx-3.5 mt-3.5 rounded-2xl overflow-hidden border border-gray-100 relative flex flex-col p-4 select-none min-h-[170px] text-left shadow-3xs"
+          className="mx-3.5 mt-3.5 rounded-2xl overflow-hidden border border-gray-100 relative z-0 flex flex-col p-4 select-none min-h-[170px] text-left shadow-3xs"
           style={{ backgroundColor: "#fffdf5" }}
         >
-          <div className="absolute right-0 top-0 bottom-0 w-[55%] overflow-hidden pointer-events-none rounded-r-2xl">
+          <div className="absolute right-0 top-0 bottom-0 w-[55%] overflow-hidden pointer-events-none rounded-r-2xl z-0">
             <div
               className="absolute inset-0 z-10 w-[45%]"
               style={{ backgroundImage: "linear-gradient(to right, #fffdf5, transparent)" }}
@@ -191,7 +166,7 @@ export default function DiscoverCatalogStep() {
           {/* Circular festive seal */}
           {themeColors.bannerBadge && (
             <div
-              className="absolute top-3 right-3 z-20 text-white rounded-full w-[56px] h-[56px] flex flex-col items-center justify-center text-center shadow-md rotate-6 leading-tight border border-white/40"
+              className="absolute top-3 right-3 z-10 text-white rounded-full w-[56px] h-[56px] flex flex-col items-center justify-center text-center shadow-md rotate-6 leading-tight border border-white/40"
               style={{ backgroundColor: accent }}
             >
               <span className="text-[7.5px] font-black uppercase tracking-wide">
@@ -203,7 +178,7 @@ export default function DiscoverCatalogStep() {
             </div>
           )}
 
-          <div className="relative z-20 flex flex-col items-start w-[62%]">
+          <div className="relative z-10 flex flex-col items-start w-[62%]">
             {themeColors.bannerTag && (
               <span className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: accent }}>
                 {themeColors.bannerTag}
