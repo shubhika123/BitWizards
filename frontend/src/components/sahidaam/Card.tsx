@@ -239,7 +239,7 @@ export function Card({ card, isActive, onSwipe, onAdvance, onFlipChange }: Props
       if (cancelled) return;
       const el = (Date.now() - localShownAt) / 1000;
       setElapsed(el);
-      if (el >= 60) {
+      if (el >= 30) {
         submitOnTimeout();
       } else {
         reqId = requestAnimationFrame(loop);
@@ -295,7 +295,7 @@ export function Card({ card, isActive, onSwipe, onAdvance, onFlipChange }: Props
     onAdvance();
   };
 
-  const timerPct = Math.max(0, 100 - (elapsed / 60) * 100);
+  const timerPct = Math.max(0, 100 - (elapsed / 30) * 100);
 
   return (
     <>
@@ -543,7 +543,7 @@ export function Card({ card, isActive, onSwipe, onAdvance, onFlipChange }: Props
                         <span>Submit Guess</span>
                         {status === "shown" && (
                           <span className="bg-white/20 px-2 py-0.5 rounded-md text-sm">
-                            {Math.max(0, Math.ceil(60 - elapsed))}s
+                            {Math.max(0, Math.ceil(30 - elapsed))}s
                           </span>
                         )}
                       </div>

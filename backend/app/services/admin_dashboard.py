@@ -205,7 +205,7 @@ def get_dashboard_metrics() -> Dict[str, Any]:
         if not brand_tier:
             continue
         brand = str(brand_tier["value"])
-        brand_at = float(brand_tier.get("reveal_at_seconds") or 12)
+        brand_at = float(brand_tier.get("reveal_at_seconds") or 6)
         bucket = "with_brand" if elapsed >= brand_at else "without_brand"
         if brand not in brand_buckets:
             brand_buckets[brand] = {"with_brand": [], "without_brand": []}
