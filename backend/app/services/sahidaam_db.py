@@ -18,6 +18,41 @@ def get_user_ledger(user_id: str) -> Dict[str, Any]:
     return SahiDaamRepository.get_user_ledger(user_id)
 
 
+def get_rewards_summary(user_id: str) -> Dict[str, Any]:
+    ledger = get_user_ledger(user_id)
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    last = ledger.get("last_played_date")
+    if isinstance(last, str):
+        try:
+            last = datetime.date.fromisoformat(last)
+        except ValueError:
+            last = None
+
+    played_today = last == today
+    points_earned_today = 0
+    if played_today:
+        for card in SahiDaamRepository.get_deck_cards().values():
+            if card.get("user_id") != user_id or card.get("status") != "submitted":
+                continue
+            submitted_at = card.get("submitted_at")
+            if submitted_at is None:
+                continue
+            if getattr(submitted_at, "tzinfo", None) is not None:
+                submitted_day = submitted_at.astimezone(datetime.timezone.utc).date()
+            else:
+                submitted_day = submitted_at.date() if hasattr(submitted_at, "date") else today
+            if submitted_day == today:
+                points_earned_today += int(card.get("total_points") or 0)
+
+    return {
+        "points_balance": int(ledger.get("points_balance") or 0),
+        "streak_count": int(ledger.get("streak_count") or 0),
+        "played_today": played_today,
+        "points_earned_today": points_earned_today,
+        "last_played_date": last.isoformat() if last else None,
+    }
+
+
 def _as_utc(dt: Optional[datetime.datetime]) -> Optional[datetime.datetime]:
     if dt is None:
         return None

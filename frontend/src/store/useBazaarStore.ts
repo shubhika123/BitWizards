@@ -1,6 +1,16 @@
 import { create } from "zustand";
 import { API_BASE_URL } from "../lib/apiConfig";
 
+/** Monotonic id so only the latest bazaar fetch can write store state. */
+let bazaarFetchSeq = 0;
+let bazaarAbortController: AbortController | null = null;
+
+function resolveSimulatedDate(explicit?: string): string {
+  if (explicit !== undefined) return explicit;
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem("simulated_date") || "";
+}
+
 export interface Boutique {
   id: string;
   name: string;
@@ -302,6 +312,14 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   }),
   
   fetchBazaarForCity: async (city, simulatedDate) => {
+    const dateStr = resolveSimulatedDate(simulatedDate);
+    const requestId = ++bazaarFetchSeq;
+
+    // Cancel any in-flight request so a slower stale response cannot win
+    bazaarAbortController?.abort();
+    const controller = new AbortController();
+    bazaarAbortController = controller;
+
     // Discard any data tied to the previous city/date so nothing stale survives
     set({
       bazaarLoading: true,
@@ -331,14 +349,17 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
       const { userLat, userLng } = get();
       const url = new URL(`${API_BASE_URL}/api/bazaar/data`);
       url.searchParams.append("city", city);
-      if (simulatedDate) url.searchParams.append("simulated_date", simulatedDate);
+      if (dateStr) url.searchParams.append("simulated_date", dateStr);
       if (userLat) url.searchParams.append("lat", userLat.toString());
       if (userLng) url.searchParams.append("lng", userLng.toString());
 
-      const res = await fetch(url.toString());
+      const res = await fetch(url.toString(), { signal: controller.signal });
       if (!res.ok) throw new Error("HTTP error");
       const data = await res.json();
-      
+
+      // Another fetch started after us — ignore this response
+      if (requestId !== bazaarFetchSeq) return;
+
       set({
         feedMode: data.mode || "discover",
         activeState: data.state || "",
@@ -349,6 +370,12 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
         bazaarLoading: false
       });
     } catch (err) {
+      const isAbort =
+        (err instanceof DOMException && err.name === "AbortError") ||
+        (err instanceof Error && err.name === "AbortError");
+      if (isAbort) return;
+      // Ignore if superseded while failing
+      if (requestId !== bazaarFetchSeq) return;
       console.warn("Failed to fetch bazaar data:", err);
       set({ bazaarLoading: false });
     }
