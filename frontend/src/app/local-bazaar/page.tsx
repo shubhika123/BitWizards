@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useBazaarStore } from "@/store/useBazaarStore";
-import { API_BASE_URL } from "@/lib/apiConfig";
 import { Loader2 } from "lucide-react";
 import BazaarHeader from "./components/BazaarHeader";
 import DiscoverCatalogStep from "./components/DiscoverCatalogStep";
+import SellerDiscoveryStep from "./components/SellerDiscoveryStep";
+import SearchResultsStep from "./components/SearchResultsStep";
+import SellerShopStep from "./components/SellerShopStep";
 import ProductDetailStep from "./components/ProductDetailStep";
 import BargainSliderStep from "./components/BargainSliderStep";
 import NegotiationChatStep from "./components/NegotiationChatStep";
@@ -95,7 +97,10 @@ export default function LocalBazaarPage() {
       <BazaarHeader />
 
       <main className="flex-1">
-        {step === 1 && <DiscoverCatalogStep />}
+        {step === 1 && store.feedMode === "festival" && <DiscoverCatalogStep />}
+        {step === 1 && store.feedMode === "discover" && <SellerDiscoveryStep />}
+        {step === 1.5 && <SearchResultsStep />}
+        {step === 1.7 && <SellerShopStep />}
         {step === 2 && <ProductDetailStep />}
         {step === 3 && <BargainSliderStep />}
         {step === 4 && <NegotiationChatStep />}

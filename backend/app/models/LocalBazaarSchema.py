@@ -25,7 +25,16 @@ class Seller(SQLModel, table=True):
     speciality: Optional[str] = Field(default=None, max_length=200)
     latitude: Optional[Decimal] = Field(default=None, max_digits=10, decimal_places=8)
     longitude: Optional[Decimal] = Field(default=None, max_digits=11, decimal_places=8)
+
+    # NEW — replaces static distance_km as source of truth for delivery logic
+    max_delivery_radius_km: Decimal = Field(default=Decimal("5.00"), max_digits=6, decimal_places=2)
+    same_day_capable: bool = Field(default=False)
+
+    # DEPRECATED — kept for backward compatibility with existing seed data and
+    # the festival code path.  New code paths (discover / search) compute
+    # distance live via haversine against user lat/lng.
     distance_km: Optional[Decimal] = Field(default=None, max_digits=8, decimal_places=2)
+
     map_x: Optional[Decimal] = Field(default=None, max_digits=8, decimal_places=2)
     map_y: Optional[Decimal] = Field(default=None, max_digits=8, decimal_places=2)
     rating: Decimal = Field(default=Decimal("4.0"), max_digits=3, decimal_places=2)
@@ -45,7 +54,11 @@ class SellerCatalog(SQLModel, table=True):
     delivery_estimate: Optional[str] = Field(default=None, max_length=50)
     pickup_available: bool = Field(default=True)
     pickup_estimate: Optional[str] = Field(default=None, max_length=50)
+
+    # DEPRECATED — same reasoning as Seller.distance_km.  Stop writing to this
+    # in new seed data; derive delivery_estimate live from Seller lat/lng instead.
     distance_km: Optional[Decimal] = Field(default=None, max_digits=8, decimal_places=2)
+
     allows_tailoring: bool = Field(default=False)
     tailoring_cost: Decimal = Field(default=Decimal("0.00"), max_digits=8, decimal_places=2)
     last_updated: datetime = Field(default_factory=datetime.utcnow)
@@ -53,6 +66,7 @@ class SellerCatalog(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("seller_id", "product_id", name="uq_seller_product"),
     )
+
 
 
 class BazaarTheme(SQLModel, table=True):

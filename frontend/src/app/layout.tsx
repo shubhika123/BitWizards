@@ -9,6 +9,8 @@ import Splash from "../components/Splash";
 import LoginScreen from "../components/LoginScreen";
 import React, { useState, useEffect } from "react";
 import { SahiDaamFAB } from "../components/sahidaam/SahiDaamFAB";
+import { useBazaarStore } from "../store/useBazaarStore";
+
 
 const MyntraLogo = ({ className = "w-5.5 h-5.5" }: { className?: string }) => (
   <svg viewBox="10 5 80 70" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -27,7 +29,9 @@ export default function RootLayout({
   const pathname = usePathname() || "/";
   const isGenieRoute = pathname.startsWith("/genie");
   const isAdminRoute = pathname.startsWith("/admin");
-  const hideBottomNav = isGenieRoute || isAdminRoute;
+  const bazaarStep = useBazaarStore((s) => s.step);
+  const hideBottomNav = isGenieRoute || isAdminRoute || (pathname === "/local-bazaar" && bazaarStep > 1);
+
 
   const { user, isInitialized, initAuth } = useAuthStore();
   const [showSplash, setShowSplash] = useState(true);
@@ -39,6 +43,32 @@ export default function RootLayout({
     }, 2500); // 2.5 seconds splash display
     return () => clearTimeout(timer);
   }, [initAuth]);
+
+  // Global self-healing listener for /catalog/ images with mismatched extensions
+  useEffect(() => {
+    const handleGlobalImageError = (event: ErrorEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLImageElement) {
+        const src = target.src;
+        if (src.includes("/catalog/") && target.getAttribute("data-retried") !== "true") {
+          target.setAttribute("data-retried", "true");
+          if (src.endsWith(".png")) {
+            target.src = src.substring(0, src.length - 4) + ".jpg";
+          } else if (src.endsWith(".jpg")) {
+            target.src = src.substring(0, src.length - 4) + ".png";
+          } else if (src.endsWith(".jpeg")) {
+            target.src = src.substring(0, src.length - 5) + ".png";
+          }
+        }
+      }
+    };
+
+    window.addEventListener("error", handleGlobalImageError, true);
+    return () => {
+      window.removeEventListener("error", handleGlobalImageError, true);
+    };
+  }, []);
+
 
   // 1. Splash Screen
   if (showSplash || !isInitialized) {

@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { API_BASE_URL } from "../lib/apiConfig";
 
-
 export interface Boutique {
   id: string;
   name: string;
@@ -11,6 +10,7 @@ export interface Boutique {
   verified: boolean;
   x: number;
   y: number;
+  image?: string;
   deliveryTime?: string;
 }
 
@@ -53,12 +53,48 @@ export interface ThemeColors {
   categories: { name: string; img: string | null; value?: string }[];
 }
 
+export interface SellerDetail {
+  id: string;
+  name: string;
+  rating: number;
+  is_verified: boolean;
+  speciality?: string;
+}
+
+export interface SearchResultOffer {
+  seller_id: string;
+  seller_name: string;
+  is_verified: boolean;
+  price: number;
+  original_price: number;
+  distance_km: number;
+  delivery_estimate: string;
+}
+
+export interface SearchResult {
+  product: {
+    id: string;
+    name: string;
+    category: string;
+    image_url: string;
+    description: string;
+    rating: number;
+    trustScore: number;
+  };
+  offers: SearchResultOffer[];
+}
+
 export interface BazaarState {
   // Navigation / UI State
   step: number;
   bazaarLoading: boolean;
   showCityDropdown: boolean;
   
+  // Dual-mode feed state
+  feedMode: "festival" | "discover";
+  userLat: number | null;
+  userLng: number | null;
+
   // Data State
   activeCity: string;
   activeState: string;
@@ -74,6 +110,16 @@ export interface BazaarState {
   selectedBoutique: string | null;
   expandedProductId: string | null;
   
+  // Search State
+  searchQuery: string;
+  searchResults: SearchResult[];
+  searchLoading: boolean;
+
+  // Shop State
+  shopSeller: SellerDetail | null;
+  shopProducts: Product[];
+  shopLoading: boolean;
+
   // Bargaining / Session State
   selectedProduct: Product | null;
   proposedBid: number;
@@ -90,6 +136,9 @@ export interface BazaarState {
   setBazaarLoading: (loading: boolean) => void;
   setShowCityDropdown: (show: boolean) => void;
   
+  setUserLocation: (lat: number, lng: number) => void;
+  setFeedMode: (mode: "festival" | "discover") => void;
+
   setActiveCity: (city: string) => void;
   setActiveState: (state: string) => void;
   setActiveFestivalName: (name: string) => void;
@@ -103,6 +152,11 @@ export interface BazaarState {
   setSelectedBoutique: (id: string | null) => void;
   setExpandedProductId: (id: string | null) => void;
   
+  setSearchQuery: (query: string) => void;
+  fetchSearchResults: (query: string) => Promise<void>;
+  
+  fetchSellerShop: (sellerId: string) => Promise<void>;
+
   setSelectedProduct: (product: Product | null) => void;
   setProposedBid: (bid: number) => void;
   setNegotiatedPrice: (price: number) => void;
@@ -125,6 +179,10 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   bazaarLoading: true,
   showCityDropdown: false,
   
+  feedMode: "discover",
+  userLat: null,
+  userLng: null,
+
   activeCity: "",
   activeState: "",
   activeFestivalName: "",
@@ -138,6 +196,14 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   selectedBoutique: null,
   expandedProductId: null,
   
+  searchQuery: "",
+  searchResults: [],
+  searchLoading: false,
+
+  shopSeller: null,
+  shopProducts: [],
+  shopLoading: false,
+
   selectedProduct: null,
   proposedBid: 1000,
   negotiatedPrice: 1299,
@@ -152,6 +218,16 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   setBazaarLoading: (loading) => set({ bazaarLoading: loading }),
   setShowCityDropdown: (show) => set({ showCityDropdown: show }),
   
+  setUserLocation: (lat, lng) => {
+    set({ userLat: lat, userLng: lng });
+    const { activeCity, fetchBazaarForCity } = get();
+    if (activeCity) {
+      // Re-fetch with new GPS
+      fetchBazaarForCity(activeCity);
+    }
+  },
+  setFeedMode: (mode) => set({ feedMode: mode }),
+
   setActiveCity: (city) => set({ activeCity: city }),
   setActiveState: (state) => set({ activeState: state }),
   setActiveFestivalName: (name) => set({ activeFestivalName: name }),
@@ -165,8 +241,47 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   setSelectedBoutique: (id) => set({ selectedBoutique: id }),
   setExpandedProductId: (id) => set({ expandedProductId: id }),
   
-  setSelectedProduct: (product) => set({ selectedProduct: product }),
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  fetchSearchResults: async (query) => {
+    set({ searchLoading: true, searchQuery: query });
+    try {
+      const { activeCity, userLat, userLng } = get();
+      const url = new URL(`${API_BASE_URL}/api/bazaar/search`);
+      url.searchParams.append("q", query);
+      url.searchParams.append("city", activeCity);
+      if (userLat) url.searchParams.append("lat", userLat.toString());
+      if (userLng) url.searchParams.append("lng", userLng.toString());
+
+      const res = await fetch(url.toString());
+      if (!res.ok) throw new Error("Search failed");
+      const data = await res.json();
+      set({ searchResults: data, searchLoading: false });
+    } catch (err) {
+      console.warn("Search fetch failed:", err);
+      set({ searchResults: [], searchLoading: false });
+    }
+  },
+
+  fetchSellerShop: async (sellerId) => {
+    set({ shopLoading: true });
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/bazaar/sellers/${encodeURIComponent(sellerId)}/catalog`);
+      if (!res.ok) throw new Error("Seller shop fetch failed");
+      const data = await res.json();
+      set({ shopSeller: data.seller, shopProducts: data.products, shopLoading: false });
+    } catch (err) {
+      console.warn("Failed to fetch seller shop:", err);
+      set({ shopSeller: null, shopProducts: [], shopLoading: false });
+    }
+  },
+
+  setSelectedProduct: (product) => set({
+    selectedProduct: product,
+    proposedBid: product ? product.price : 1000,
+    negotiatedPrice: product ? product.price : 1299,
+  }),
   setProposedBid: (bid) => set({ proposedBid: bid }),
+
   setNegotiatedPrice: (price) => set({ negotiatedPrice: price }),
   setChatMessages: (messages) => set({ chatMessages: messages }),
   addChatMessage: (message) => set((state) => ({ chatMessages: [...state.chatMessages, message] })),
@@ -187,8 +302,7 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   }),
   
   fetchBazaarForCity: async (city, simulatedDate) => {
-    // Discard any data tied to the previous city/date so nothing stale (a
-    // half-finished bargain, a product that no longer exists) survives the refetch.
+    // Discard any data tied to the previous city/date so nothing stale survives
     set({
       bazaarLoading: true,
 
@@ -207,16 +321,26 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
       isTyping: false,
       fulfillmentMode: "delivery",
       completedRituals: [],
+      
+      searchQuery: "",
+      searchResults: [],
+      shopSeller: null,
+      shopProducts: [],
     });
     try {
-      const query = simulatedDate 
-        ? `?city=${encodeURIComponent(city)}&simulated_date=${encodeURIComponent(simulatedDate)}`
-        : `?city=${encodeURIComponent(city)}`;
-      const res = await fetch(`${API_BASE_URL}/api/bazaar/data${query}`);
+      const { userLat, userLng } = get();
+      const url = new URL(`${API_BASE_URL}/api/bazaar/data`);
+      url.searchParams.append("city", city);
+      if (simulatedDate) url.searchParams.append("simulated_date", simulatedDate);
+      if (userLat) url.searchParams.append("lat", userLat.toString());
+      if (userLng) url.searchParams.append("lng", userLng.toString());
+
+      const res = await fetch(url.toString());
       if (!res.ok) throw new Error("HTTP error");
       const data = await res.json();
       
       set({
+        feedMode: data.mode || "discover",
         activeState: data.state || "",
         activeFestivalName: data.active_festival || "",
         themeColors: data.theme || null,

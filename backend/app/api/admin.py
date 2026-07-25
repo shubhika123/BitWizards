@@ -17,20 +17,12 @@ def get_dashboard_data():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/sahidaam/reset")
-def reset_sahidaam_game_data():
-    """
-    Resets Sahi Daam play state for every user (decks, cards, points, streaks,
-    preferences) and reseeds demo metrics. Interaction logs are preserved.
-    """
+@router.post("/reseed-bazaar")
+def reseed_bazaar():
+    """Force re-seed the bazaar database from JSON fixtures."""
     try:
-        cleared = SahiDaamRepository.reset_all_game_data(reseed_demo=True)
-        metrics = admin_dashboard.get_dashboard_metrics()
-        return {
-            "status": "ok",
-            "cleared": cleared,
-            "metrics": metrics,
-            "note": "Interaction logs were preserved.",
-        }
+        from scripts.seed_bazaar_from_json import seed_bazaar_from_json
+        stats = seed_bazaar_from_json(force=True)
+        return {"status": "ok", "stats": stats}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

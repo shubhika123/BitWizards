@@ -377,15 +377,11 @@ export const DigitalTwin: React.FC<DigitalTwinProps> = ({ onBack, onTryOn }) => 
 
     } catch (err) {
       console.error("Try on all failed via Pruna API:", err);
-      setErrorToast("Pruna AI generation failed. Falling back to Topwear preview...");
+      setErrorToast("Service not available at the current moment.");
       setTimeout(() => setErrorToast(null), 4000);
-
-      const topItem = canvasItems.TOP;
-      if (topItem) {
-          setDisplayImage(topItem.image);
-      } else {
-          const firstAvailable = Object.values(canvasItems).find((item) => item && item.image);
-          if (firstAvailable) setDisplayImage(firstAvailable.image);
+      
+      if (baseUserImage) {
+        setDisplayImage(baseUserImage);
       }
     } finally {
       setIsTryOnAllLoading(false);

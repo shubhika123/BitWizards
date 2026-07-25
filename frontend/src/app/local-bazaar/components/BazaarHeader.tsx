@@ -125,9 +125,10 @@ export default function BazaarHeader() {
           <Link href="/" className="p-1 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </Link>
-          <span className="font-extrabold text-sm tracking-wide text-[#282c3f] flex items-center gap-1.5">
-            Apna Bazaar <span className="text-sm select-none">🌺</span>
+          <span className="font-extrabold text-xs text-gray-800 tracking-wider uppercase">
+            APNA BAZAAR
           </span>
+
         </div>
 
         <div className="flex items-center gap-4 text-gray-600 scale-95">
@@ -170,7 +171,23 @@ export default function BazaarHeader() {
         </div>
 
         <button
-          onClick={() => setSelectedRadius(5)}
+          onClick={() => {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                (position) => {
+                  useBazaarStore.getState().setUserLocation(
+                    position.coords.latitude,
+                    position.coords.longitude
+                  );
+                },
+                (error) => {
+                  console.warn("Geolocation failed", error);
+                  // fallback could just set Near Me radius visually
+                  setSelectedRadius(5);
+                }
+              );
+            }
+          }}
           className="shrink-0 border border-gray-200 bg-white text-slate-600 px-2 py-0.5 rounded-md text-[8.5px] font-black flex items-center gap-1 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all shadow-3xs"
         >
           <Compass className="w-3 h-3 text-gray-500" />
