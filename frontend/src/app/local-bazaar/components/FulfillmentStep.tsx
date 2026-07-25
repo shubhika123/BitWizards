@@ -8,16 +8,20 @@ export default function FulfillmentStep() {
     negotiatedPrice,
     setStep,
     fulfillmentMode,
-    setFulfillmentMode
+    setFulfillmentMode,
+    purchasePath,
   } = useBazaarStore();
 
   if (!selectedProduct) return null;
+
+  const atListPrice = negotiatedPrice >= selectedProduct.price;
+  const backStep = purchasePath === "direct" ? 2 : 4;
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-slate-50">
       <header className="px-4 py-3 flex items-center justify-between bg-white border-b sticky top-0 z-10 shadow-3xs">
         <div className="flex items-center gap-3">
-          <button onClick={() => setStep(4)} className="active:scale-95 transition-transform p-1">
+          <button onClick={() => setStep(backStep)} className="active:scale-95 transition-transform p-1">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <span className="font-extrabold text-sm text-gray-800 tracking-wide">Select Fulfillment</span>
@@ -34,7 +38,12 @@ export default function FulfillmentStep() {
             <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{selectedProduct.boutique}</span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-sm font-black text-[#ff3f6c]">₹{negotiatedPrice}</span>
-              <span className="text-[10px] text-gray-400 font-bold line-through">₹{selectedProduct.price}</span>
+              {!atListPrice && (
+                <span className="text-[10px] text-gray-400 font-bold line-through">₹{selectedProduct.price}</span>
+              )}
+              {purchasePath === "bargain" && !atListPrice && (
+                <span className="text-[9px] font-black text-emerald-500 uppercase ml-1">Bargained</span>
+              )}
             </div>
           </div>
         </div>

@@ -6,10 +6,13 @@ export default function SuccessStep() {
   const {
     selectedProduct,
     negotiatedPrice,
+    purchasePath,
     setStep
   } = useBazaarStore();
 
   if (!selectedProduct) return null;
+
+  const isBargain = purchasePath === "bargain" && negotiatedPrice < selectedProduct.price;
 
   return (
     <main className="flex-1 px-4 py-16 flex flex-col gap-6 text-center justify-center items-center">
@@ -18,7 +21,9 @@ export default function SuccessStep() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-lg font-black text-slate-800 uppercase tracking-wide">Bargain Secured!</h2>
+        <h2 className="text-lg font-black text-slate-800 uppercase tracking-wide">
+          {isBargain ? "Bargain Secured!" : "Order Confirmed!"}
+        </h2>
         <p className="text-sm text-gray-500 font-bold">
           Purchased {selectedProduct.name} at <span className="text-[#ff3f6c] font-black">₹{negotiatedPrice}</span>
         </p>

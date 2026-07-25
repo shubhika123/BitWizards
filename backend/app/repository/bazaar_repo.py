@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import glob
 import os
+from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
@@ -10,8 +11,9 @@ from sqlmodel import Session, select, col, func
 
 from app.database import engine
 from app.models.FestivalSchema import festival_name_to_slug
-from app.models.LocalBazaarSchema import BazaarTheme, Seller, SellerCatalog
+from app.models.LocalBazaarSchema import BazaarTheme, Seller, SellerCatalog, BargainSession, BargainStatus
 from app.models.ProductSchema import Product
+from app.models.UserSchema import User
 from app.utils.geo import haversine_km, estimate_delivery_window
 
 _SELLERS_PUBLIC_DIR = os.path.join(
@@ -196,6 +198,7 @@ class BazaarRepository:
                             or _delivery_time_from_distance(distance),
                             "pickupTime": listing.pickup_estimate or "15 mins",
                             "boutique": seller.name,
+                            "boutiqueId": seller.external_id or str(seller.seller_id),
                             "location": (seller.city or resolved_city or "").lower(),
                             "rating": float(product.rating or seller.rating or 4.5),
                             "description": product.description or "",
@@ -484,3 +487,139 @@ class BazaarRepository:
             entry.pop("_sort", None)
 
         return {"products": products, "sellers": sellers}
+
+    # ── Bargain sessions ──────────────────────────────────────────────
+
+    @staticmethod
+    def _resolve_seller(session: Session, boutique_id: str) -> Optional[Seller]:
+        if not boutique_id:
+            return None
+        seller = session.exec(select(Seller).where(Seller.external_id == boutique_id)).first()
+        if seller:
+            return seller
+        try:
+            return session.exec(select(Seller).where(Seller.seller_id == int(boutique_id))).first()
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _resolve_listing(
+        session: Session, seller: Seller, product_id: str
+    ) -> Optional[SellerCatalog]:
+        return session.exec(
+            select(SellerCatalog).where(
+                SellerCatalog.seller_id == seller.seller_id,
+                SellerCatalog.product_id == product_id,
+            )
+        ).first()
+
+    @staticmethod
+    def _demo_user_id(session: Session) -> Optional[int]:
+        user = session.exec(select(User).where(User.user_id == 1)).first()
+        if user and user.user_id is not None:
+            return user.user_id
+        first = session.exec(select(User).limit(1)).first()
+        if first and first.user_id is not None:
+            return first.user_id
+        return None
+
+    @staticmethod
+    def persist_bargain_round(
+        session: Session,
+        *,
+        boutique_id: str,
+        product_id: str,
+        original_price: int,
+        proposed_price: int,
+        final_price: int,
+        status: str,
+        round_number: int,
+        user_message: Optional[str],
+        shop_message: str,
+        session_id: Optional[int] = None,
+    ) -> Optional[int]:
+        """
+        Create or update a BargainSession. Returns session_id, or None if
+        seller/listing/user cannot be resolved (demo string IDs, missing user).
+        """
+        try:
+            seller = BazaarRepository._resolve_seller(session, boutique_id)
+            if not seller or seller.seller_id is None:
+                return None
+            listing = BazaarRepository._resolve_listing(session, seller, product_id)
+            if not listing or listing.listing_id is None:
+                return None
+            user_id = BazaarRepository._demo_user_id(session)
+            if user_id is None:
+                return None
+
+            bargain_status = BargainStatus.accepted if status == "accepted" else BargainStatus.active
+            if status == "rejected" and round_number >= 2:
+                bargain_status = BargainStatus.rejected
+
+            chat_entry = {
+                "round": round_number,
+                "user": user_message,
+                "shop": shop_message,
+                "proposed_price": proposed_price,
+                "final_price": final_price,
+                "status": status,
+            }
+
+            row: Optional[BargainSession] = None
+            if session_id is not None:
+                row = session.get(BargainSession, session_id)
+
+            if row is None:
+                row = BargainSession(
+                    user_id=user_id,
+                    seller_id=seller.seller_id,
+                    listing_id=listing.listing_id,
+                    listed_price=Decimal(original_price),
+                    user_latest_bid=Decimal(proposed_price),
+                    seller_counter_bid=Decimal(final_price) if status != "accepted" else None,
+                    final_price=Decimal(final_price) if status == "accepted" else None,
+                    round_number=round_number,
+                    status=bargain_status,
+                    chat_log=[chat_entry],
+                )
+                session.add(row)
+            else:
+                log = list(row.chat_log or [])
+                log.append(chat_entry)
+                row.user_latest_bid = Decimal(proposed_price)
+                row.seller_counter_bid = (
+                    Decimal(final_price) if status != "accepted" else row.seller_counter_bid
+                )
+                if status == "accepted":
+                    row.final_price = Decimal(final_price)
+                row.round_number = round_number
+                row.status = bargain_status
+                row.chat_log = log
+                row.updated_at = datetime.utcnow()
+                session.add(row)
+
+            session.commit()
+            session.refresh(row)
+            return row.session_id
+        except Exception:
+            session.rollback()
+            return None
+
+    @staticmethod
+    def accept_bargain_session(
+        session: Session, session_id: int, final_price: int
+    ) -> bool:
+        try:
+            row = session.get(BargainSession, session_id)
+            if not row:
+                return False
+            row.status = BargainStatus.accepted
+            row.final_price = Decimal(final_price)
+            row.updated_at = datetime.utcnow()
+            session.add(row)
+            session.commit()
+            return True
+        except Exception:
+            session.rollback()
+            return False

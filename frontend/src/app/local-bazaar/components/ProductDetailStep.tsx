@@ -1,11 +1,13 @@
 import React from "react";
-import { ArrowLeft, Star, MapPin, Check, MessageCircle, Clock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Check, MessageCircle, Clock, ShieldCheck, ShoppingBag } from "lucide-react";
 import { useBazaarStore } from "@/store/useBazaarStore";
 
 export default function ProductDetailStep() {
   const {
     selectedProduct,
     setStep,
+    setPurchasePath,
+    buyNowDirect,
   } = useBazaarStore();
 
   if (!selectedProduct) return null;
@@ -21,7 +23,7 @@ export default function ProductDetailStep() {
         </div>
       </header>
 
-      <main className="flex-1 pb-24">
+      <main className="flex-1 pb-28">
         {/* Product Hero */}
         <div className="w-full bg-white relative pb-6 border-b border-gray-100">
           <div className="w-full h-[350px] relative bg-gray-100">
@@ -93,15 +95,27 @@ export default function ProductDetailStep() {
         </div>
       </main>
 
-      {/* Sticky Action Footer */}
+      {/* Sticky Action Footer — Buy Now or Bargain */}
       <div className="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-t border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] z-20">
-        <button
-          onClick={() => setStep(3)}
-          className="w-full bg-[#ff3f6c] hover:bg-[#e0355f] text-white font-black py-4 rounded-xl shadow-xl shadow-pink-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm tracking-wide"
-        >
-          <MessageCircle className="w-5 h-5" />
-          Request Best Price
-        </button>
+        <div className="flex gap-2.5">
+          <button
+            onClick={() => buyNowDirect()}
+            className="flex-1 bg-white border-2 border-[#ff3f6c] text-[#ff3f6c] hover:bg-pink-50 font-black py-3.5 rounded-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm tracking-wide"
+          >
+            <ShoppingBag className="w-4.5 h-4.5" />
+            Buy Now
+          </button>
+          <button
+            onClick={() => {
+              setPurchasePath("bargain");
+              setStep(3);
+            }}
+            className="flex-[1.35] bg-[#ff3f6c] hover:bg-[#e0355f] text-white font-black py-3.5 rounded-xl shadow-xl shadow-pink-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm tracking-wide"
+          >
+            <MessageCircle className="w-4.5 h-4.5" />
+            Bargain Best Price
+          </button>
+        </div>
       </div>
     </div>
   );
