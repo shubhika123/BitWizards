@@ -64,6 +64,10 @@ export interface BazaarState {
   themeColors: ThemeColors | null;
   boutiques: Boutique[];
   allProducts: Product[];
+  // Bumped whenever cached bazaar data must be discarded (e.g. simulated date change)
+  dataVersion: number;
+  // Simulated date the currently held data belongs to; null until first load
+  dataSimulatedDate: string | null;
   
   // Discover State
   selectedRadius: number;
@@ -113,7 +117,38 @@ export interface BazaarState {
   setCompletedRituals: (rituals: string[]) => void;
   
   resetSession: () => void;
+  invalidateBazaarData: () => void;
+  syncSimulatedDate: (date: string) => void;
 }
+
+// Everything derived from the simulated date: catalog, theme, discover filters and
+// any in-flight bargain. Cleared together so no screen keeps showing the old date's data.
+const INVALIDATED_STATE = {
+  bazaarLoading: true,
+
+  activeState: "",
+  activeFestivalName: "",
+  themeColors: null,
+  boutiques: [],
+  allProducts: [],
+
+  selectedRadius: 5,
+  activeCategory: "All",
+  hoveredBoutique: null,
+  selectedBoutique: null,
+  expandedProductId: null,
+
+  step: 1,
+  selectedProduct: null,
+  proposedBid: 1000,
+  negotiatedPrice: 1299,
+  chatMessages: [],
+  chatRound: 1,
+  userChatInput: "",
+  isTyping: false,
+  fulfillmentMode: "delivery",
+  completedRituals: [],
+} satisfies Partial<BazaarState>;
 
 export const useBazaarStore = create<BazaarState>((set) => ({
   step: 1,
@@ -126,6 +161,8 @@ export const useBazaarStore = create<BazaarState>((set) => ({
   themeColors: null,
   boutiques: [],
   allProducts: [],
+  dataVersion: 0,
+  dataSimulatedDate: null,
   
   selectedRadius: 5,
   activeCategory: "All",
@@ -179,5 +216,19 @@ export const useBazaarStore = create<BazaarState>((set) => ({
     chatRound: 1,
     userChatInput: "",
     isTyping: false
+  }),
+
+  invalidateBazaarData: () => set((state) => ({
+    ...INVALIDATED_STATE,
+    dataVersion: state.dataVersion + 1,
+  })),
+
+  syncSimulatedDate: (date) => set((state) => {
+    if (state.dataSimulatedDate === date) return {};
+    return {
+      ...INVALIDATED_STATE,
+      dataVersion: state.dataVersion + 1,
+      dataSimulatedDate: date,
+    };
   })
 }));

@@ -44,6 +44,8 @@ export default function LocalBazaarPage() {
     setBoutiques,
     setAllProducts,
     setActiveState,
+    dataVersion,
+    syncSimulatedDate,
   } = store;
 
   const [simulatedDate, setSimulatedDate] = useState<string>("");
@@ -56,6 +58,12 @@ export default function LocalBazaarPage() {
     window.addEventListener("storage", checkDate);
     return () => window.removeEventListener("storage", checkDate);
   }, []);
+
+  // Drops every cached date-dependent value when the simulated date changes,
+  // including a change made on another page while this store stayed alive.
+  useEffect(() => {
+    syncSimulatedDate(simulatedDate);
+  }, [simulatedDate, syncSimulatedDate]);
 
   useEffect(() => {
     if (!activeCity) return;
@@ -81,7 +89,7 @@ export default function LocalBazaarPage() {
       }
     };
     fetchActiveFestival();
-  }, [activeCity, simulatedDate, setActiveFestivalName]);
+  }, [activeCity, simulatedDate, dataVersion, setActiveFestivalName]);
 
   useEffect(() => {
     if (user?.city) {
@@ -121,7 +129,7 @@ export default function LocalBazaarPage() {
       }
     };
     fetchBazaarData();
-  }, [activeCity, setBazaarLoading, setBoutiques, setAllProducts, setActiveState]);
+  }, [activeCity, dataVersion, setBazaarLoading, setBoutiques, setAllProducts, setActiveState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -145,7 +153,7 @@ export default function LocalBazaarPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeFestivalName, setThemeColors]);
+  }, [activeFestivalName, dataVersion, setThemeColors]);
 
   if (!themeColors) {
     return (
