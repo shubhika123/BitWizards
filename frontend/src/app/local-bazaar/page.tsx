@@ -49,12 +49,17 @@ export default function LocalBazaarPage() {
     fetchBazaarForCity,
   } = store;
 
-  const [simulatedDate, setSimulatedDate] = useState<string>("");
+  // Sync-init from localStorage so SPA remounts already include the date
+  // (avoids a discover-mode race on navigate-back).
+  const [simulatedDate, setSimulatedDate] = useState<string>(() =>
+    typeof window !== "undefined" ? localStorage.getItem("simulated_date") || "" : ""
+  );
 
   useEffect(() => {
     const checkDate = () => {
       setSimulatedDate(localStorage.getItem("simulated_date") || "");
     };
+    // Re-sync after SSR hydration (initializer saw no window on the server)
     checkDate();
     window.addEventListener("storage", checkDate);
     return () => window.removeEventListener("storage", checkDate);
