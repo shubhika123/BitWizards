@@ -83,6 +83,20 @@ class TestMyntraBharatAPI(unittest.TestCase):
         self.assertTrue(data["final_price"] < 1299)
         self.assertTrue(data["final_price"] > 1050)
 
+    def test_second_round_never_raises_seller_offer(self):
+        """A later seller counter must not exceed the prior seller offer."""
+        response = self.client.post("/api/bazaar/negotiate", json={
+            "boutique_id": "boutique_1",
+            "product_id": "prod_1",
+            "proposed_price": 1050,
+            "original_price": 1200,
+            "round_number": 2,
+            "previous_seller_offer": 1100,
+        })
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertLessEqual(data["final_price"], 1100)
+
     def test_social_vote(self):
         """Test voting toggles on Outfit Circle items"""
         # Toggle vote on

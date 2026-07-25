@@ -607,23 +607,36 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
           proposed_price: bid,
           session_id: state.bargainSessionId ?? undefined,
           round_number: nextRound,
+          previous_seller_offer:
+            nextRound > 1 ? state.negotiatedPrice : undefined,
           user_message: msgText,
         }),
       });
       if (!res.ok) throw new Error("HTTP error");
       const data = await res.json();
 
+      // Defensive client-side ceiling for deployments where an older backend
+      // may still calculate each round independently.
+      const raisedSecondRoundPrice =
+        nextRound > 1 && data.final_price > state.negotiatedPrice;
+      const effectiveFinalPrice = raisedSecondRoundPrice
+        ? state.negotiatedPrice
+        : data.final_price;
+      const effectiveMessage = raisedSecondRoundPrice
+        ? `Our earlier offer of ₹${state.negotiatedPrice} still stands. This is our final price.`
+        : data.message;
+
       const shopMsg: ChatMessage = {
         id: newChatId(),
         sender: "shop",
-        text: data.message,
+        text: effectiveMessage,
         time: chatTimestamp(),
       };
 
       const latest = get();
       set({
         chatMessages: [...latest.chatMessages, shopMsg],
-        negotiatedPrice: data.final_price,
+        negotiatedPrice: effectiveFinalPrice,
         lastOfferStatus: data.status,
         bargainSessionId:
           typeof data.session_id === "number" ? data.session_id : latest.bargainSessionId,
