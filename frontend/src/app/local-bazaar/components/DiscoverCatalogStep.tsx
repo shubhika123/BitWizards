@@ -102,25 +102,73 @@ export default function DiscoverCatalogStep() {
 
       {/* Theme banner */}
       {activeFestivalName === "Chhath Puja" ? (
-        <div className="bg-[#fffdf5] py-6 px-4 text-center relative overflow-hidden border-b border-orange-100">
-          <div className="absolute left-0 top-0 bottom-0 w-16 opacity-40">
-            {/* Left decor */}
-            <div className="w-24 h-24 rounded-full bg-orange-300 blur-xl absolute -left-8 -top-8"></div>
+        <div className="mx-3.5 mt-3.5 rounded-2xl overflow-hidden border border-rose-200 relative flex flex-col p-5 select-none bg-[#FFF0F2]/50 text-center items-center justify-center">
+          {/* Top pink line */}
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#ff3f6c]" />
+
+          {/* Mouse pointer icon hovering at the top middle */}
+          <div className="absolute top-3 right-1/4 animate-bounce pointer-events-none select-none z-20">
+            <svg className="w-4 h-4 text-black fill-current" viewBox="0 0 24 24">
+              <path d="M4 0l16 12.279-6.943 1.848 4.775 8.16-3.16 1.713-4.707-8.04-5.965 4.916v-20.876z" />
+            </svg>
           </div>
-          <div className="absolute right-0 top-0 bottom-0 w-24 opacity-50">
-            {/* Right decor */}
-            <div className="w-32 h-32 rounded-full bg-yellow-300 blur-xl absolute -right-10 -bottom-10"></div>
+
+          {/* Decorative Hanging element on Left - Soop with fruits SVG */}
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 select-none pointer-events-none z-10 opacity-90 scale-95">
+            <svg className="w-16 h-16" viewBox="0 0 100 100">
+              {/* Soop base */}
+              <path d="M 10 50 Q 50 85 90 50 L 80 40 Q 50 70 20 40 Z" fill="#d97706" stroke="#b45309" strokeWidth="2" />
+              {/* Gold patterns */}
+              <path d="M 25 48 L 75 48 M 32 55 L 68 55 M 40 62 L 60 62" stroke="#f59e0b" strokeWidth="1.5" />
+              {/* Fruits: Coconut */}
+              <circle cx="50" cy="38" r="10" fill="#78350f" />
+              <circle cx="48" cy="36" r="2" fill="#fff" opacity="0.3" />
+              {/* Banana */}
+              <path d="M 32 30 Q 42 22 55 32 Q 45 28 32 30" fill="#fbbf24" stroke="#d97706" strokeWidth="0.5" />
+              {/* Apple / Pomegranate */}
+              <circle cx="65" cy="40" r="8" fill="#dc2626" />
+              <path d="M 64 32 L 66 30" stroke="#b45309" strokeWidth="1" />
+            </svg>
           </div>
-          
+
+          {/* Right Decor - Circular Floral Ornament SVG */}
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 select-none pointer-events-none z-10 opacity-90 scale-95">
+            <svg className="w-16 h-16" viewBox="0 0 100 100">
+              {/* Thread */}
+              <path d="M 0 50 Q 25 42 50 50 Q 75 58 100 50" stroke="#ff3f6c" strokeWidth="2" fill="none" />
+              {/* Floral outer body */}
+              <circle cx="50" cy="50" r="18" fill="#f59e0b" stroke="#be123c" strokeWidth="1.5" />
+              <circle cx="50" cy="50" r="12" fill="#be123c" />
+              <circle cx="50" cy="50" r="7" fill="#ffd700" />
+              <circle cx="50" cy="50" r="3" fill="#be123c" />
+              {/* Petals/Beads */}
+              {[...Array(12)].map((_, i) => {
+                const angle = (i * 30 * Math.PI) / 180;
+                const x = 50 + 15 * Math.cos(angle);
+                const y = 50 + 15 * Math.sin(angle);
+                return <circle key={i} cx={x} cy={y} r="1.5" fill="#ffd700" stroke="#d97706" strokeWidth="0.5" />;
+              })}
+            </svg>
+          </div>
+
           <div className="relative z-10 flex flex-col items-center justify-center">
-            <div className="flex items-center justify-center gap-2 mb-1.5">
-              <Sparkles className="w-4 h-4 text-orange-500" />
-              <h1 className="text-2xl font-black tracking-widest text-[#7a1827] uppercase">Chhath Puja</h1>
-              <Sparkles className="w-4 h-4 text-orange-500" />
+            {/* Title with gold stars */}
+            <div className="flex items-center gap-2.5 justify-center">
+              <span className="text-amber-500 font-extrabold text-sm">✦</span>
+              <h2 className="font-serif font-black tracking-widest text-xl text-[#5c0f1e] uppercase">
+                CHHATH PUJA
+              </h2>
+              <span className="text-amber-500 font-extrabold text-sm">✦</span>
             </div>
-            <p className="text-[12px] font-bold text-orange-800 mt-1 max-w-[85%] mx-auto leading-relaxed border-t border-orange-200/50 pt-2">
-              हर घर में छठी माई के उजाला !<br />छठ पूजा की बधाई !
-            </p>
+
+            {/* Tagline flanked by gold horizontal lines */}
+            <div className="flex items-center gap-2 mt-2 w-full justify-center">
+              <span className="w-8 h-[1px] bg-amber-400"></span>
+              <span className="text-[10px] font-bold tracking-wider capitalize font-serif text-rose-700/80">
+                Celebrate the Sun God, Festively Styled
+              </span>
+              <span className="w-8 h-[1px] bg-amber-400"></span>
+            </div>
           </div>
         </div>
       ) : activeFestivalName ? (
@@ -202,7 +250,11 @@ export default function DiscoverCatalogStep() {
                    {cat.name}
                 </div>
                 <div className="mt-1 text-[13px] font-black text-slate-900 tracking-tight">
-                   UP TO {30 + (idx * 5)}% OFF
+                    {cat.name.toUpperCase().includes("MEN") ? "UP TO 30% OFF" :
+                     cat.name.toUpperCase().includes("WOMEN") ? "UP TO 40% OFF" :
+                     cat.name.toUpperCase().includes("PRASAD") ? "UP TO 50% OFF" :
+                     cat.name.toUpperCase().includes("RITUAL") ? "UP TO 25% OFF" :
+                     `UP TO ${30 + (idx * 5)}% OFF`}
                 </div>
                 <div className="mt-2 text-[10px] font-black text-[#ff3f6c] uppercase tracking-widest hover:underline">
                    Shop Now
@@ -288,7 +340,9 @@ export default function DiscoverCatalogStep() {
             </div>
           </div>
           <div className="flex items-start gap-1.5">
-            <CheckCircle className="w-4 h-4 text-[#ff3f6c] shrink-0" />
+            <svg className="w-4 h-4 text-[#ff3f6c] shrink-0 fill-none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
             <div>
               <div className="text-[9px] font-black text-slate-800 leading-tight">24/7 Support</div>
               <div className="text-[8px] text-slate-500">We're Here for You</div>

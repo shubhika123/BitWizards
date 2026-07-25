@@ -123,10 +123,10 @@
     "bannerTag": "🌅 CHHATH PUJA SPECIAL",
     "festiveBanner": "bg-[#2d1a3c]",
     "categories": [
-      { "name": "Puja Samagri & Baskets", "img": "/ganesh_category_puja.png", "value": "Miscellaneous", "occasion_tag": "chhath_puja" },
-      { "name": "Traditional Sarees", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "chhath_puja" },
-      { "name": "Festive Footwear", "img": "/traditional_food_category.png", "value": "Footwear", "occasion_tag": "chhath_puja" },
-      { "name": "Offerings & Gifts", "img": "/pooja_essentials_category.png", "value": "Miscellaneous", "occasion_tag": "chhath_puja" }
+      { "name": "Men Ethnic Wear", "img": "/chhath_men_ethnic.png", "value": "Clothing", "occasion_tag": "chhath_puja" },
+      { "name": "Women Ethnic Wear", "img": "/chhath_women_ethnic.png", "value": "Clothing", "occasion_tag": "chhath_puja" },
+      { "name": "Prasad & Offerings", "img": "/chhath_prasad.png", "value": "Miscellaneous", "occasion_tag": "chhath_puja" },
+      { "name": "Ritual Essentials", "img": "/chhath_ritual_essentials.png", "value": "Miscellaneous", "occasion_tag": "chhath_puja" }
     ]
   },
   "lohri": {
