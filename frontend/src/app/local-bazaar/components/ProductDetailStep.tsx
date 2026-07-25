@@ -27,7 +27,7 @@ export default function ProductDetailStep() {
         {/* Product Hero */}
         <div className="w-full bg-white relative pb-6 border-b border-gray-100">
           <div className="w-full h-[350px] relative bg-gray-100">
-            <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover" />
+            <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover object-top" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
             
             <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">

@@ -132,7 +132,6 @@ export default function BazaarHeader() {
         </div>
 
         <div className="flex items-center gap-4 text-gray-600 scale-95">
-          <Search className="w-4.5 h-4.5 cursor-pointer hover:text-[#ff3f6c]" />
           <Heart className="w-4.5 h-4.5 cursor-pointer hover:text-[#ff3f6c]" />
           <ShoppingBag className="w-4.5 h-4.5 cursor-pointer hover:text-[#ff3f6c]" />
         </div>

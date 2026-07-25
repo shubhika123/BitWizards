@@ -69,11 +69,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             if (res.status === 404) {
               get().logout();
             } else {
+              if (parsed.city) localStorage.setItem("selectedCity", parsed.city);
               set({ user: parsed, isInitialized: true });
             }
           })
           .catch(e => {
             console.error("Verification error", e);
+            if (parsed.city) localStorage.setItem("selectedCity", parsed.city);
             set({ user: parsed, isInitialized: true });
           });
       } else {
@@ -91,6 +93,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               if (res.status === 404) {
                 get().logout();
               } else {
+                if (parsed.city) localStorage.setItem("selectedCity", parsed.city);
                 set({
                   user: parsed,
                   pendingPhoneDetails: null,
@@ -219,6 +222,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (isMockAuth) {
           localStorage.setItem("mock_phone_session", JSON.stringify(foundProfile));
         }
+        if (foundProfile.city) {
+          localStorage.setItem("selectedCity", foundProfile.city);
+        }
         set({ user: foundProfile, pendingPhoneDetails: null });
         return true;
       } else {
@@ -264,6 +270,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } else {
         // Save the profile associated with the Supabase UID
         localStorage.setItem(`supabase_profile_${uid}`, JSON.stringify(profile));
+      }
+      
+      if (city) {
+        localStorage.setItem("selectedCity", city);
       }
       
       set({ user: profile, pendingPhoneDetails: null });

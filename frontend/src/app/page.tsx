@@ -69,6 +69,19 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  const [displayCity, setDisplayCity] = useState("Bengaluru");
+
+  useEffect(() => {
+    if (user?.city) {
+      setDisplayCity(user.city);
+    } else {
+      const saved = localStorage.getItem("selectedCity");
+      if (saved) {
+        setDisplayCity(saved);
+      }
+    }
+  }, [user]);
+
   const isDiwali = activeFestival === "Diwali";
   const isRakhi = activeFestival === "Raksha Bandhan";
 
@@ -86,7 +99,7 @@ export default function Home() {
         <div className="px-3.5 py-1.5 flex items-center justify-between text-[10px] font-bold border-b border-gray-100 select-none bg-[#FAFAFA] text-gray-600">
           <div className="flex items-center gap-1.5 truncate">
             <MapPin className="w-3.5 h-3.5 shrink-0 text-gray-500" />
-            <span className="truncate">Delivering to {getCityState(user?.city || "Bengaluru")}</span>
+            <span className="truncate">Delivering to {getCityState(displayCity)}</span>
           </div>
           <span className="text-gray-400 font-bold shrink-0">∨</span>
         </div>
