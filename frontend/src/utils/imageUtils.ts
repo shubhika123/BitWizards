@@ -75,3 +75,22 @@ export async function fetchImageAsBlob(imagePath: string): Promise<Blob> {
     );
   }
 }
+
+import { API_BASE_URL } from "../lib/apiConfig";
+
+export function getImageUrl(imagePath?: string): string {
+  if (!imagePath) return "/apnabazar.png";
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
+  }
+  const cleanPath = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
+  if (
+    cleanPath.startsWith("/sellers/") ||
+    cleanPath.startsWith("/chhath_") ||
+    cleanPath.startsWith("/catalog/") ||
+    cleanPath === "/apnabazar.png"
+  ) {
+    return cleanPath;
+  }
+  return `${API_BASE_URL}${cleanPath}`;
+}
