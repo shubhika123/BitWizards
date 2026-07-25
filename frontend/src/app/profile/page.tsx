@@ -19,17 +19,39 @@ import {
   Briefcase, 
   Gift, 
   Sparkles,
-  Calendar
+  Calendar,
+  MapPin,
+  Pencil,
+  Check,
+  X
 } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 
+const DELIVERY_CITIES = [
+  "Amritsar",
+  "Belgaum",
+  "Coimbatore",
+  "Kolkata",
+  "Ludhiana",
+  "Madurai",
+  "Mumbai",
+  "Mysuru",
+  "Patna",
+  "Salem",
+  "Vijayawada",
+  "Vizag",
+];
+
 export default function MyProfile() {
-  const { user, logout, initAuth } = useAuthStore();
+  const { user, logout, initAuth, updateCity, loading: authLoading } = useAuthStore();
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [simulatedDate, setSimulatedDate] = useState<string>("");
   const [showCustomCalendar, setShowCustomCalendar] = useState(false);
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date().getMonth());
   const [currentCalendarYear, setCurrentCalendarYear] = useState(new Date().getFullYear());
+  const [editingCity, setEditingCity] = useState(false);
+  const [draftCity, setDraftCity] = useState("");
+  const [cityError, setCityError] = useState("");
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -64,7 +86,25 @@ export default function MyProfile() {
     window.dispatchEvent(new Event("storage"));
   };
 
+  const openCityEditor = () => {
+    setDraftCity(user?.city || "");
+    setCityError("");
+    setEditingCity(true);
+  };
 
+  const saveCity = async () => {
+    if (!draftCity.trim()) {
+      setCityError("Please choose a city");
+      return;
+    }
+    try {
+      setCityError("");
+      await updateCity(draftCity);
+      setEditingCity(false);
+    } catch (error) {
+      setCityError(error instanceof Error ? error.message : "Could not update city");
+    }
+  };
 
   // Initialize auth session
   useEffect(() => {
@@ -152,6 +192,78 @@ export default function MyProfile() {
               </div>
             </div>
           </div>
+          </div>
+
+          <div className="w-full h-[1px] bg-gray-100"></div>
+
+          {/* Registered delivery city — source of truth for Local Bazaar */}
+          <div className="p-1 rounded-lg">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <MapPin className="w-4 h-4 text-[#ff3f6c] shrink-0" />
+                <div className="min-w-0">
+                  <h5 className="text-[11.5px] font-black text-gray-800">Delivery City</h5>
+                  <p className="text-[9.5px] text-gray-400 font-semibold mt-0.5 truncate">
+                    {user?.city || "Not set"} · Used for your Local Bazaar
+                  </p>
+                </div>
+              </div>
+              {!editingCity && (
+                <button
+                  type="button"
+                  onClick={openCityEditor}
+                  className="flex items-center gap-1 border border-gray-200 bg-white text-[#ff3f6c] rounded-lg px-3 py-1.5 text-[10px] font-black shadow-3xs hover:bg-rose-50 active:scale-95 transition-all"
+                >
+                  <Pencil className="w-3 h-3" />
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editingCity && (
+              <div className="mt-3 flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <select
+                    value={draftCity}
+                    onChange={(event) => setDraftCity(event.target.value)}
+                    className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-[#ff3f6c] focus:ring-1 focus:ring-[#ff3f6c]"
+                    aria-label="Edit delivery city"
+                  >
+                    <option value="" disabled>Select your city</option>
+                    {DELIVERY_CITIES.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                    {draftCity && !DELIVERY_CITIES.includes(draftCity) && (
+                      <option value={draftCity}>{draftCity}</option>
+                    )}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void saveCity()}
+                    disabled={authLoading}
+                    className="bg-[#ff3f6c] text-white px-3 rounded-lg disabled:opacity-50 active:scale-95 transition-all"
+                    aria-label="Save delivery city"
+                  >
+                    <Check className="w-4 h-4" strokeWidth={3} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingCity(false);
+                      setCityError("");
+                    }}
+                    disabled={authLoading}
+                    className="bg-white border border-gray-200 text-gray-500 px-3 rounded-lg disabled:opacity-50 active:scale-95 transition-all"
+                    aria-label="Cancel city edit"
+                  >
+                    <X className="w-4 h-4" strokeWidth={2.5} />
+                  </button>
+                </div>
+                {cityError && (
+                  <p className="text-[10px] font-bold text-red-500">{cityError}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="w-full h-[1px] bg-gray-100"></div>
