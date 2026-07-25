@@ -30,10 +30,10 @@
     "bannerTag": "🏺 AADI FESTIVAL SPECIAL",
     "festiveBanner": "bg-[#2d5a27]",
     "categories": [
-      { "name": "Amman Pooja Items", "img": "/pooja_essentials_category.png", "value": "Miscellaneous", "occasion_tag": "aadi_festival" },
-      { "name": "Festive Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "aadi_festival" },
-      { "name": "Home & Temple Decor", "img": "/pooja_setup_category.png", "value": "Miscellaneous", "occasion_tag": "aadi_festival" },
-      { "name": "Traditional Footwear", "img": "/traditional_food_category.png", "value": "Footwear", "occasion_tag": "aadi_festival" }
+      { "name": "Amman Pooja Items", "img": "/aman_pooja_items.jpg", "value": "Miscellaneous", "occasion_tag": "aadi_festival" },
+      { "name": "Festive Jewellery", "img": "/addi_jwelery.jpeg", "value": "Jewellery", "occasion_tag": "aadi_festival" },
+      { "name": "Home & Temple Decor", "img": "/aadi_temple.jpeg", "value": "Miscellaneous", "occasion_tag": "aadi_festival" },
+      { "name": "Traditional Footwear", "img": "/footwear_Aadi.jpg", "value": "Footwear", "occasion_tag": "aadi_festival" }
     ]
   },
   "varalakshmi_vratam": {
