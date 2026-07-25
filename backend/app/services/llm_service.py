@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from app.config import settings
 from app.models.GenieSchema import NLPParseResponse
 
-logger = logging.getLogger("app.services.gemini")
+logger = logging.getLogger("app.services.llm_service")
 
 GENIE_PARSE_PROMPT = """
 You are a highly advanced multilingual fashion intelligence engine for an Indian e-commerce platform.
@@ -65,7 +65,7 @@ Now completely parse this specific user query:
 "{user_query}"
 """
 
-class GeminiService:
+class LLMService:
     @classmethod
     def call_groq(cls, prompt: str, temperature: float = 0.2, json_mode: bool = False) -> str:
         if not settings.GROQ_API_KEY:
@@ -338,78 +338,3 @@ class GeminiService:
                 
         return result
 
-    @classmethod
-    def curate_genie_outfit(cls, occasion: str, color: Optional[str], max_budget: Optional[int]) -> List[Dict[str, Any]]:
-        """
-        Curation algorithm:
-        1. Filters mock products by occasion and color.
-        2. Groups them into TOP, BOTTOM, FOOTWEAR, and ACCESSORY.
-        3. Finds a combination of 4 items whose sum is <= max_budget.
-        4. Employs fallback logic if the budget is tight.
-        """
-        from app.repository.product_repo import ProductRepository
-        all_products = ProductRepository.get_genie_products()
-        
-        # Filter by occasion (or default to Casual if no match)
-        matched_products = [
-            p for p in all_products 
-            if any(occ.lower() == occasion.lower() for occ in p.get("occasions", []))
-        ]
-        
-        if not matched_products:
-            # Fallback to general Casual if specific occasion has no products
-            matched_products = [
-                p for p in all_products 
-                if any(occ.lower() == "casual" for occ in p.get("occasions", []))
-            ]
-
-        # Filter by color if specified and available
-        if color:
-            color_filtered = [
-                p for p in matched_products 
-                if any(col.lower() == color.lower() for col in p.get("colors", []))
-            ]
-            if color_filtered:
-                matched_products = color_filtered
-
-        # Group by category
-        categories = {"TOP": [], "BOTTOM": [], "FOOTWEAR": [], "ACCESSORY": []}
-        for p in matched_products:
-            cat = p.get("category")
-            if cat in categories:
-                categories[cat].append(p)
-
-        # Ensure we have at least one item in each category. If not, fill from general pool
-        for cat, items in categories.items():
-            if not items:
-                categories[cat] = [p for p in all_products if p.get("category") == cat]
-
-        budget_limit = max_budget if max_budget else 5000
-
-        # Try to find a combination of 4 items within budget
-        best_combination = None
-        min_budget_diff = float('inf')
-
-        # Simple greedy search or random sampling to find a good combination under budget
-        # Since we have a small mock DB, we can do a nested check or just pick the best matching ones
-        for top in sorted(categories["TOP"], key=lambda x: x["price"]):
-            for bottom in sorted(categories["BOTTOM"], key=lambda x: x["price"]):
-                for footwear in sorted(categories["FOOTWEAR"], key=lambda x: x["price"]):
-                    for acc in sorted(categories["ACCESSORY"], key=lambda x: x["price"]):
-                        total = top["price"] + bottom["price"] + footwear["price"] + acc["price"]
-                        if total <= budget_limit:
-                            diff = budget_limit - total
-                            if diff < min_budget_diff:
-                                min_budget_diff = diff
-                                best_combination = [top, bottom, footwear, acc]
-
-        # Fallback: If no combination is under budget, pick the cheapest items in each category
-        if not best_combination:
-            best_combination = [
-                min(categories["TOP"], key=lambda x: x["price"]),
-                min(categories["BOTTOM"], key=lambda x: x["price"]),
-                min(categories["FOOTWEAR"], key=lambda x: x["price"]),
-                min(categories["ACCESSORY"], key=lambda x: x["price"])
-            ]
-
-        return best_combination

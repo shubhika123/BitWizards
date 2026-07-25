@@ -11,12 +11,34 @@ from app.models.GenieSchema import (
 )
 import logging
 import traceback
-from app.services.gemini import GeminiService
+from app.services.llm_service import LLMService
 from app.services.curation_engine import CurationEngine
 from app.services.pruna import PrunaService
 from app.database import get_session
 
-route_logger = logging.getLogger("genie.try-on")
+route_logger = logging.getLogger("app.api.genie")
+
+
+def format_as_table(title: str, headers: List[str], rows: List[List[Any]]) -> str:
+    if not rows:
+        return f"\n--- {title} (Empty) ---\n"
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i, val in enumerate(row):
+            widths[i] = max(widths[i], len(str(val)))
+            
+    format_str = " | ".join([f"{{:<{w}}}" for w in widths])
+    border = "-+-".join(["-" * w for w in widths])
+    
+    lines = []
+    lines.append(f"\n=== {title} ===")
+    lines.append(format_str.format(*headers))
+    lines.append(border)
+    for row in rows:
+        lines.append(format_str.format(*[str(val) for val in row]))
+    lines.append("")
+    return "\n".join(lines)
+
 
 class TryOnRequest(BaseModel):
     person_image: str
@@ -52,7 +74,18 @@ def parse_genie_prompt(req: NLPParseRequest):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    parsed = GeminiService.parse_genie_query(req.query)
+    route_logger.info(f"[Genie-Parse] 🗣️ Received NLP Parse request for query: '{req.query}'")
+    parsed = LLMService.parse_genie_query(req.query)
+    
+    # Format parsed dictionary as a table for terminal output
+    import json
+    headers = ["Attribute", "Parsed Value"]
+    rows = []
+    for k, v in parsed.items():
+        val_str = json.dumps(v) if isinstance(v, (list, dict)) else str(v)
+        rows.append([k, val_str])
+    
+    route_logger.info(format_as_table(f"Groq Parsed Intent: '{req.query}'", headers, rows))
     return NLPParseResponse(**parsed)
 
 
@@ -63,7 +96,10 @@ def curate_genie_outfit(req: GenieCurateRequest, session: Session = Depends(get_
     using the local vector-similarity curation engine. Supports hard exclusions,
     item pinning, and a local-boutique consent prompt.
     """
+    route_logger.info(f"[Genie-Curate] 👗 Received Curate request. Budget constraint: {req.max_budget}")
     result = CurationEngine.generate_outfit(req, session)
+    route_logger.info(f"[Genie-Curate] ✨ Curation Engine (HuggingFace/Pinecone) generated {len(result['outfit'])} items. Budget Exceeded: {result['budget_exceeded']}")
+    
     return GenieCurateResponse(
         outfit=result["outfit"],
         swap_boxes=result.get("swap_boxes"),

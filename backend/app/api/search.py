@@ -4,7 +4,7 @@ from sqlmodel import Session
 from typing import List, Dict, Any
 from app.models.SearchSchema import SearchRequest, SearchResponse
 from app.repository.product_repo import ProductRepository
-from app.services.gemini import GeminiService
+from app.services.llm_service import LLMService
 from app.database import get_session
 
 logger = logging.getLogger("app.api.search")
@@ -38,7 +38,7 @@ def search_products(req: SearchRequest, session: Session = Depends(get_session))
         )
 
     # 2. The ONLY API call made right now — isolates testing to just the core NLP logic.
-    parsed_intent = GeminiService.parse_natural_language_search(req.query)
+    parsed_intent = LLMService.parse_natural_language_search(req.query)
 
     # 3. Commit the parsed intent to the in-memory cache for future identical queries.
     PARSED_INTENT_CACHE[normalized_query] = parsed_intent
@@ -129,8 +129,8 @@ def search_products(req: SearchRequest, session: Session = Depends(get_session))
         score += p.get("rating", 4.0)
         
         # O(N) API Calls completely bypassed above
-        ai_reason = GeminiService.generate_recommendation_reason(p, context)
-        ai_review_summary = GeminiService.summarize_reviews(p["name"], p.get("reviews", []))
+        ai_reason = LLMService.generate_recommendation_reason(p, context)
+        ai_review_summary = LLMService.summarize_reviews(p["name"], p.get("reviews", []))
         
         product_copy = p.copy()
         product_copy["score"] = score

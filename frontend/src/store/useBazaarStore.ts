@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export interface Boutique {
   id: string;
   name: string;
@@ -117,40 +119,12 @@ export interface BazaarState {
   setCompletedRituals: (rituals: string[]) => void;
   
   resetSession: () => void;
-  invalidateBazaarData: () => void;
-  syncSimulatedDate: (date: string) => void;
+  
+  fetchBazaarForCity: (city: string, simulatedDate?: string) => Promise<void>;
+  submitNegotiationOffer: (bid: number, customMessage?: string) => Promise<void>;
 }
 
-// Everything derived from the simulated date: catalog, theme, discover filters and
-// any in-flight bargain. Cleared together so no screen keeps showing the old date's data.
-const INVALIDATED_STATE = {
-  bazaarLoading: true,
-
-  activeState: "",
-  activeFestivalName: "",
-  themeColors: null,
-  boutiques: [],
-  allProducts: [],
-
-  selectedRadius: 5,
-  activeCategory: "All",
-  hoveredBoutique: null,
-  selectedBoutique: null,
-  expandedProductId: null,
-
-  step: 1,
-  selectedProduct: null,
-  proposedBid: 1000,
-  negotiatedPrice: 1299,
-  chatMessages: [],
-  chatRound: 1,
-  userChatInput: "",
-  isTyping: false,
-  fulfillmentMode: "delivery",
-  completedRituals: [],
-} satisfies Partial<BazaarState>;
-
-export const useBazaarStore = create<BazaarState>((set) => ({
+export const useBazaarStore = create<BazaarState>((set, get) => ({
   step: 1,
   bazaarLoading: true,
   showCityDropdown: false,
@@ -217,18 +191,67 @@ export const useBazaarStore = create<BazaarState>((set) => ({
     userChatInput: "",
     isTyping: false
   }),
+  
+  fetchBazaarForCity: async (city, simulatedDate) => {
+    set({ bazaarLoading: true });
+    try {
+      const query = simulatedDate 
+        ? `?city=${encodeURIComponent(city)}&simulated_date=${encodeURIComponent(simulatedDate)}`
+        : `?city=${encodeURIComponent(city)}`;
+      const res = await fetch(`${API_BASE_URL}/api/bazaar/data${query}`);
+      if (!res.ok) throw new Error("HTTP error");
+      const data = await res.json();
+      
+      set({
+        activeState: data.state || "",
+        activeFestivalName: data.active_festival || "",
+        themeColors: data.theme || null,
+        boutiques: data.boutiques || [],
+        allProducts: data.products || [],
+        bazaarLoading: false
+      });
+    } catch (err) {
+      console.warn("Failed to fetch bazaar data:", err);
+      set({ bazaarLoading: false });
+    }
+  },
 
-  invalidateBazaarData: () => set((state) => ({
-    ...INVALIDATED_STATE,
-    dataVersion: state.dataVersion + 1,
-  })),
-
-  syncSimulatedDate: (date) => set((state) => {
-    if (state.dataSimulatedDate === date) return {};
-    return {
-      ...INVALIDATED_STATE,
-      dataVersion: state.dataVersion + 1,
-      dataSimulatedDate: date,
-    };
-  })
+  submitNegotiationOffer: async (bid, customMessage) => {
+    const state = get();
+    if (!state.selectedProduct) return;
+    
+    const msgText = customMessage || `I'll offer ₹${bid}`;
+    const userMsg: ChatMessage = { sender: "user", text: msgText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    set({ chatMessages: [...state.chatMessages, userMsg], isTyping: true });
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: state.selectedProduct.id,
+          original_price: state.selectedProduct.price,
+          proposed_price: bid,
+        }),
+      });
+      if (!res.ok) throw new Error("HTTP error");
+      const data = await res.json();
+      
+      const shopMsg: ChatMessage = { sender: "shop", text: data.message, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      
+      set({ 
+        chatMessages: [...state.chatMessages, userMsg, shopMsg],
+        negotiatedPrice: data.final_price,
+        chatRound: data.status === "accepted" ? state.chatRound : state.chatRound + 1,
+        isTyping: false 
+      });
+      
+      if (data.status === "accepted") {
+        setTimeout(() => set({ step: 5 }), 1500);
+      }
+    } catch (err) {
+      console.warn("Negotiation failed:", err);
+      set({ isTyping: false });
+    }
+  }
 }));

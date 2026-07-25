@@ -44,8 +44,7 @@ export default function LocalBazaarPage() {
     setBoutiques,
     setAllProducts,
     setActiveState,
-    dataVersion,
-    syncSimulatedDate,
+    fetchBazaarForCity,
   } = store;
 
   const [simulatedDate, setSimulatedDate] = useState<string>("");
@@ -66,32 +65,6 @@ export default function LocalBazaarPage() {
   }, [simulatedDate, syncSimulatedDate]);
 
   useEffect(() => {
-    if (!activeCity) return;
-    const fetchActiveFestival = async () => {
-      try {
-        const url =
-          `${API_BASE_URL}/api/festivals/active?city=${encodeURIComponent(activeCity)}` +
-          (simulatedDate ? `&simulated_date=${encodeURIComponent(simulatedDate)}` : "");
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("HTTP error");
-        const data = await res.json();
-        // Prefer stable slug for theme lookup; fall back to display name
-        const activeFest =
-          data.regional_festival_slug ||
-          data.national_festival_slug ||
-          data.regional_festival ||
-          data.national_festival ||
-          "";
-        setActiveFestivalName(activeFest);
-      } catch (err) {
-        console.warn("Failed to fetch active festival from backend:", err);
-        setActiveFestivalName("");
-      }
-    };
-    fetchActiveFestival();
-  }, [activeCity, simulatedDate, dataVersion, setActiveFestivalName]);
-
-  useEffect(() => {
     if (user?.city) {
       setActiveCity(user.city);
     } else {
@@ -104,56 +77,12 @@ export default function LocalBazaarPage() {
     }
   }, [user, setActiveCity]);
 
+  // Fetch unified bazaar data from backend whenever city or simulated date changes
   useEffect(() => {
-    if (!activeCity) return;
-    const fetchBazaarData = async () => {
-      setBazaarLoading(true);
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/bazaar/data?city=${encodeURIComponent(activeCity)}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setBoutiques(data.boutiques || []);
-          setAllProducts(data.products || []);
-          setActiveState(data.state || "");
-        } else if (res.status === 404) {
-          setBoutiques([]);
-          setAllProducts([]);
-          setActiveState("");
-        }
-      } catch (err) {
-        console.error("Failed to fetch local bazaar data", err);
-      } finally {
-        setBazaarLoading(false);
-      }
-    };
-    fetchBazaarData();
-  }, [activeCity, dataVersion, setBazaarLoading, setBoutiques, setAllProducts, setActiveState]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const fetchTheme = async () => {
-      try {
-        const url = `${API_BASE_URL}/api/bazaar/theme${
-          activeFestivalName ? `?festival=${encodeURIComponent(activeFestivalName)}` : ""
-        }`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          if (!cancelled) setThemeColors({ ...FALLBACK_THEME, ...data });
-          return;
-        }
-      } catch (err) {
-        console.warn("Failed to fetch bazaar theme", err);
-      }
-      if (!cancelled) setThemeColors(FALLBACK_THEME);
-    };
-    fetchTheme();
-    return () => {
-      cancelled = true;
-    };
-  }, [activeFestivalName, dataVersion, setThemeColors]);
+    if (activeCity) {
+      fetchBazaarForCity(activeCity, simulatedDate);
+    }
+  }, [activeCity, simulatedDate, fetchBazaarForCity]);
 
   if (!themeColors) {
     return (
