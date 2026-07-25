@@ -2,20 +2,20 @@
   "default": {
     "name": "General Festive",
     "hexColor": "#ff3f6c",
-    "bannerTitle": "Explore Kovai & TN Sellers with ",
+    "bannerTitle": "Explore Local Sellers with ",
     "bannerHighlight": "Trust",
-    "bannerDesc": "Handcrafted Kanchipuram silks, Coimbatore cottons, and traditional temple jewelry.",
-    "bannerImg": "/tn_bazaar_banner.png",
+    "bannerDesc": "Handcrafted accessories, direct handlooms, and traditional clothing from trusted neighbourhood artisans.",
+    "bannerImg": "/apnabazar.png",
     "bannerBtn": "Explore Collections",
-    "bannerBadge": "Tamil Nadu Handloom Special",
-    "bannerTag": "✨ SUPPORT LOCAL WEAVERS & ARTISANS",
+    "bannerBadge": "Bazaar Special",
+    "bannerTag": "✨ SUPPORT LOCAL ARTISANS",
     "festiveBanner": "bg-gradient-to-r from-[#ff3f6c] to-[#e0355f] text-white",
     "categories": [
       { "name": "All", "img": null, "value": "All", "occasion_tag": null },
-      { "name": "Silks & Cottons", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "festive" },
-      { "name": "Temple Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "festive" },
+      { "name": "Ethnic Wear", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "festive" },
+      { "name": "Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "festive" },
       { "name": "Footwear", "img": "/traditional_food_category.png", "value": "Footwear", "occasion_tag": "casual" },
-      { "name": "Pooja Setup", "img": "/pooja_essentials_category.png", "value": "Miscellaneous", "occasion_tag": "festive" }
+      { "name": "Puja Essentials", "img": "/pooja_essentials_category.png", "value": "Miscellaneous", "occasion_tag": "festive" }
     ]
   },
   "aadi_festival": {

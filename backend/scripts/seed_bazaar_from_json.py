@@ -59,12 +59,11 @@ def seed_bazaar_from_json(session: Optional[Session] = None, force: bool = False
     try:
         existing_sellers = session.exec(select(Seller)).first()
         if existing_sellers and not force:
-            # Still backfill festival slugs / themes if missing
+            # Catalog already present — still refresh themes + festival slugs so
+            # fixture edits (e.g. banner images) land without a full --force wipe.
             stats["festivals_slugged"] = _backfill_festival_slugs(session)
-            theme_count = session.exec(select(BazaarTheme)).first()
-            if not theme_count:
-                stats["themes"] = _seed_themes(session)
-                session.commit()
+            stats["themes"] = _seed_themes(session)
+            session.commit()
             return stats
 
         if not DATA_PATH.exists():

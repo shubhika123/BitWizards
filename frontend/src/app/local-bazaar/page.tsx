@@ -22,7 +22,7 @@ const FALLBACK_THEME = {
   bannerTitle: "Explore Local Sellers with ",
   bannerHighlight: "Trust",
   bannerDesc: "Handcrafted accessories, direct handlooms, and traditional clothing.",
-  bannerImg: "/aadi_bazaar_banner.png",
+  bannerImg: "/apnabazar.png",
   bannerBtn: "Explore Collections",
   bannerBadge: "Bazaar Special",
   bannerTag: "SUPPORT LOCAL ARTISANS",
@@ -57,12 +57,6 @@ export default function LocalBazaarPage() {
     window.addEventListener("storage", checkDate);
     return () => window.removeEventListener("storage", checkDate);
   }, []);
-
-  // Drops every cached date-dependent value when the simulated date changes,
-  // including a change made on another page while this store stayed alive.
-  useEffect(() => {
-    syncSimulatedDate(simulatedDate);
-  }, [simulatedDate, syncSimulatedDate]);
 
   useEffect(() => {
     if (user?.city) {
