@@ -597,6 +597,9 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
     });
 
     try {
+      const previousSellerOffer =
+        nextRound > 1 ? state.negotiatedPrice : undefined;
+
       const res = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -607,24 +610,29 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
           proposed_price: bid,
           session_id: state.bargainSessionId ?? undefined,
           round_number: nextRound,
-          previous_seller_offer:
-            nextRound > 1 ? state.negotiatedPrice : undefined,
+          previous_seller_offer: previousSellerOffer,
           user_message: msgText,
         }),
       });
       if (!res.ok) throw new Error("HTTP error");
       const data = await res.json();
 
-      // Defensive client-side ceiling for deployments where an older backend
-      // may still calculate each round independently.
-      const raisedSecondRoundPrice =
-        nextRound > 1 && data.final_price > state.negotiatedPrice;
-      const effectiveFinalPrice = raisedSecondRoundPrice
-        ? state.negotiatedPrice
-        : data.final_price;
-      const effectiveMessage = raisedSecondRoundPrice
-        ? `Our earlier offer of ₹${state.negotiatedPrice} still stands. This is our final price.`
-        : data.message;
+      // Defensive client-side ceiling: seller must never raise after round 1.
+      let effectiveFinalPrice = data.final_price;
+      let effectiveStatus = data.status as NegotiationStatus;
+      let effectiveMessage = data.message;
+      if (previousSellerOffer != null) {
+        if (bid >= previousSellerOffer) {
+          effectiveFinalPrice = previousSellerOffer;
+          effectiveStatus = "accepted";
+          effectiveMessage =
+            `Agreed! We will honor our earlier offer of ₹${previousSellerOffer}. Proceed to select delivery.`;
+        } else if (effectiveFinalPrice > previousSellerOffer) {
+          effectiveFinalPrice = previousSellerOffer;
+          effectiveMessage =
+            `Our earlier offer of ₹${previousSellerOffer} still stands. This is our final price.`;
+        }
+      }
 
       const shopMsg: ChatMessage = {
         id: newChatId(),
@@ -637,7 +645,7 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
       set({
         chatMessages: [...latest.chatMessages, shopMsg],
         negotiatedPrice: effectiveFinalPrice,
-        lastOfferStatus: data.status,
+        lastOfferStatus: effectiveStatus,
         bargainSessionId:
           typeof data.session_id === "number" ? data.session_id : latest.bargainSessionId,
         isTyping: false,
@@ -645,7 +653,7 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
         purchasePath: "bargain",
       });
 
-      if (data.status === "accepted") {
+      if (effectiveStatus === "accepted") {
         setTimeout(() => set({ step: 5 }), 1500);
       }
     } catch (err) {

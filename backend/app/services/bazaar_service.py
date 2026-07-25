@@ -142,51 +142,112 @@ class BazaarService:
             }
 
     @staticmethod
-    def calculate_negotiation(original_price: int, proposed_price: int) -> Dict[str, Any]:
+    def _round_rupees(value: int) -> int:
+        return (int(value) // 10) * 10
+
+    @staticmethod
+    def calculate_negotiation(
+        original_price: int,
+        proposed_price: int,
+        previous_seller_offer: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
         Evaluates the proposed price and generates the official shop counter-offer string.
         Returns a dict suitable for BazaarNegotiationResponse.
+
+        When previous_seller_offer is set (round 2+), the seller must never raise
+        their price. Counters are negotiated against that prior offer, not the
+        list price — otherwise a higher second user bid can accidentally produce
+        a worse (higher) midpoint against the original listing price.
         """
+        if original_price <= 0:
+            return {
+                "status": "rejected",
+                "final_price": max(proposed_price, 0),
+                "message": "Invalid listing price.",
+            }
+
+        # Honor a prior shop counter as a hard ceiling.
+        if previous_seller_offer is not None and previous_seller_offer > 0:
+            ceiling = min(previous_seller_offer, original_price)
+
+            # User met or beat the last shop offer → accept that earlier price.
+            if proposed_price >= ceiling:
+                return {
+                    "status": "accepted",
+                    "final_price": ceiling,
+                    "message": (
+                        f"Agreed! We will honor our earlier offer of ₹{ceiling}. "
+                        "Proceed to select delivery."
+                    ),
+                }
+
+            gap_ratio = proposed_price / ceiling
+            if gap_ratio >= 0.96:
+                return {
+                    "status": "accepted",
+                    "final_price": proposed_price,
+                    "message": (
+                        f"Acceptable! The boutique has agreed to your improved offer "
+                        f"of ₹{proposed_price}."
+                    ),
+                }
+
+            # Move toward the user from the previous offer — never above it.
+            progressive = BazaarService._round_rupees((ceiling + proposed_price) / 2)
+            progressive = max(min(progressive, ceiling), proposed_price)
+            if progressive >= ceiling:
+                progressive = ceiling
+                return {
+                    "status": "accepted",
+                    "final_price": ceiling,
+                    "message": (
+                        f"Alright — ₹{ceiling} is as low as we can go. "
+                        "Shall we lock it in?"
+                    ),
+                }
+
+            return {
+                "status": "counter-offered",
+                "final_price": progressive,
+                "message": (
+                    f"Boutique response: 'Better. I can come down to ₹{progressive} "
+                    f"from our earlier ₹{ceiling}. Final call?'"
+                ),
+            }
+
         if proposed_price >= original_price:
             return {
                 "status": "accepted",
                 "final_price": original_price,
                 "message": "Thank you! The item is available at the standard listing price."
             }
-            
+
         ratio = proposed_price / original_price
-        
-        # Negotiation Logic
+
+        # Round-1 negotiation against list price
         if ratio >= 0.92:
-            # Accept proposed price
             return {
                 "status": "accepted",
                 "final_price": proposed_price,
                 "message": f"Acceptable! The boutique has agreed to your price of ₹{proposed_price}. Limited festival stock reserved for you!"
             }
         elif ratio >= 0.82:
-            # Counter-offer
-            counter = int((original_price + proposed_price) / 2)
-            # Ensure it's a clean round number
-            counter = (counter // 10) * 10
+            counter = BazaarService._round_rupees((original_price + proposed_price) / 2)
             return {
                 "status": "counter-offered",
                 "final_price": counter,
                 "message": f"Boutique response: 'Since you are shopping for the festival, we can do ₹{counter}. That is our absolute best price!'"
             }
         elif ratio >= 0.70:
-            # Reject and suggest 85%
-            counter = int(original_price * 0.85)
-            counter = (counter // 10) * 10
+            counter = BazaarService._round_rupees(original_price * 0.85)
             return {
                 "status": "counter-offered",
                 "final_price": counter,
                 "message": f"Boutique response: '₹{proposed_price} is too low for pure handloom fabric. We can offer a festive discount down to ₹{counter}.'"
             }
         else:
-            # Flat rejection
-            counter = int(original_price * 0.90)
-            counter = (counter // 10) * 10
+            counter = BazaarService._round_rupees(original_price * 0.90)
             return {
                 "status": "rejected",
                 "final_price": counter,
