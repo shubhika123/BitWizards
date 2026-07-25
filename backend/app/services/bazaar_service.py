@@ -20,20 +20,14 @@ class BazaarService:
 
         fest_data = fetch_feed(city=city, simulated_date=simulated_date, session=session)
 
-        # Prefer regional festival for bazaar theming; fall back to national.
-        # Use slug for stable theme lookup (JSON keys / DB PKs are slugified).
+        # Bazaar festive theming is regional-only. National festivals (e.g. Diwali,
+        # Raksha Bandhan) are ignored so the city stays in discover mode.
         active_fest = (
             fest_data.get("regional_festival_slug")
-            or fest_data.get("national_festival_slug")
             or fest_data.get("regional_festival")
-            or fest_data.get("national_festival")
             or ""
         )
-        active_fest_name = (
-            fest_data.get("regional_festival")
-            or fest_data.get("national_festival")
-            or ""
-        )
+        active_fest_name = fest_data.get("regional_festival") or ""
 
         mode = "festival" if active_fest else "discover"
 
