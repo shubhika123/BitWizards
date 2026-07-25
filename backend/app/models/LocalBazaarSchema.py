@@ -111,6 +111,7 @@ class BazaarNegotiationRequest(BaseModel):
     original_price: int
     session_id: Optional[int] = None
     round_number: int = 1
+    previous_seller_offer: Optional[int] = None
     user_message: Optional[str] = None
 
 

@@ -82,8 +82,33 @@ def negotiate_price(req: BazaarNegotiationRequest, session: Session = Depends(ge
         raise HTTPException(status_code=400, detail="Proposed price must be greater than zero")
     if req.round_number < 1 or req.round_number > 2:
         raise HTTPException(status_code=400, detail="Negotiation is limited to 2 rounds")
+    if req.previous_seller_offer is not None and req.previous_seller_offer <= 0:
+        raise HTTPException(status_code=400, detail="Previous seller offer must be greater than zero")
 
     result = BazaarService.calculate_negotiation(req.original_price, req.proposed_price)
+
+    # A seller must never raise their price in a later round. The base rule
+    # engine is intentionally stateless, so use the prior counter as a ceiling.
+    if req.round_number > 1 and req.previous_seller_offer is not None:
+        previous_offer = req.previous_seller_offer
+        if req.proposed_price >= previous_offer:
+            result = {
+                "status": "accepted",
+                "final_price": previous_offer,
+                "message": (
+                    f"Agreed! We will honor our earlier offer of ₹{previous_offer}. "
+                    "Proceed to select delivery."
+                ),
+            }
+        elif result["final_price"] > previous_offer:
+            result = {
+                **result,
+                "final_price": previous_offer,
+                "message": (
+                    f"We cannot go lower, but our earlier offer of ₹{previous_offer} "
+                    "still stands. This is our final price."
+                ),
+            }
 
     persisted_id = BazaarRepository.persist_bargain_round(
         session,
