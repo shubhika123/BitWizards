@@ -20,6 +20,7 @@ export default function NegotiationChatStep() {
     setUserChatInput,
     isTyping,
     setIsTyping,
+    submitNegotiationOffer,
   } = useBazaarStore();
 
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -28,57 +29,11 @@ export default function NegotiationChatStep() {
   useEffect(() => {
     if (!selectedProduct || chatMessages.length > 0) return;
     
-    // Initial message from user
-    setChatMessages([
-      {
-        sender: "user",
-        text: `Namaste. I am interested in the ${selectedProduct.name}. Would you accept ₹${proposedBid}?`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }
-    ]);
-
-    // Fetch response from backend
-    const negotiate = async () => {
-      setIsTyping(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            product_id: selectedProduct.id,
-            original_price: selectedProduct.price,
-            proposed_price: proposedBid
-          })
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setTimeout(() => {
-            setIsTyping(false);
-            addChatMessage({
-              sender: "shop",
-              text: data.message,
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            });
-
-            if (data.status === "accepted") {
-              setNegotiatedPrice(data.final_price);
-              setTimeout(() => setStep(5), 1500); // Proceed to fulfillment
-            } else if (data.status === "counter-offered") {
-              setNegotiatedPrice(data.final_price); // Current counter
-            } else {
-              setNegotiatedPrice(data.final_price); // Final rejected counter
-            }
-          }, 1500);
-        }
-      } catch (err) {
-        console.error("Negotiation failed", err);
-        setIsTyping(false);
-      }
-    };
+    // Trigger initial negotiation message from user via store action
+    const initMsg = `Namaste. I am interested in the ${selectedProduct.name}. Would you accept ₹${proposedBid}?`;
+    submitNegotiationOffer(proposedBid, initMsg);
     
-    negotiate();
-  }, [selectedProduct, proposedBid, setChatMessages, addChatMessage, setIsTyping, setNegotiatedPrice, setStep, chatMessages.length]);
+  }, [selectedProduct, proposedBid, chatMessages.length, submitNegotiationOffer]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -90,49 +45,11 @@ export default function NegotiationChatStep() {
   const handleUserReply = () => {
     if (!userChatInput.trim() || !selectedProduct) return;
     
-    addChatMessage({
-      sender: "user",
-      text: userChatInput,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    });
-    
     const bidAmount = parseInt(userChatInput.replace(/[^0-9]/g, ''), 10) || negotiatedPrice;
+    const customMessage = userChatInput;
     setUserChatInput("");
-    setIsTyping(true);
     
-    setTimeout(async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            product_id: selectedProduct.id,
-            original_price: selectedProduct.price,
-            proposed_price: bidAmount
-          })
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          setIsTyping(false);
-          addChatMessage({
-            sender: "shop",
-            text: data.message,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
-          
-          if (data.status === "accepted") {
-            setNegotiatedPrice(data.final_price);
-            setTimeout(() => setStep(5), 1500);
-          } else {
-            setNegotiatedPrice(data.final_price);
-            setChatRound(chatRound + 1);
-          }
-        }
-      } catch (err) {
-        setIsTyping(false);
-      }
-    }, 1000);
+    submitNegotiationOffer(bidAmount, customMessage);
   };
 
   if (!selectedProduct) return null;
