@@ -1,61 +1,29 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import Select, { StylesConfig, SingleValue } from "react-select";
-import { ArrowLeft, Search, Heart, ShoppingBag, MapPin, Compass } from "lucide-react";
+import { ArrowLeft, Heart, ShoppingBag, MapPin, Compass, Pencil, Check, X } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useBazaarStore } from "@/store/useBazaarStore";
-import { API_BASE_URL } from "@/lib/apiConfig";
 
-type CityOption = {
-  value: string;
-  label: string;
-  state: string;
-};
-
-const selectStyles: StylesConfig<CityOption, false> = {
-  container: (base) => ({ ...base, minWidth: 150, maxWidth: 220, flex: "0 1 auto" }),
-  control: (base, state) => ({
-    ...base,
-    minHeight: 24,
-    height: 24,
-    borderColor: state.isFocused ? "#ff3f6c" : "#e5e7eb",
-    boxShadow: state.isFocused ? "0 0 0 1px #ff3f6c" : "none",
-    backgroundColor: "#fff",
-    borderRadius: 6,
-    fontSize: 10,
-    fontWeight: 700,
-    cursor: "pointer",
-    "&:hover": { borderColor: "#ff3f6c" },
-  }),
-  valueContainer: (base) => ({ ...base, padding: "0 6px", height: 24 }),
-  input: (base) => ({
-    ...base,
-    margin: 0,
-    padding: 0,
-    caretColor: "transparent",
-    color: "transparent",
-  }),
-  indicatorsContainer: (base) => ({ ...base, height: 24 }),
-  dropdownIndicator: (base) => ({ ...base, padding: 2, color: "#9ca3af" }),
-  indicatorSeparator: () => ({ display: "none" }),
-  menu: (base) => ({ ...base, zIndex: 9999, fontSize: 11, fontWeight: 700 }),
-  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isSelected ? "#ffe4ec" : state.isFocused ? "#fff1f5" : "#fff",
-    color: state.isSelected || state.isFocused ? "#ff3f6c" : "#374151",
-    cursor: "pointer",
-    padding: "8px 12px",
-  }),
-  singleValue: (base) => ({ ...base, color: "#4b5563" }),
-  placeholder: (base) => ({ ...base, color: "#9ca3af" }),
-  noOptionsMessage: (base) => ({ ...base, fontSize: 11, color: "#9ca3af" }),
-};
+/** Same home-city list used at registration — not the bazaar seller cities API. */
+const HOME_CITIES = [
+  "Amritsar",
+  "Belgaum",
+  "Coimbatore",
+  "Kolkata",
+  "Ludhiana",
+  "Madurai",
+  "Mumbai",
+  "Mysuru",
+  "Patna",
+  "Salem",
+  "Vijayawada",
+  "Vizag",
+];
 
 export default function BazaarHeader() {
-  const { user } = useAuthStore();
+  const { user, updateCity, loading: authLoading } = useAuthStore();
   const {
     step,
     activeCity,
@@ -65,57 +33,48 @@ export default function BazaarHeader() {
     setSelectedRadius,
   } = useBazaarStore();
 
-  const [cityOptions, setCityOptions] = useState<CityOption[]>([]);
-  const [citiesLoading, setCitiesLoading] = useState(true);
-  const cityLocked = Boolean(user?.city);
-
-  useEffect(() => {
-    let cancelled = false;
-    const loadCities = async () => {
-      setCitiesLoading(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/bazaar/cities`);
-        if (!res.ok) throw new Error("Failed to load cities");
-        const data: { city: string; state: string }[] = await res.json();
-        if (cancelled) return;
-        setCityOptions(
-          data.map((c) => ({
-            value: c.city,
-            label: c.state ? `${c.city}, ${c.state}` : c.city,
-            state: c.state || "",
-          }))
-        );
-      } catch (err) {
-        console.warn("Failed to fetch bazaar cities", err);
-        if (!cancelled) setCityOptions([]);
-      } finally {
-        if (!cancelled) setCitiesLoading(false);
-      }
-    };
-    loadCities();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const selectedOption = useMemo(() => {
-    if (!activeCity) return null;
-    return (
-      cityOptions.find((o) => o.value.toLowerCase() === activeCity.toLowerCase()) || {
-        value: activeCity,
-        label: activeState ? `${activeCity}, ${activeState}` : activeCity,
-        state: activeState || "",
-      }
-    );
-  }, [activeCity, activeState, cityOptions]);
+  const [editing, setEditing] = useState(false);
+  const [draftCity, setDraftCity] = useState("");
+  const [saveError, setSaveError] = useState("");
 
   // Steps 2-6 render their own headers; only the discover feed uses this one.
   if (!themeColors || step !== 1) return null;
 
-  const handleCityChange = (option: SingleValue<CityOption>) => {
-    if (!option || cityLocked) return;
-    setActiveCity(option.value);
-    localStorage.setItem("selectedCity", option.value);
+  const displayCity = user?.city || activeCity || "Your city";
+  const displayLabel = activeState && displayCity === activeCity
+    ? `${displayCity}, ${activeState}`
+    : displayCity;
+
+  const openEditor = () => {
+    setDraftCity(user?.city || activeCity || "");
+    setSaveError("");
+    setEditing(true);
+  };
+
+  const cancelEditor = () => {
+    setEditing(false);
+    setSaveError("");
+  };
+
+  const saveCity = async () => {
+    const next = draftCity.trim();
+    if (!next) {
+      setSaveError("Please choose a city");
+      return;
+    }
+    try {
+      setSaveError("");
+      if (user?.user_id) {
+        await updateCity(next);
+      } else {
+        // Guest fallback — persist locally only
+        localStorage.setItem("selectedCity", next);
+      }
+      setActiveCity(next);
+      setEditing(false);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Could not update city");
+    }
   };
 
   return (
@@ -128,7 +87,6 @@ export default function BazaarHeader() {
           <span className="font-extrabold text-xs text-gray-800 tracking-wider uppercase">
             APNA BAZAAR
           </span>
-
         </div>
 
         <div className="flex items-center gap-4 text-gray-600 scale-95">
@@ -137,61 +95,99 @@ export default function BazaarHeader() {
         </div>
       </header>
 
-      {/* Location selector strip */}
-      <div className="px-3.5 py-1.5 flex items-center justify-between text-[10px] font-bold border-b border-gray-100 bg-[#FAFAFA] text-gray-600 gap-2 relative z-40">
-        <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-visible">
-          <MapPin className="w-3.5 h-3.5 shrink-0 text-purple-600" />
-          <span className="shrink-0">Delivering to</span>
-          {cityLocked ? (
-            <span className="truncate">
-              {activeCity}{activeState ? `, ${activeState}` : ""}
-            </span>
-          ) : (
-            <Select<CityOption, false>
-              classNamePrefix="bazaar-city"
-              options={cityOptions}
-              value={selectedOption}
-              onChange={handleCityChange}
-              isLoading={citiesLoading}
-              isSearchable={false}
-              isDisabled={cityLocked}
-              placeholder="Select city"
-              styles={selectStyles}
-              menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-              menuPosition="fixed"
-              menuShouldScrollIntoView={false}
-              openMenuOnFocus
-              aria-label="Select delivery city"
-              noOptionsMessage={() =>
-                citiesLoading ? "Loading cities..." : "No cities available"
+      {/* Registered city strip — display + edit (not bazaar city picker) */}
+      <div className="px-3.5 py-1.5 border-b border-gray-100 bg-[#FAFAFA] text-gray-600 relative z-40">
+        <div className="flex items-center justify-between gap-2 text-[10px] font-bold">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            <MapPin className="w-3.5 h-3.5 shrink-0 text-[#ff3f6c]" />
+            <span className="shrink-0">Delivering to</span>
+            <span className="truncate font-black text-slate-700">{displayLabel}</span>
+            {!editing && (
+              <button
+                type="button"
+                onClick={openEditor}
+                className="shrink-0 inline-flex items-center gap-0.5 text-[#ff3f6c] hover:text-[#e0355f] font-black uppercase tracking-wider ml-1"
+                aria-label="Edit delivery city"
+              >
+                <Pencil className="w-3 h-3" />
+                Edit
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={() => {
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    useBazaarStore.getState().setUserLocation(
+                      position.coords.latitude,
+                      position.coords.longitude
+                    );
+                  },
+                  (error) => {
+                    console.warn("Geolocation failed", error);
+                    setSelectedRadius(5);
+                  }
+                );
               }
-            />
-          )}
+            }}
+            className="shrink-0 border border-gray-200 bg-white text-slate-600 px-2 py-0.5 rounded-md text-[8.5px] font-black flex items-center gap-1 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all shadow-3xs"
+          >
+            <Compass className="w-3 h-3 text-gray-500" />
+            <span>Near Me</span>
+          </button>
         </div>
 
-        <button
-          onClick={() => {
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(
-                (position) => {
-                  useBazaarStore.getState().setUserLocation(
-                    position.coords.latitude,
-                    position.coords.longitude
-                  );
-                },
-                (error) => {
-                  console.warn("Geolocation failed", error);
-                  // fallback could just set Near Me radius visually
-                  setSelectedRadius(5);
-                }
-              );
-            }
-          }}
-          className="shrink-0 border border-gray-200 bg-white text-slate-600 px-2 py-0.5 rounded-md text-[8.5px] font-black flex items-center gap-1 cursor-pointer hover:bg-gray-50 active:scale-95 transition-all shadow-3xs"
-        >
-          <Compass className="w-3 h-3 text-gray-500" />
-          <span>Near Me</span>
-        </button>
+        {editing && (
+          <div className="mt-2 flex flex-col gap-2 pb-1">
+            <p className="text-[9px] font-medium text-gray-400">
+              Your home city from registration — Local Bazaar shows sellers near this city.
+            </p>
+            <div className="flex gap-2">
+              <select
+                value={draftCity}
+                onChange={(e) => setDraftCity(e.target.value)}
+                className="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-2 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-[#ff3f6c] focus:ring-1 focus:ring-[#ff3f6c]"
+                aria-label="Edit home city"
+              >
+                <option value="" disabled>
+                  Select your city
+                </option>
+                {HOME_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+                {/* Keep current city visible even if not in the default list */}
+                {draftCity && !HOME_CITIES.includes(draftCity) && (
+                  <option value={draftCity}>{draftCity}</option>
+                )}
+              </select>
+              <button
+                type="button"
+                onClick={() => void saveCity()}
+                disabled={authLoading}
+                className="bg-[#ff3f6c] hover:bg-[#e0355f] text-white px-3 rounded-lg disabled:opacity-50 active:scale-95 transition-all"
+                aria-label="Save city"
+              >
+                <Check className="w-4 h-4" strokeWidth={3} />
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditor}
+                disabled={authLoading}
+                className="bg-white border border-gray-200 text-slate-500 px-3 rounded-lg hover:bg-gray-50 active:scale-95 transition-all"
+                aria-label="Cancel city edit"
+              >
+                <X className="w-4 h-4" strokeWidth={2.5} />
+              </button>
+            </div>
+            {saveError && (
+              <p className="text-[10px] font-bold text-red-500">{saveError}</p>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
