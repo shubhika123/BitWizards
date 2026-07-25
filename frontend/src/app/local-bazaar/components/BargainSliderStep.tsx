@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useBazaarStore } from "@/store/useBazaarStore";
-import Image from "next/image";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 export default function BargainSliderStep() {
   const {

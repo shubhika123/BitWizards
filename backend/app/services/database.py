@@ -706,116 +706,23 @@ class MockDB:
                 return product
         return None
 
-    @staticmethod
-    def _delivery_time_from_distance(distance: float) -> str:
-        if distance <= 1.5:
-            return "10-15 min"
-        if distance <= 2.5:
-            return "20-30 min"
-        if distance <= 4.0:
-            return "1-2 hrs"
-        if distance <= 6.0:
-            return "2-3 hrs"
-        return "Same-Day"
-
-    @classmethod
-    def _enrich_boutiques(cls, boutiques: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        enriched = []
-        for boutique in boutiques:
-            item = dict(boutique)
-            if not item.get("deliveryTime"):
-                try:
-                    item["deliveryTime"] = cls._delivery_time_from_distance(float(item.get("distance", 15)))
-                except (TypeError, ValueError):
-                    item["deliveryTime"] = "Same-Day"
-            enriched.append(item)
-        return enriched
-
     @classmethod
     def get_bazaar_cities(cls) -> List[Dict[str, str]]:
-        """Return available bazaar cities from bazaar_data.json (title-cased + state)."""
-        import json
-        from pathlib import Path
-
-        file_path = Path(__file__).resolve().parent / "bazaar_data.json"
-        if not file_path.exists():
-            return []
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        cities = []
-        for key, entry in data.items():
-            city_name = key.replace("_", " ").strip().title()
-            cities.append({
-                "city": city_name,
-                "state": entry.get("state", "") if isinstance(entry, dict) else "",
-            })
-        cities.sort(key=lambda c: c["city"])
-        return cities
+        """Deprecated: use BazaarRepository.get_bazaar_cities (SQL-backed)."""
+        from app.repository.bazaar_repo import BazaarRepository
+        return BazaarRepository.get_bazaar_cities()
 
     @classmethod
     def get_local_bazaar_data(cls, city: Optional[str] = None) -> Dict[str, Any]:
-        import json
-        from pathlib import Path
-        
-        if not city:
-            city = "belgaum"
-            
-        city = city.lower().strip()
-        
-        file_path = Path(__file__).resolve().parent / "bazaar_data.json"
-        if file_path.exists():
-            with open(file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-
-            def _payload(entry: Dict[str, Any]) -> Dict[str, Any]:
-                return {
-                    "boutiques": cls._enrich_boutiques(entry.get("boutiques", [])),
-                    "products": entry.get("products", []),
-                    "state": entry.get("state", ""),
-                }
-                
-            if city in data:
-                return _payload(data[city])
-                
-            # Handle alias fallbacks
-            alias_map = {
-                "mysuru": "vizag",
-                "madurai": "coimbatore",
-                "salem": "coimbatore",
-                "bengaluru": "coimbatore",
-                "mumbai": "belgaum",
-                "vijayawada": "vizag",
-                "ludhiana": "amritsar",
-            }
-            if city in alias_map:
-                fallback_key = alias_map[city]
-                return _payload(data.get(fallback_key, {}))
-                
-            # Default fallback
-            return _payload(data.get("belgaum", {}))
-            
-        return {"boutiques": [], "products": [], "state": ""}
+        """Deprecated: use BazaarRepository.get_local_bazaar_data (SQL-backed)."""
+        from app.repository.bazaar_repo import BazaarRepository
+        return BazaarRepository.get_local_bazaar_data(city)
 
     @classmethod
     def get_bazaar_theme(cls, festival: Optional[str] = None) -> Dict[str, Any]:
-        import json
-        from pathlib import Path
-        
-        file_path = Path(__file__).resolve().parent / "bazaar_themes.json"
-        if not file_path.exists():
-            return {}
-        
-        with open(file_path, "r", encoding="utf-8") as f:
-            themes = json.load(f)
-        
-        if festival:
-            key = festival.strip().lower()
-            if key in themes:
-                return themes[key]
-        
-        return themes.get("default", {})
+        """Deprecated: use BazaarRepository.get_bazaar_theme (SQL-backed)."""
+        from app.repository.bazaar_repo import BazaarRepository
+        return BazaarRepository.get_bazaar_theme(festival)
 
     @classmethod
     def get_boutiques(cls, city: Optional[str] = None) -> List[Dict[str, Any]]:
