@@ -20,7 +20,7 @@ from app.models.SahiDaamSchema import (
 )
 
 ASSORTMENT_SIZE = 8
-BRAND_REVEAL_SECONDS = 12
+BRAND_REVEAL_SECONDS = 6
 
 
 def compute_confidence_score(slider_adjustments: int, hesitation_seconds: float) -> int:
@@ -42,25 +42,25 @@ def build_detail_tiers(item: Dict[str, Any]) -> List[Dict[str, Any]]:
     if brand:
         return [
             {"reveal_at_seconds": BRAND_REVEAL_SECONDS, "label": "Brand", "value": brand},
-            {"reveal_at_seconds": 25, "label": "Style", "value": style},
+            {"reveal_at_seconds": 13, "label": "Style", "value": style},
             {
-                "reveal_at_seconds": 40,
+                "reveal_at_seconds": 20,
                 "label": "Occasion",
                 "value": occasion or color,
             },
         ]
 
     tiers = [
-        {"reveal_at_seconds": 12, "label": "Style", "value": style},
+        {"reveal_at_seconds": 6, "label": "Style", "value": style},
     ]
     if occasion:
-        tiers.append({"reveal_at_seconds": 25, "label": "Occasion", "value": occasion})
-        tiers.append({"reveal_at_seconds": 40, "label": "Color", "value": color})
+        tiers.append({"reveal_at_seconds": 13, "label": "Occasion", "value": occasion})
+        tiers.append({"reveal_at_seconds": 20, "label": "Color", "value": color})
     else:
-        tiers.append({"reveal_at_seconds": 25, "label": "Color", "value": color})
+        tiers.append({"reveal_at_seconds": 13, "label": "Color", "value": color})
         tiers.append(
             {
-                "reveal_at_seconds": 40,
+                "reveal_at_seconds": 20,
                 "label": "Occasion",
                 "value": "everyday",
             }
