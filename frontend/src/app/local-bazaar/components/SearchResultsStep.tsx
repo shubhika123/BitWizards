@@ -201,7 +201,7 @@ function ProductCard({
         <img
           src={getImageUrl(product.image_url)}
           alt={product.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-top"
         />
         <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm border border-white/50 px-1.5 py-0.5 rounded text-[9px] font-black flex items-center gap-1 shadow-sm text-slate-700">
           <Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> {product.rating}
