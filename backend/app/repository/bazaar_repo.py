@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import glob
+import os
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
+from sqlalchemy import or_
 from sqlmodel import Session, select, col, func
 
 from app.database import engine
@@ -10,6 +13,10 @@ from app.models.FestivalSchema import festival_name_to_slug
 from app.models.LocalBazaarSchema import BazaarTheme, Seller, SellerCatalog
 from app.models.ProductSchema import Product
 from app.utils.geo import haversine_km, estimate_delivery_window
+
+_SELLERS_PUBLIC_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../frontend/public/sellers"
+)
 
 
 def _dec(value: Optional[Decimal], default: float = 0.0) -> float:
@@ -46,6 +53,52 @@ def _theme_lookup_slug(festival: Optional[str]) -> str:
     if "-" in raw and " " not in raw:
         return raw.lower()
     return festival_name_to_slug(raw)
+
+
+def _seller_image_url(seller_id_str: str) -> str:
+    matching_files = glob.glob(os.path.join(_SELLERS_PUBLIC_DIR, f"{seller_id_str}.*"))
+    if matching_files:
+        ext = matching_files[0].split(".")[-1]
+        return f"/sellers/{seller_id_str}.{ext}"
+    return f"/sellers/{seller_id_str}.jpg"
+
+
+def _field_match_score(value: Optional[str], query: str, weight: float) -> float:
+    """Score a single text field: exact > startswith > contains."""
+    if not value or not query:
+        return 0.0
+    text = value.strip().lower()
+    q = query.strip().lower()
+    if not text or not q:
+        return 0.0
+    if text == q:
+        return weight * 3.0
+    if text.startswith(q):
+        return weight * 2.0
+    if q in text:
+        return weight
+    return 0.0
+
+
+def _product_relevance(name: str, category: Optional[str], description: Optional[str], query: str) -> float:
+    return (
+        _field_match_score(name, query, 10.0)
+        + _field_match_score(category, query, 5.0)
+        + _field_match_score(description, query, 2.0)
+    )
+
+
+def _seller_relevance(
+    name: str,
+    seller_name: Optional[str],
+    speciality: Optional[str],
+    query: str,
+) -> float:
+    return (
+        _field_match_score(name, query, 10.0)
+        + _field_match_score(seller_name, query, 8.0)
+        + _field_match_score(speciality, query, 6.0)
+    )
 
 
 class BazaarRepository:
@@ -223,17 +276,6 @@ class BazaarRepository:
                 continue
             # Use external_id if available, fallback to str(seller_id)
             seller_id_str = s.external_id or str(s.seller_id)
-            
-            import os
-            import glob
-            frontend_public_dir = os.path.join(os.path.dirname(__file__), "../../../frontend/public/sellers")
-            
-            matching_files = glob.glob(os.path.join(frontend_public_dir, f"{seller_id_str}.*"))
-            if matching_files:
-                ext = matching_files[0].split('.')[-1]
-                image_url = f"/sellers/{seller_id_str}.{ext}"
-            else:
-                image_url = f"/sellers/{seller_id_str}.jpg"
 
             results.append({
                 "id": seller_id_str,
@@ -245,7 +287,7 @@ class BazaarRepository:
                 "x": float(s.map_x) if s.map_x else 50.0,
                 "y": float(s.map_y) if s.map_y else 50.0,
                 "deliveryTime": estimate_delivery_window(dist, s.same_day_capable),
-                "image": image_url,
+                "image": _seller_image_url(seller_id_str),
             })
         results.sort(key=lambda r: r["distance"])
         return results
@@ -307,21 +349,40 @@ class BazaarRepository:
         city: str,
         user_lat: float,
         user_lng: float,
-    ) -> List[Dict[str, Any]]:
-        rows = session.exec(
+    ) -> Dict[str, Any]:
+        """
+        Multi-field search across products and sellers in a city.
+
+        Returns:
+            {
+              "products": [{ product, offers }],  # ranked by relevance
+              "sellers":  [{ id, name, ... }],    # ranked by relevance
+            }
+        """
+        q = (query or "").strip()
+        if not q:
+            return {"products": [], "sellers": []}
+
+        pattern = f"%{q}%"
+        city_lower = city.lower()
+
+        # --- Products: match name, description, or category ---
+        product_rows = session.exec(
             select(SellerCatalog, Product, Seller)
             .join(Product, SellerCatalog.product_id == Product.id)
             .join(Seller, SellerCatalog.seller_id == Seller.seller_id)
-            .where(func.lower(Seller.city) == city.lower())
-            .where(Product.name.ilike(f"%{query}%"))
+            .where(func.lower(Seller.city) == city_lower)
+            .where(
+                or_(
+                    Product.name.ilike(pattern),
+                    Product.description.ilike(pattern),
+                    Product.category.ilike(pattern),
+                )
+            )
         ).all()
 
         grouped: Dict[str, Dict[str, Any]] = {}
-        for catalog_row, product, seller in rows:
-            if seller.latitude is None or seller.longitude is None:
-                continue
-            dist = haversine_km(user_lat, user_lng, float(seller.latitude), float(seller.longitude))
-            
+        for catalog_row, product, seller in product_rows:
             if product.id not in grouped:
                 grouped[product.id] = {
                     "product": {
@@ -333,9 +394,19 @@ class BazaarRepository:
                         "rating": float(product.rating or 4.5),
                         "trustScore": int(product.trust_score or 95),
                     },
-                    "offers": []
+                    "offers": [],
+                    "_relevance": _product_relevance(
+                        product.name, product.category, product.description, q
+                    ),
                 }
-            
+
+            if seller.latitude is not None and seller.longitude is not None:
+                dist = haversine_km(
+                    user_lat, user_lng, float(seller.latitude), float(seller.longitude)
+                )
+            else:
+                dist = _dec(seller.distance_km, 15.0)
+
             grouped[product.id]["offers"].append({
                 "seller_id": seller.external_id or str(seller.seller_id),
                 "seller_name": seller.name,
@@ -347,10 +418,69 @@ class BazaarRepository:
                     else (product.original_price or product.price or 0)
                 ),
                 "distance_km": round(dist, 2),
-                "delivery_estimate": estimate_delivery_window(dist, seller.same_day_capable),
+                "delivery_estimate": estimate_delivery_window(
+                    dist, getattr(seller, "same_day_capable", False)
+                ),
             })
 
+        products: List[Dict[str, Any]] = []
         for entry in grouped.values():
+            if not entry["offers"]:
+                continue
             entry["offers"].sort(key=lambda o: o["price"])
+            min_price = entry["offers"][0]["price"]
+            rating = entry["product"]["rating"]
+            relevance = entry.pop("_relevance", 0.0)
+            products.append(entry)
+            entry["_sort"] = (relevance, rating, -min_price)
 
-        return list(grouped.values())
+        products.sort(key=lambda e: e["_sort"], reverse=True)
+        for entry in products:
+            entry.pop("_sort", None)
+
+        # --- Sellers: match name, seller_name, or speciality ---
+        seller_rows = session.exec(
+            select(Seller)
+            .where(func.lower(Seller.city) == city_lower)
+            .where(
+                or_(
+                    Seller.name.ilike(pattern),
+                    Seller.seller_name.ilike(pattern),
+                    Seller.speciality.ilike(pattern),
+                )
+            )
+        ).all()
+
+        sellers: List[Dict[str, Any]] = []
+        for s in seller_rows:
+            seller_id_str = s.external_id or str(s.seller_id)
+            if s.latitude is not None and s.longitude is not None:
+                dist = haversine_km(
+                    user_lat, user_lng, float(s.latitude), float(s.longitude)
+                )
+            else:
+                dist = _dec(s.distance_km, 15.0)
+
+            relevance = _seller_relevance(s.name, s.seller_name, s.speciality, q)
+            rating = float(s.rating) if s.rating else 4.0
+            sellers.append({
+                "id": seller_id_str,
+                "name": s.name,
+                "rating": rating,
+                "distance": round(dist, 2),
+                "speciality": s.speciality or "",
+                "verified": bool(s.is_verified),
+                "x": float(s.map_x) if s.map_x else 50.0,
+                "y": float(s.map_y) if s.map_y else 50.0,
+                "deliveryTime": estimate_delivery_window(
+                    dist, getattr(s, "same_day_capable", False)
+                ),
+                "image": _seller_image_url(seller_id_str),
+                "_sort": (relevance, rating, -dist),
+            })
+
+        sellers.sort(key=lambda e: e["_sort"], reverse=True)
+        for entry in sellers:
+            entry.pop("_sort", None)
+
+        return {"products": products, "sellers": sellers}

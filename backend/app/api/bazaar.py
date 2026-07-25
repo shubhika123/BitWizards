@@ -80,7 +80,7 @@ def negotiate_price(req: BazaarNegotiationRequest):
     return BazaarNegotiationResponse(**result)
 
 
-@router.get("/search", response_model=List[Dict[str, Any]])
+@router.get("/search", response_model=Dict[str, Any])
 def search_products(
     q: str = Query(..., description="Search query"),
     city: str = Query(..., description="User's selected city"),
@@ -89,7 +89,8 @@ def search_products(
     session: Session = Depends(get_session)
 ):
     """
-    Product-first search results, grouped by product with available seller offers.
+    Multi-field search across products and sellers.
+    Response: { "products": [{ product, offers }], "sellers": [...] }
     """
     return BazaarService.get_search_results(q, city, lat, lng, session)
 
