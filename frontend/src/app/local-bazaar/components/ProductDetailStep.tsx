@@ -1,7 +1,6 @@
 import React from "react";
 import { ArrowLeft, Star, MapPin, Check, MessageCircle, Clock, ShieldCheck } from "lucide-react";
 import { useBazaarStore } from "@/store/useBazaarStore";
-import Image from "next/image";
 
 export default function ProductDetailStep() {
   const {
