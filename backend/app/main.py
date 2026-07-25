@@ -48,6 +48,19 @@ app.include_router(sahidaam.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(auth.router, prefix="/auth")
 
+
+@app.on_event("startup")
+def _startup_sahidaam_assortment():
+    """Pick/persist the shared 8-product Sahi Daam assortment when the server boots."""
+    from app.repository.sahidaam_repo import SahiDaamRepository
+
+    try:
+        SahiDaamRepository.init_mock_db()
+        logging.getLogger(__name__).info("Sahi Daam assortment ready")
+    except Exception:
+        logging.getLogger(__name__).exception("Failed to initialize Sahi Daam assortment")
+
+
 @app.get("/")
 def read_root():
     return {

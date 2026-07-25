@@ -1,13 +1,16 @@
 from typing import Dict, Any, List
 import datetime
-from app.services import sahidaam_db
+import math
+from app.repository.sahidaam_repo import SahiDaamRepository
 
 def get_dashboard_metrics() -> Dict[str, Any]:
     """
     Aggregates real data from user_interactions_log and deck_cards.
     """
-    deck_cards = sahidaam_db.deck_cards
-    daily_decks = sahidaam_db.daily_decks
+    SahiDaamRepository.init_mock_db()
+    deck_cards = SahiDaamRepository.get_deck_cards()
+    daily_decks = SahiDaamRepository.get_daily_decks()
+    challenge_items = SahiDaamRepository.get_challenge_items()
     
     # 1. Engagement Metrics
     unique_players = set(card["user_id"] for card in deck_cards.values())
@@ -81,7 +84,6 @@ def get_dashboard_metrics() -> Dict[str, Any]:
     cat_error = {}
     
     item_stats = {}
-    import math
     
     for c in submitted_cards:
         # Individual deviation for overall bins
@@ -94,7 +96,7 @@ def get_dashboard_metrics() -> Dict[str, Any]:
         elif dev <= 20: bins["10 to 20%"] += 1
         else: bins["> 20%"] += 1
         
-        item = sahidaam_db.challenge_items.get(c["item_id"], {})
+        item = challenge_items.get(c["item_id"], {})
         cat = item.get("category", "Unknown")
         if cat not in cat_error:
             cat_error[cat] = []
@@ -132,6 +134,7 @@ def get_dashboard_metrics() -> Dict[str, Any]:
             "image_url": stats["image_url"],
             "actual_price": actual,
             "guess_amount": round(mean_guess, 1),
+            "guess_count": n,
             "error_pct": round(mean_dev, 1)
         })
         
@@ -176,13 +179,89 @@ def get_dashboard_metrics() -> Dict[str, Any]:
         "item_std_devs": item_std_devs
     }
     
-    # 3. Behavioral Insights (real data not available yet for these exact metrics)
+    # 3. Behavioral Insights — brand familiarity from pre/post brand-reveal guesses
+    brand_buckets: Dict[str, Dict[str, List[float]]] = {}
+    for c in submitted_cards:
+        shown = c.get("shown_at")
+        submitted_at = c.get("submitted_at")
+        if not shown or not submitted_at or not c.get("actual_price"):
+            continue
+        try:
+            elapsed = (submitted_at - shown).total_seconds()
+        except TypeError:
+            continue
+        actual = float(c["actual_price"])
+        if actual <= 0:
+            continue
+        abs_err = abs(float(c["guess_amount"]) - actual) / actual
+        brand_tier = next(
+            (
+                t
+                for t in (c.get("detail_tiers") or [])
+                if isinstance(t, dict) and t.get("label") == "Brand" and t.get("value")
+            ),
+            None,
+        )
+        if not brand_tier:
+            continue
+        brand = str(brand_tier["value"])
+        brand_at = float(brand_tier.get("reveal_at_seconds") or 12)
+        bucket = "with_brand" if elapsed >= brand_at else "without_brand"
+        if brand not in brand_buckets:
+            brand_buckets[brand] = {"with_brand": [], "without_brand": []}
+        brand_buckets[brand][bucket].append(abs_err)
+
+    brand_familiarity: List[Dict[str, Any]] = []
+    for brand, buckets in brand_buckets.items():
+        with_b = buckets["with_brand"]
+        without_b = buckets["without_brand"]
+        if len(with_b) < 2 or len(without_b) < 2:
+            continue
+        mean_with = sum(with_b) / len(with_b)
+        mean_without = sum(without_b) / len(without_b)
+        if mean_without <= 0:
+            continue
+        score = max(0.0, (mean_without - mean_with) / mean_without * 100)
+        brand_familiarity.append({"brand": brand, "score": round(score, 1)})
+    brand_familiarity.sort(key=lambda x: x["score"], reverse=True)
+
+    # Confidence from submit_guess interaction payloads
+    interactions = SahiDaamRepository.get_interactions()
+    adj_vals: List[float] = []
+    hes_vals: List[float] = []
+    conf_vals: List[float] = []
+    for entry in interactions:
+        if entry.get("event_type") != "submit_guess":
+            continue
+        if entry.get("confidence_score") is None:
+            continue
+        conf_vals.append(float(entry["confidence_score"]))
+        if entry.get("slider_adjustments") is not None:
+            adj_vals.append(float(entry["slider_adjustments"]))
+        if entry.get("hesitation_seconds") is not None:
+            hes_vals.append(float(entry["hesitation_seconds"]))
+
+    conf_bins = {"0-20": 0, "20-40": 0, "40-60": 0, "60-80": 0, "80-100": 0}
+    for score in conf_vals:
+        if score < 20:
+            conf_bins["0-20"] += 1
+        elif score < 40:
+            conf_bins["20-40"] += 1
+        elif score < 60:
+            conf_bins["40-60"] += 1
+        elif score < 80:
+            conf_bins["60-80"] += 1
+        else:
+            conf_bins["80-100"] += 1
+
     behavioral = {
-        "brand_familiarity": [],
-        "avg_slider_adjustments": 0,
-        "avg_hesitation_time": 0,
-        "confidence_score_avg": 0,
-        "confidence_distribution": []
+        "brand_familiarity": brand_familiarity,
+        "avg_slider_adjustments": round(sum(adj_vals) / len(adj_vals), 1) if adj_vals else 0,
+        "avg_hesitation_time": round(sum(hes_vals) / len(hes_vals), 1) if hes_vals else 0,
+        "confidence_score_avg": round(sum(conf_vals) / len(conf_vals), 1) if conf_vals else 0,
+        "confidence_distribution": [{"bin": k, "count": v} for k, v in conf_bins.items()]
+        if conf_vals
+        else [],
     }
     
     return {

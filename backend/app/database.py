@@ -53,6 +53,7 @@ import app.models.LocalBazaarSchema
 import app.models.ProductSchema
 import app.models.UserSchema
 import app.models.CategorySchema
+import app.models.SahiDaamSchema
 
 # Create tables
 SQLModel.metadata.create_all(engine)
