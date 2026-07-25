@@ -30,7 +30,6 @@
     "bannerTag": "🏺 AADI FESTIVAL SPECIAL",
     "festiveBanner": "bg-[#2d5a27]",
     "categories": [
-      { "name": "Aadi Silks", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "aadi_festival" },
       { "name": "Amman Pooja Items", "img": "/pooja_essentials_category.png", "value": "Miscellaneous", "occasion_tag": "aadi_festival" },
       { "name": "Festive Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "aadi_festival" },
       { "name": "Home & Temple Decor", "img": "/pooja_setup_category.png", "value": "Miscellaneous", "occasion_tag": "aadi_festival" },
