@@ -104,12 +104,27 @@ def seed_bazaar_from_json(session: Optional[Session] = None, force: bool = False
                 seller.distance_km = _as_decimal(boutique.get("distance"))
                 seller.map_x = _as_decimal(boutique.get("x"))
                 seller.map_y = _as_decimal(boutique.get("y"))
-                seller.latitude = None
-                seller.longitude = None
+
+                # New geo fields — latitude/longitude are now required for
+                # discover-mode distance computation.
+                seller.latitude = _as_decimal(boutique.get("latitude"))
+                seller.longitude = _as_decimal(boutique.get("longitude"))
+                if seller.latitude is None or seller.longitude is None:
+                    import warnings
+                    warnings.warn(
+                        f"Seller {external_id!r} ({seller.name}) is missing "
+                        f"latitude/longitude — discover-mode distance will skip it.",
+                        stacklevel=2,
+                    )
+                seller.max_delivery_radius_km = _as_decimal(
+                    boutique.get("max_delivery_radius_km"), "5.00"
+                ) or Decimal("5.00")
+                seller.same_day_capable = bool(boutique.get("same_day_capable", True))
 
                 session.flush()
                 name_to_seller[(seller.name or "").strip().lower()] = seller
                 stats["sellers"] += 1
+
 
             for product_data in products:
                 product_id = product_data.get("id")

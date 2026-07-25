@@ -2,7 +2,7 @@ import os
 import logging
 from dotenv import load_dotenv
 
-from sqlmodel import create_engine, Session, SQLModel, select
+from sqlmodel import create_engine, Session, SQLModel, select, text
 
 # Initialize logger for database
 logger = logging.getLogger("app.database")
@@ -58,8 +58,36 @@ import app.models.SahiDaamSchema
 # Create tables
 SQLModel.metadata.create_all(engine)
 
+# Apply schema migrations safely if using postgres
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE sellers ADD COLUMN max_delivery_radius_km NUMERIC(6, 2) DEFAULT 5.00;"))
+except Exception:
+    pass
+
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE sellers ADD COLUMN same_day_capable BOOLEAN DEFAULT TRUE;"))
+except Exception:
+    pass
 
 def _ensure_bazaar_schema():
+    try:
+        from app.models.FestivalSchema import Festival
+        from sqlmodel import Session, select
+        from app.database import engine
+        from datetime import date, timedelta
+        
+        with Session(engine) as session:
+            chhath = session.exec(select(Festival).where(Festival.name == "Chhath Puja")).first()
+            if chhath:
+                chhath.start_date = date(2026, 11, 16)
+                chhath.end_date = date(2026, 11, 19)
+                session.add(chhath)
+                session.commit()
+    except Exception as e:
+        print("Error ensuring schema:", e)
+
     """
     Best-effort schema upgrade for local SQLite when models change.
     Drops/recreates bazaar tables if critical columns are missing.

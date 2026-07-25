@@ -33,7 +33,20 @@ export default function MyProfile() {
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const savedDate = localStorage.getItem("simulated_date") || localStorage.getItem("profileSelectedDate") || "";
+    let savedDate = localStorage.getItem("simulated_date") || localStorage.getItem("profileSelectedDate");
+    if (!savedDate) {
+      const today = new Date();
+      // Format as YYYY-MM-DD using local time
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      savedDate = `${year}-${month}-${day}`;
+      
+      localStorage.setItem("profileSelectedDate", savedDate);
+      localStorage.setItem("simulated_date", savedDate);
+      // Dispatch immediately so other components know
+      setTimeout(() => window.dispatchEvent(new Event("storage")), 0);
+    }
     setSimulatedDate(savedDate);
     setSelectedDate(savedDate);
   }, []);

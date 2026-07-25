@@ -3,9 +3,20 @@ from sqlmodel import Session
 
 class BazaarService:
     @staticmethod
-    def get_aggregated_bazaar_data(city: str, simulated_date: Optional[str] = None, session: Optional[Session] = None) -> Dict[str, Any]:
+    def get_aggregated_bazaar_data(
+        city: str,
+        simulated_date: Optional[str] = None,
+        session: Optional[Session] = None,
+        user_lat: Optional[float] = None,
+        user_lng: Optional[float] = None,
+    ) -> Dict[str, Any]:
         from app.api.feed import fetch_feed
         from app.repository.bazaar_repo import BazaarRepository
+        from app.utils.geo import get_city_centroid
+
+        # Determine GPS
+        if user_lat is None or user_lng is None:
+            user_lat, user_lng = get_city_centroid(city)
 
         fest_data = fetch_feed(city=city, simulated_date=simulated_date, session=session)
 
@@ -24,20 +35,72 @@ class BazaarService:
             or ""
         )
 
-        # 2. Get theme configuration for the active festival
-        theme = BazaarRepository.get_bazaar_theme(active_fest)
+        mode = "festival" if active_fest else "discover"
 
-        # 3. Get catalog (boutiques and products)
-        catalog = BazaarRepository.get_local_bazaar_data(city)
+        if mode == "festival":
+            # 2. Get theme configuration for the active festival
+            theme = BazaarRepository.get_bazaar_theme(active_fest)
+            # 3. Get catalog (boutiques and products)
+            catalog = BazaarRepository.get_local_bazaar_data(city)
+            return {
+                "mode": "festival",
+                "state": catalog.get("state", ""),
+                "active_festival": active_fest_name,
+                "active_festival_slug": active_fest or None,
+                "theme": theme,
+                "boutiques": catalog.get("boutiques", []),
+                "products": catalog.get("products", [])
+            }
+        else:
+            # Mode: discover
+            theme = BazaarRepository.get_bazaar_theme("default")
+            # In discover mode, we don't load the full product grid. We load nearby sellers.
+            if session:
+                sellers = BazaarRepository.get_nearby_sellers(session, city, user_lat, user_lng)
+            else:
+                from app.database import engine
+                with Session(engine) as s:
+                    sellers = BazaarRepository.get_nearby_sellers(s, city, user_lat, user_lng)
+            return {
+                "mode": "discover",
+                "state": "", # Could fetch state from DB if needed, but UI typically ignores it in discover
+                "active_festival": "",
+                "active_festival_slug": None,
+                "theme": theme,
+                "boutiques": sellers,
+                "categories": theme.get("categories", []),
+            }
 
-        return {
-            "state": catalog.get("state", ""),
-            "active_festival": active_fest_name,
-            "active_festival_slug": active_fest or None,
-            "theme": theme,
-            "boutiques": catalog.get("boutiques", []),
-            "products": catalog.get("products", [])
-        }
+    @staticmethod
+    def get_search_results(
+        query: str,
+        city: str,
+        user_lat: Optional[float] = None,
+        user_lng: Optional[float] = None,
+        session: Optional[Session] = None,
+    ) -> list:
+        from app.repository.bazaar_repo import BazaarRepository
+        from app.utils.geo import get_city_centroid
+        
+        if user_lat is None or user_lng is None:
+            user_lat, user_lng = get_city_centroid(city)
+            
+        if session:
+            return BazaarRepository.search_products(session, query, city, user_lat, user_lng)
+        else:
+            from app.database import engine
+            with Session(engine) as s:
+                return BazaarRepository.search_products(s, query, city, user_lat, user_lng)
+
+    @staticmethod
+    def get_seller_shop(seller_id: str, session: Optional[Session] = None) -> Dict[str, Any]:
+        from app.repository.bazaar_repo import BazaarRepository
+        if session:
+            return BazaarRepository.get_seller_catalog(session, seller_id)
+        else:
+            from app.database import engine
+            with Session(engine) as s:
+                return BazaarRepository.get_seller_catalog(s, seller_id)
 
     @staticmethod
     def get_bargain_probability(original_price: int, proposed_price: int) -> Dict[str, Any]:

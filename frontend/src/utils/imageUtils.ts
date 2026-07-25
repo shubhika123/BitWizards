@@ -27,6 +27,29 @@ export async function fetchImageAsBlob(imagePath: string): Promise<Blob> {
 
   try {
     response = await fetch(imagePath);
+    
+    // If request failed with 404 and is a catalog image, try alternate extensions (.jpg <-> .png)
+    if (!response.ok && response.status === 404 && imagePath.includes("/catalog/")) {
+      let altPath = "";
+      if (imagePath.endsWith(".png")) {
+        altPath = imagePath.substring(0, imagePath.length - 4) + ".jpg";
+      } else if (imagePath.endsWith(".jpg")) {
+        altPath = imagePath.substring(0, imagePath.length - 4) + ".png";
+      } else if (imagePath.endsWith(".jpeg")) {
+        altPath = imagePath.substring(0, imagePath.length - 5) + ".png";
+      }
+      
+      if (altPath) {
+        try {
+          const altResponse = await fetch(altPath);
+          if (altResponse.ok) {
+            response = altResponse;
+          }
+        } catch (_) {
+          // Ignore and keep the original response
+        }
+      }
+    }
   } catch (networkError) {
     throw new Error(
       `[fetchImageAsBlob] Network request failed for "${imagePath}": ${
@@ -34,6 +57,7 @@ export async function fetchImageAsBlob(imagePath: string): Promise<Blob> {
       }`
     );
   }
+
 
   if (!response.ok) {
     throw new Error(
