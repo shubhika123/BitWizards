@@ -5,22 +5,35 @@ class BazaarService:
     @staticmethod
     def get_aggregated_bazaar_data(city: str, simulated_date: Optional[str] = None, session: Optional[Session] = None) -> Dict[str, Any]:
         from app.api.feed import fetch_feed
-        from app.services.database import MockDB
         from app.repository.bazaar_repo import BazaarRepository
-        
-        # 1. Fetch active festivals for the city
+
         fest_data = fetch_feed(city=city, simulated_date=simulated_date, session=session)
-        active_fest = fest_data.get("regional_festival") or ""
-        
+
+        # Prefer regional festival for bazaar theming; fall back to national.
+        # Use slug for stable theme lookup (JSON keys / DB PKs are slugified).
+        active_fest = (
+            fest_data.get("regional_festival_slug")
+            or fest_data.get("national_festival_slug")
+            or fest_data.get("regional_festival")
+            or fest_data.get("national_festival")
+            or ""
+        )
+        active_fest_name = (
+            fest_data.get("regional_festival")
+            or fest_data.get("national_festival")
+            or ""
+        )
+
         # 2. Get theme configuration for the active festival
-        theme = MockDB.get_bazaar_theme(active_fest)
-        
+        theme = BazaarRepository.get_bazaar_theme(active_fest)
+
         # 3. Get catalog (boutiques and products)
         catalog = BazaarRepository.get_local_bazaar_data(city)
-        
+
         return {
             "state": catalog.get("state", ""),
-            "active_festival": active_fest,
+            "active_festival": active_fest_name,
+            "active_festival_slug": active_fest or None,
             "theme": theme,
             "boutiques": catalog.get("boutiques", []),
             "products": catalog.get("products", [])

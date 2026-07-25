@@ -66,10 +66,6 @@ export interface BazaarState {
   themeColors: ThemeColors | null;
   boutiques: Boutique[];
   allProducts: Product[];
-  // Bumped whenever cached bazaar data must be discarded (e.g. simulated date change)
-  dataVersion: number;
-  // Simulated date the currently held data belongs to; null until first load
-  dataSimulatedDate: string | null;
   
   // Discover State
   selectedRadius: number;
@@ -135,8 +131,6 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   themeColors: null,
   boutiques: [],
   allProducts: [],
-  dataVersion: 0,
-  dataSimulatedDate: null,
   
   selectedRadius: 5,
   activeCategory: "All",
@@ -193,7 +187,27 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   }),
   
   fetchBazaarForCity: async (city, simulatedDate) => {
-    set({ bazaarLoading: true });
+    // Discard any data tied to the previous city/date so nothing stale (a
+    // half-finished bargain, a product that no longer exists) survives the refetch.
+    set({
+      bazaarLoading: true,
+
+      activeCategory: "All",
+      hoveredBoutique: null,
+      selectedBoutique: null,
+      expandedProductId: null,
+
+      step: 1,
+      selectedProduct: null,
+      proposedBid: 1000,
+      negotiatedPrice: 1299,
+      chatMessages: [],
+      chatRound: 1,
+      userChatInput: "",
+      isTyping: false,
+      fulfillmentMode: "delivery",
+      completedRituals: [],
+    });
     try {
       const query = simulatedDate 
         ? `?city=${encodeURIComponent(city)}&simulated_date=${encodeURIComponent(simulatedDate)}`
