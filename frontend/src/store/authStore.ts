@@ -32,6 +32,7 @@ interface AuthState {
     age: number,
     city: string
   ) => Promise<void>;
+  updateCity: (city: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -277,6 +278,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       
       set({ user: profile, pendingPhoneDetails: null });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  updateCity: async (city) => {
+    const trimmed = city.trim();
+    if (!trimmed) throw new Error("City is required");
+
+    const current = get().user;
+    if (!current?.user_id) throw new Error("You must be logged in to edit your city");
+
+    set({ loading: true });
+    try {
+      const res = await fetch(
+        `${OUTFIT_CIRCLE_API_BASE}/auth/users/${current.user_id}/city`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ city: trimmed }),
+        }
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || "Failed to update city");
+      }
+
+      const data = (await res.json()) as { city?: string };
+      const nextCity = data.city || trimmed;
+      const updated: UserProfile = { ...current, city: nextCity };
+
+      if (isMockAuth) {
+        localStorage.setItem("mock_phone_session", JSON.stringify(updated));
+        const mockUsers = JSON.parse(localStorage.getItem("mock_phone_users") || "{}");
+        if (mockUsers[current.phone]) {
+          mockUsers[current.phone] = updated;
+          localStorage.setItem("mock_phone_users", JSON.stringify(mockUsers));
+        }
+      } else {
+        localStorage.setItem(`supabase_profile_${current.uid}`, JSON.stringify(updated));
+      }
+
+      localStorage.setItem("selectedCity", nextCity);
+      set({ user: updated });
     } finally {
       set({ loading: false });
     }
