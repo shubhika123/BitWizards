@@ -3,7 +3,11 @@ from sqlmodel import Session
 from app.database import get_session
 from typing import List, Dict, Any, Optional
 
-from app.models.LocalBazaarSchema import BazaarNegotiationRequest, BazaarNegotiationResponse
+from app.models.LocalBazaarSchema import (
+    BazaarNegotiationRequest,
+    BazaarNegotiationResponse,
+    BazaarAcceptRequest,
+)
 from app.repository.bazaar_repo import BazaarRepository
 from app.services.bazaar_service import BazaarService
 
@@ -69,15 +73,49 @@ def get_bargain_probability(original_price: int, proposed_price: int):
 
 
 @router.post("/negotiate", response_model=BazaarNegotiationResponse)
-def negotiate_price(req: BazaarNegotiationRequest):
+def negotiate_price(req: BazaarNegotiationRequest, session: Session = Depends(get_session)):
     """
-    Interactive 'Request Best Price' feature. Simulates local bazaar bargaining response.
+    Interactive 'Bargain Best Price' feature. Simulates local bazaar bargaining response.
+    Max 2 user bid rounds. Soft-persists to bargain_sessions when IDs resolve.
     """
     if req.proposed_price <= 0:
         raise HTTPException(status_code=400, detail="Proposed price must be greater than zero")
+    if req.round_number < 1 or req.round_number > 2:
+        raise HTTPException(status_code=400, detail="Negotiation is limited to 2 rounds")
 
     result = BazaarService.calculate_negotiation(req.original_price, req.proposed_price)
-    return BazaarNegotiationResponse(**result)
+
+    persisted_id = BazaarRepository.persist_bargain_round(
+        session,
+        boutique_id=req.boutique_id,
+        product_id=req.product_id,
+        original_price=req.original_price,
+        proposed_price=req.proposed_price,
+        final_price=result["final_price"],
+        status=result["status"],
+        round_number=req.round_number,
+        user_message=req.user_message,
+        shop_message=result["message"],
+        session_id=req.session_id,
+    )
+
+    return BazaarNegotiationResponse(
+        status=result["status"],
+        final_price=result["final_price"],
+        message=result["message"],
+        session_id=persisted_id if persisted_id is not None else req.session_id,
+    )
+
+
+@router.post("/negotiate/accept")
+def accept_negotiation(req: BazaarAcceptRequest, session: Session = Depends(get_session)):
+    """Mark an active bargain session as accepted at the agreed final price."""
+    if req.final_price <= 0:
+        raise HTTPException(status_code=400, detail="Final price must be greater than zero")
+    if req.session_id is None:
+        return {"ok": True, "persisted": False}
+    ok = BazaarRepository.accept_bargain_session(session, req.session_id, req.final_price)
+    return {"ok": True, "persisted": ok}
 
 
 @router.get("/search", response_model=Dict[str, Any])

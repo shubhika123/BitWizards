@@ -103,6 +103,7 @@ export default function SellerShopStep() {
                     deliveryTime: deliveryStr,
                     pickupTime: deliveryStr, // fallback
                     boutique: shopSeller.name,
+                    boutiqueId: shopSeller.id,
                     location: distanceStr,
                   });
                   setStep(2);

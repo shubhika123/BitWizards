@@ -109,9 +109,18 @@ class BazaarNegotiationRequest(BaseModel):
     product_id: str
     proposed_price: int
     original_price: int
+    session_id: Optional[int] = None
+    round_number: int = 1
+    user_message: Optional[str] = None
 
 
 class BazaarNegotiationResponse(BaseModel):
     status: str  # "accepted", "counter-offered", "rejected"
     final_price: int
     message: str
+    session_id: Optional[int] = None
+
+
+class BazaarAcceptRequest(BaseModel):
+    session_id: Optional[int] = None
+    final_price: int

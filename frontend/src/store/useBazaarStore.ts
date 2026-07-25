@@ -40,14 +40,30 @@ export interface Product {
   deliveryTime: string;
   pickupTime: string;
   boutique: string;
+  boutiqueId?: string;
   location: string;
   rating: number;
 }
 
 export interface ChatMessage {
+  id: string;
   sender: "user" | "shop";
   text: string;
   time: string;
+}
+
+export type PurchasePath = "direct" | "bargain";
+export type NegotiationStatus = "accepted" | "counter-offered" | "rejected" | null;
+
+/** Prevents concurrent negotiate POSTs (Strict Mode / double-submit). */
+let negotiateInFlight = false;
+
+function newChatId(): string {
+  return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function chatTimestamp(): string {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 export interface ThemeColors {
@@ -140,9 +156,14 @@ export interface BazaarState {
   proposedBid: number;
   negotiatedPrice: number;
   chatMessages: ChatMessage[];
+  /** Number of user bids sent (0–2). */
   chatRound: number;
   userChatInput: string;
   isTyping: boolean;
+  isNegotiating: boolean;
+  bargainSessionId: number | null;
+  lastOfferStatus: NegotiationStatus;
+  purchasePath: PurchasePath;
   fulfillmentMode: "delivery" | "pickup";
   completedRituals: string[];
   
@@ -183,6 +204,16 @@ export interface BazaarState {
   setIsTyping: (isTyping: boolean) => void;
   setFulfillmentMode: (mode: "delivery" | "pickup") => void;
   setCompletedRituals: (rituals: string[]) => void;
+  setPurchasePath: (path: PurchasePath) => void;
+
+  /** Skip bargain → fulfillment at list price. */
+  buyNowDirect: () => void;
+  /** Clear chat thread and open negotiation chat (step 4). */
+  startBargainChat: () => void;
+  /** Option A — accept current shop counter / final price → fulfillment. */
+  acceptBargainOffer: () => Promise<void>;
+  /** Option C — cancel the bargain session and return to catalog. */
+  rejectBargainOffer: () => void;
   
   resetSession: () => void;
   
@@ -225,9 +256,13 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   proposedBid: 1000,
   negotiatedPrice: 1299,
   chatMessages: [],
-  chatRound: 1,
+  chatRound: 0,
   userChatInput: "",
   isTyping: false,
+  isNegotiating: false,
+  bargainSessionId: null,
+  lastOfferStatus: null,
+  purchasePath: "bargain",
   fulfillmentMode: "delivery",
   completedRituals: [],
 
@@ -346,15 +381,120 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   setIsTyping: (isTyping) => set({ isTyping }),
   setFulfillmentMode: (mode) => set({ fulfillmentMode: mode }),
   setCompletedRituals: (rituals) => set({ completedRituals: rituals }),
+  setPurchasePath: (path) => set({ purchasePath: path }),
+
+  buyNowDirect: () => {
+    const product = get().selectedProduct;
+    if (!product) return;
+    negotiateInFlight = false;
+    set({
+      negotiatedPrice: product.price,
+      purchasePath: "direct",
+      chatMessages: [],
+      chatRound: 0,
+      bargainSessionId: null,
+      lastOfferStatus: null,
+      isTyping: false,
+      isNegotiating: false,
+      userChatInput: "",
+      step: 5,
+    });
+  },
+
+  startBargainChat: () => {
+    negotiateInFlight = false;
+    set({
+      purchasePath: "bargain",
+      chatMessages: [],
+      chatRound: 0,
+      bargainSessionId: null,
+      lastOfferStatus: null,
+      isTyping: true,
+      isNegotiating: false,
+      userChatInput: "",
+      step: 4,
+    });
+  },
+
+  acceptBargainOffer: async () => {
+    const state = get();
+    if (state.isNegotiating) return;
+
+    const price = state.negotiatedPrice;
+    const userMsg: ChatMessage = {
+      id: newChatId(),
+      sender: "user",
+      text: `Accepting ₹${price}. Perfect!`,
+      time: chatTimestamp(),
+    };
+    const shopMsg: ChatMessage = {
+      id: newChatId(),
+      sender: "shop",
+      text: "Thank you! Packing your order now. Proceed to select delivery.",
+      time: chatTimestamp(),
+    };
+
+    set({
+      chatMessages: [...state.chatMessages, userMsg, shopMsg],
+      purchasePath: "bargain",
+      lastOfferStatus: "accepted",
+    });
+
+    if (state.bargainSessionId != null) {
+      try {
+        await fetch(`${API_BASE_URL}/api/bazaar/negotiate/accept`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: state.bargainSessionId,
+            final_price: price,
+          }),
+        });
+      } catch (err) {
+        console.warn("Failed to mark bargain accepted:", err);
+      }
+    }
+
+    setTimeout(() => set({ step: 5 }), 1000);
+  },
+
+  rejectBargainOffer: () => {
+    const state = get();
+    if (state.isNegotiating) return;
+
+    const cancelMsg: ChatMessage = {
+      id: newChatId(),
+      sender: "user",
+      text: "Offer canceled. Redirecting you to catalog...",
+      time: chatTimestamp(),
+    };
+    set({ chatMessages: [...state.chatMessages, cancelMsg], lastOfferStatus: null });
+
+    negotiateInFlight = false;
+    setTimeout(() => set({
+      step: 1,
+      chatMessages: [],
+      chatRound: 0,
+      bargainSessionId: null,
+      lastOfferStatus: null,
+      isTyping: false,
+      isNegotiating: false,
+      userChatInput: "",
+    }), 1500);
+  },
   
   resetSession: () => set({
     step: 1,
     selectedProduct: null,
     proposedBid: 1000,
     chatMessages: [],
-    chatRound: 1,
+    chatRound: 0,
     userChatInput: "",
-    isTyping: false
+    isTyping: false,
+    isNegotiating: false,
+    bargainSessionId: null,
+    lastOfferStatus: null,
+    purchasePath: "bargain",
   }),
   
   fetchBazaarForCity: async (city, simulatedDate) => {
@@ -380,9 +520,13 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
       proposedBid: 1000,
       negotiatedPrice: 1299,
       chatMessages: [],
-      chatRound: 1,
+      chatRound: 0,
       userChatInput: "",
       isTyping: false,
+      isNegotiating: false,
+      bargainSessionId: null,
+      lastOfferStatus: null,
+      purchasePath: "bargain",
       fulfillmentMode: "delivery",
       completedRituals: [],
       
@@ -431,39 +575,71 @@ export const useBazaarStore = create<BazaarState>((set, get) => ({
   submitNegotiationOffer: async (bid, customMessage) => {
     const state = get();
     if (!state.selectedProduct) return;
-    
+    if (negotiateInFlight || state.isNegotiating) return;
+    if (state.chatRound >= 2) return;
+
+    negotiateInFlight = true;
+    const nextRound = state.chatRound + 1;
     const msgText = customMessage || `I'll offer ₹${bid}`;
-    const userMsg: ChatMessage = { sender: "user", text: msgText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    set({ chatMessages: [...state.chatMessages, userMsg], isTyping: true });
-    
+    const userMsg: ChatMessage = {
+      id: newChatId(),
+      sender: "user",
+      text: msgText,
+      time: chatTimestamp(),
+    };
+
+    set({
+      chatMessages: [...state.chatMessages, userMsg],
+      isTyping: true,
+      isNegotiating: true,
+      chatRound: nextRound,
+      proposedBid: bid,
+    });
+
     try {
       const res = await fetch(`${API_BASE_URL}/api/bazaar/negotiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          boutique_id: state.selectedProduct.boutiqueId || "",
           product_id: state.selectedProduct.id,
           original_price: state.selectedProduct.price,
           proposed_price: bid,
+          session_id: state.bargainSessionId ?? undefined,
+          round_number: nextRound,
+          user_message: msgText,
         }),
       });
       if (!res.ok) throw new Error("HTTP error");
       const data = await res.json();
-      
-      const shopMsg: ChatMessage = { sender: "shop", text: data.message, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-      
-      set({ 
-        chatMessages: [...state.chatMessages, userMsg, shopMsg],
+
+      const shopMsg: ChatMessage = {
+        id: newChatId(),
+        sender: "shop",
+        text: data.message,
+        time: chatTimestamp(),
+      };
+
+      const latest = get();
+      set({
+        chatMessages: [...latest.chatMessages, shopMsg],
         negotiatedPrice: data.final_price,
-        chatRound: data.status === "accepted" ? state.chatRound : state.chatRound + 1,
-        isTyping: false 
+        lastOfferStatus: data.status,
+        bargainSessionId:
+          typeof data.session_id === "number" ? data.session_id : latest.bargainSessionId,
+        isTyping: false,
+        isNegotiating: false,
+        purchasePath: "bargain",
       });
-      
+
       if (data.status === "accepted") {
         setTimeout(() => set({ step: 5 }), 1500);
       }
     } catch (err) {
       console.warn("Negotiation failed:", err);
-      set({ isTyping: false });
+      set({ isTyping: false, isNegotiating: false });
+    } finally {
+      negotiateInFlight = false;
     }
   }
 }));

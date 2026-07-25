@@ -151,7 +151,7 @@ class BazaarService:
             return {
                 "status": "accepted",
                 "final_price": original_price,
-                "message": "Thank you! The item is available at the standard listing price. Added to cart."
+                "message": "Thank you! The item is available at the standard listing price."
             }
             
         ratio = proposed_price / original_price

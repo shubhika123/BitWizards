@@ -50,6 +50,7 @@ function toProduct(result: SearchResult, offer: SearchResultOffer): Product {
     deliveryTime: offer.delivery_estimate,
     pickupTime: offer.delivery_estimate,
     boutique: offer.seller_name,
+    boutiqueId: offer.seller_id,
     location: `${offer.distance_km} km away`,
   };
 }
