@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   turbopack: {
     root: __dirname,
   },
@@ -18,8 +19,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const isProd = process.env.NODE_ENV === "production";
     const defaultApiUrl = isProd ? "https://bitwizards.onrender.com" : "http://127.0.0.1:8000";
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || defaultApiUrl;
-    
+    // Prefer internal URL inside Docker; fall back to the public API URL.
+    const apiBase =
+      process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || defaultApiUrl;
+
     return [
       {
         source: '/pruna-api/:path*',

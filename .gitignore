@@ -19,6 +19,10 @@ backend/.env
 *.db
 *.sqlite
 *.sqlite3
+backend/data/
+
+# Docker
+.env
 
 # IDEs & System
 .DS_Store

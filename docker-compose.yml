@@ -1,0 +1,69 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bitwizards-backend
+    ports:
+      - "8000:8000"
+    # Optional: copy backend/.env.example -> backend/.env for API keys.
+    # Compose Spec 2.24+ supports required: false so the stack still boots without it.
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8000"
+      DEBUG: "False"
+      # Absolute SQLite path on the persistent volume
+      DATABASE_URL: sqlite:////app/data/myntra.db
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_KEY: ${SUPABASE_KEY:-}
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
+      PINECONE_API_KEY: ${PINECONE_API_KEY:-}
+      PRUNA_API_KEY: ${PRUNA_API_KEY:-}
+      HF_API_KEY: ${HF_API_KEY:-}
+    volumes:
+      - backend_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Browser calls hit the published host port
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        # Next server-side rewrites / route handlers use the Compose DNS name
+        API_INTERNAL_URL: http://backend:8000
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+    container_name: bitwizards-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      API_INTERNAL_URL: http://backend:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  backend_data:
