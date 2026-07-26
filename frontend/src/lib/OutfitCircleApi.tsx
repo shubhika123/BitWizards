@@ -1,6 +1,5 @@
-// lib/OutfitCircleApi.ts
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-const BASE = `${API_BASE}/outfit-circle`;
+import { API_BASE_URL } from "./apiConfig";
+const BASE = `${API_BASE_URL}/outfit-circle`;
 export interface PinnedProduct {
   pin_id: number;
   board_id: number;
@@ -43,8 +42,8 @@ async function handle(res: Response) {
   return res.json();
 }
 
-export async function getUserByUsername(username: string) {
-  const res = await fetch(`${BASE}/users/by-username/${encodeURIComponent(username)}`);
+export async function getUserByPhone(phone: string) {
+  const res = await fetch(`${BASE}/users/by-phone/${encodeURIComponent(phone)}`);
   if (res.status === 404) return null;
   return handle(res);
 }
@@ -84,17 +83,17 @@ export async function createBoard(
   return handle(res);
 }
 
-export async function addMemberByUsername(boardId: number, username: string) {
-  const res = await fetch(`${BASE}/boards/${boardId}/members/by-username/${encodeURIComponent(username)}`, {
+export async function addMemberByPhone(boardId: number, phone: string) {
+  const res = await fetch(`${BASE}/boards/${boardId}/members/by-phone/${encodeURIComponent(phone)}`, {
     method: "POST",
   });
   return handle(res);
 }
 
-export async function acceptBoardInvite(boardId: number, userId: number, username: string) {
+export async function acceptBoardInvite(boardId: number, userId: number, phone: string) {
   const res = await fetch(`${BASE}/boards/${boardId}/members/${userId}/accept`, {
     method: "POST",
-    headers: { "X-User-Username": username },
+    headers: { "X-User-Phone": phone },
   });
   return handle(res);
 }
@@ -202,32 +201,5 @@ export async function updatePinCanvas(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(canvas),
   });
-  return handle(res);
-}
-
-export async function submitContestGuess(payload: {
-  user_id: number;
-  product_name: string;
-  category: string;
-  guessed_price: number;
-  actual_price: number;
-  coins_won: number;
-  result_msg: string;
-}) {
-  const res = await fetch(`/api/contest/submit`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return handle(res);
-}
-
-export async function getContestHistory(userId: number) {
-  const res = await fetch(`/api/contest/history?user_id=${userId}`);
-  return handle(res);
-}
-
-export async function getContestStatus(userId: number) {
-  const res = await fetch(`/api/contest/status?user_id=${userId}`);
   return handle(res);
 }

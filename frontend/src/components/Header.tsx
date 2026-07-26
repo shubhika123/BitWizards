@@ -16,6 +16,8 @@ import { GenieEntryButton } from "./genie/GenieEntryButton";
 import { useAuthStore } from "../store/authStore";
 import { categories } from "../lib/Categories";
 
+import { API_BASE_URL as API_BASE_URL_CONFIG } from "../lib/apiConfig";
+
 const MyntraLogo = ({ className = "w-7 h-7" }: { className?: string }) => (
   <svg viewBox="10 5 80 70" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M22 68 C14 68 12 55 18 35 C24 15 31 10 35 10 C39 10 41 16 38 30 C34 50 30 68 22 68 Z" fill="#E71B5A" opacity="0.95" />
@@ -38,7 +40,8 @@ export default function Header() {
 
   const loadActiveFestivalHeader = () => {
     const dateStr = localStorage.getItem("simulated_date") || "";
-    const url = dateStr ? `http://127.0.0.1:8000/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : "http://127.0.0.1:8000/fetch-feed";
+    const API_BASE_URL = API_BASE_URL_CONFIG;
+    const url = dateStr ? `${API_BASE_URL}/fetch-feed?simulated_date=${encodeURIComponent(dateStr)}` : `${API_BASE_URL}/fetch-feed`;
 
     fetch(url)
       .then((res) => res.json())
@@ -96,7 +99,7 @@ export default function Header() {
   };
 
   // Dynamic Theme Classes
-  const headerBg = activeFestival === "Diwali" ? "bg-[#faf5ff] border-b border-purple-100" : "bg-white border-b border-[#eaeaec]";
+  const headerBg = "bg-white border-b border-[#eaeaec]";
   const textColor = "text-[#282c3f]";
   const hoverBorderColor = "hover:border-[#ff3f6c]";
   const inputBg = "bg-[#f5f5f6] focus-within:bg-white focus-within:border-[#eaeaec]";

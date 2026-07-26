@@ -16,6 +16,9 @@ def get_current_user(x_user_id: Optional[str] = Header(None)):
 
 class SubmitGuessRequest(BaseModel):
     guess_amount: float
+    slider_adjustments: int = 0
+    hesitation_seconds: Optional[float] = None
+
 
 class SwipeActionRequest(BaseModel):
     action: str
@@ -44,7 +47,13 @@ def mark_card_shown(card_id: str, user_id: str = Depends(get_current_user)):
 def submit_card(card_id: str, req: SubmitGuessRequest, user_id: str = Depends(get_current_user)):
     """Validates card is shown. Computes deviation, base points, speed bonus. Updates ledger + streak. Returns the reveal payload."""
     try:
-        result = sahidaam_db.submit_card(card_id, user_id, req.guess_amount)
+        result = sahidaam_db.submit_card(
+            card_id,
+            user_id,
+            req.guess_amount,
+            slider_adjustments=req.slider_adjustments,
+            hesitation_seconds=req.hesitation_seconds,
+        )
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -64,13 +73,9 @@ def swipe_card(card_id: str, req: SwipeActionRequest, user_id: str = Depends(get
 
 @router.get("/rewards/summary")
 def get_rewards_summary(user_id: str = Depends(get_current_user)):
-    """Points balance + streak, for FAB badge / profile display."""
+    """Points balance + streak + today flags, for FAB badge / end-of-deck."""
     try:
-        ledger = sahidaam_db.get_user_ledger(user_id)
-        return {
-            "points_balance": ledger["points_balance"],
-            "streak_count": ledger["streak_count"]
-        }
+        return sahidaam_db.get_rewards_summary(user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

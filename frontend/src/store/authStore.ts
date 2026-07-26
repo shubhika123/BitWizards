@@ -1,11 +1,10 @@
 // store/authStore.ts
 import { create } from "zustand";
-import { isMockAuth, auth, db } from "../lib/firebase";
-import { signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { supabase } from "../lib/supabaseClient";
+import { API_BASE_URL as OUTFIT_CIRCLE_API_BASE } from "../lib/apiConfig";
 
-const OUTFIT_CIRCLE_API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+// Toggle true for local browser-only testing with OTP '123456'
+export const isMockAuth = true; 
 
 export interface UserProfile {
   uid: string;
@@ -14,7 +13,7 @@ export interface UserProfile {
   age: number;
   city: string;
   username: string;
-  user_id: number; // Outfit Circle backend's numeric id — required for all board/invite calls
+  user_id: number; // PostgreSQL backend's numeric id — required for database relations
 }
 
 interface AuthState {
@@ -24,23 +23,24 @@ interface AuthState {
   isMock: boolean;
   pendingPhoneDetails: { phone: string } | null;
   initAuth: () => void;
+  checkPhoneExists: (phone: string) => Promise<boolean>;
   sendOTP: (phone: string) => Promise<void>;
   verifyOTP: (phone: string, otp: string) => Promise<boolean>; // returns true if registered
   registerPhoneUser: (
     phone: string,
     name: string,
     age: number,
-    city: string,
-    username: string
+    city: string
   ) => Promise<void>;
+  updateCity: (city: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-async function registerWithOutfitCircle(username: string, name: string) {
-  const res = await fetch(`${OUTFIT_CIRCLE_API_BASE}/outfit-circle/users/register`, {
+async function registerUserWithBackend(name: string, phone: string, city: string) {
+  const res = await fetch(`${OUTFIT_CIRCLE_API_BASE}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, name }),
+    body: JSON.stringify({ name, phone, city }),
   });
 
   if (!res.ok) {
@@ -62,45 +62,57 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (get().isInitialized) return;
 
     if (isMockAuth) {
-      const session = localStorage.getItem("mock_phone_session");
+      const session = typeof window !== 'undefined' ? localStorage.getItem("mock_phone_session") : null;
       if (session) {
-        set({ user: JSON.parse(session), isInitialized: true });
+        const parsed = JSON.parse(session);
+        fetch(`${OUTFIT_CIRCLE_API_BASE}/auth/verify/${parsed.user_id}`)
+          .then(res => {
+            if (res.status === 404) {
+              get().logout();
+            } else {
+              if (parsed.city) localStorage.setItem("selectedCity", parsed.city);
+              set({ user: parsed, isInitialized: true });
+            }
+          })
+          .catch(e => {
+            console.error("Verification error", e);
+            if (parsed.city) localStorage.setItem("selectedCity", parsed.city);
+            set({ user: parsed, isInitialized: true });
+          });
       } else {
         set({ user: null, isInitialized: true });
       }
     } else {
-      onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser && firebaseUser.phoneNumber) {
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user && session.user.phone) {
           try {
-            const docRef = doc(db, "users", firebaseUser.uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              set({
-                user: {
-                  uid: firebaseUser.uid,
-                  phone: firebaseUser.phoneNumber,
-                  name: data.name || "",
-                  age: Number(data.age) || 0,
-                  city: data.city || "",
-                  username: data.username || "",
-                  user_id: Number(data.user_id) || 0,
-                },
-                pendingPhoneDetails: null,
-                isInitialized: true,
-              });
+            // Retrieve custom profile data from local storage linked to the Supabase Auth UUID
+            const localProfileStr = localStorage.getItem(`supabase_profile_${session.user.id}`);
+            if (localProfileStr) {
+              const parsed = JSON.parse(localProfileStr);
+              const res = await fetch(`${OUTFIT_CIRCLE_API_BASE}/auth/verify/${parsed.user_id}`);
+              if (res.status === 404) {
+                get().logout();
+              } else {
+                if (parsed.city) localStorage.setItem("selectedCity", parsed.city);
+                set({
+                  user: parsed,
+                  pendingPhoneDetails: null,
+                  isInitialized: true,
+                });
+              }
             } else {
               set({
                 user: null,
-                pendingPhoneDetails: { phone: firebaseUser.phoneNumber },
+                pendingPhoneDetails: { phone: session.user.phone },
                 isInitialized: true,
               });
             }
           } catch (e) {
-            console.error("Firestore lookup error", e);
+            console.error("Supabase lookup or verification error", e);
             set({
               user: null,
-              pendingPhoneDetails: { phone: firebaseUser.phoneNumber },
+              pendingPhoneDetails: { phone: session.user.phone },
               isInitialized: true,
             });
           }
@@ -111,12 +123,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  checkPhoneExists: async (phone) => {
+    try {
+      const res = await fetch(`${OUTFIT_CIRCLE_API_BASE}/auth/check-phone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.exists === true;
+      }
+      return false;
+    } catch (e) {
+      console.error("Failed to check phone existence", e);
+      return false;
+    }
+  },
+
   sendOTP: async (phone) => {
     set({ loading: true });
     try {
       if (isMockAuth) {
         await new Promise((r) => setTimeout(r, 800));
         console.log(`Demo OTP "123456" dispatched successfully to ${phone}`);
+      } else {
+        // Send OTP using Supabase Phone Auth
+        // Ensure phone number includes country code
+        const formattedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
+        const { error } = await supabase.auth.signInWithOtp({ phone: formattedPhone });
+        if (error) {
+          throw new Error("Supabase OTP Error: " + error.message);
+        }
       }
     } finally {
       set({ loading: false });
@@ -126,45 +164,95 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   verifyOTP: async (phone, otp) => {
     set({ loading: true });
     try {
-      if (otp !== "123456") {
-        throw new Error("Invalid OTP code. Please use the demo code 123456");
-      }
+      let foundProfile: UserProfile | null = null;
 
       if (isMockAuth) {
+        await new Promise((r) => setTimeout(r, 1500)); // Simulate real-world network delay for OTP verification
+        if (otp !== "123456") {
+          throw new Error("Invalid OTP code. Please use the demo code 123456");
+        }
         const mockUsers = JSON.parse(localStorage.getItem("mock_phone_users") || "{}");
-        const found = mockUsers[phone];
-
-        if (found) {
-          const profile: UserProfile = {
-            uid: found.uid,
-            phone: found.phone,
-            name: found.name,
-            age: found.age,
-            city: found.city,
-            username: found.username,
-            user_id: found.user_id,
-          };
-          localStorage.setItem("mock_phone_session", JSON.stringify(profile));
-          set({ user: profile, pendingPhoneDetails: null });
-          return true;
-        } else {
-          set({ pendingPhoneDetails: { phone } });
-          return false;
+        if (mockUsers[phone]) {
+          foundProfile = { ...mockUsers[phone] };
         }
       } else {
+        const formattedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
+        const { data, error } = await supabase.auth.verifyOtp({ phone: formattedPhone, token: otp, type: 'sms' });
+        
+        if (error) {
+           throw new Error("Verification failed: " + error.message);
+        }
+        
+        const localProfileStr = localStorage.getItem(`supabase_profile_${data.user?.id}`);
+        if (localProfileStr) {
+          foundProfile = JSON.parse(localProfileStr);
+        }
+      }
+
+      // If we don't have it in local storage, check the backend database directly
+      if (!foundProfile) {
+        try {
+          const res = await fetch(`${OUTFIT_CIRCLE_API_BASE}/outfit-circle/users/by-phone/${encodeURIComponent(phone)}`);
+          if (res.ok) {
+            const dbUser = await res.json();
+            foundProfile = {
+              uid: "phone_" + Math.random().toString(36).substr(2, 9), // placeholder for mock
+              phone: dbUser.phone,
+              name: dbUser.name,
+              age: dbUser.age || 20,
+              city: dbUser.city,
+              username: dbUser.username,
+              user_id: dbUser.user_id
+            };
+
+            // Re-hydrate local storage
+            if (isMockAuth) {
+              const mockUsers = JSON.parse(localStorage.getItem("mock_phone_users") || "{}");
+              mockUsers[phone] = foundProfile;
+              localStorage.setItem("mock_phone_users", JSON.stringify(mockUsers));
+            }
+            // For supabase, we would ideally need the supabase UUID but since this is mock first, 
+            // the uid above is a fallback. The supabase block above handles it if possible.
+          }
+        } catch (e) {
+          console.error("Failed to recover profile from backend", e);
+        }
+      }
+
+      if (foundProfile) {
+        if (isMockAuth) {
+          localStorage.setItem("mock_phone_session", JSON.stringify(foundProfile));
+        }
+        if (foundProfile.city) {
+          localStorage.setItem("selectedCity", foundProfile.city);
+        }
+        set({ user: foundProfile, pendingPhoneDetails: null });
+        return true;
+      } else {
+        set({ pendingPhoneDetails: { phone } });
         return false;
       }
+
     } finally {
       set({ loading: false });
     }
   },
 
-  registerPhoneUser: async (phone, name, age, city, username) => {
+  registerPhoneUser: async (phone, name, age, city) => {
     set({ loading: true });
     try {
-      const backendUser = await registerWithOutfitCircle(username, name);
+      // 1. Create the user in the FastAPI PostgreSQL Database via the new Auth Router
+      const backendUser = await registerUserWithBackend(name, phone, city);
 
-      const uid = "phone_" + Math.random().toString(36).substr(2, 9);
+      let uid = "phone_" + Math.random().toString(36).substr(2, 9);
+      
+      if (!isMockAuth) {
+         const { data: { session } } = await supabase.auth.getSession();
+         if (session?.user) {
+             uid = session.user.id;
+         }
+      }
+
       const profile: UserProfile = {
         uid,
         phone,
@@ -181,20 +269,59 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.setItem("mock_phone_users", JSON.stringify(mockUsers));
         localStorage.setItem("mock_phone_session", JSON.stringify(profile));
       } else {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          await setDoc(doc(db, "users", currentUser.uid), {
-            name,
-            age,
-            city,
-            phone,
-            username: profile.username,
-            user_id: profile.user_id,
-            createdAt: new Date().toISOString(),
-          });
-        }
+        // Save the profile associated with the Supabase UID
+        localStorage.setItem(`supabase_profile_${uid}`, JSON.stringify(profile));
       }
+      
+      if (city) {
+        localStorage.setItem("selectedCity", city);
+      }
+      
       set({ user: profile, pendingPhoneDetails: null });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  updateCity: async (city) => {
+    const trimmed = city.trim();
+    if (!trimmed) throw new Error("City is required");
+
+    const current = get().user;
+    if (!current?.user_id) throw new Error("You must be logged in to edit your city");
+
+    set({ loading: true });
+    try {
+      const res = await fetch(
+        `${OUTFIT_CIRCLE_API_BASE}/auth/users/${current.user_id}/city`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ city: trimmed }),
+        }
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || "Failed to update city");
+      }
+
+      const data = (await res.json()) as { city?: string };
+      const nextCity = data.city || trimmed;
+      const updated: UserProfile = { ...current, city: nextCity };
+
+      if (isMockAuth) {
+        localStorage.setItem("mock_phone_session", JSON.stringify(updated));
+        const mockUsers = JSON.parse(localStorage.getItem("mock_phone_users") || "{}");
+        if (mockUsers[current.phone]) {
+          mockUsers[current.phone] = updated;
+          localStorage.setItem("mock_phone_users", JSON.stringify(mockUsers));
+        }
+      } else {
+        localStorage.setItem(`supabase_profile_${current.uid}`, JSON.stringify(updated));
+      }
+
+      localStorage.setItem("selectedCity", nextCity);
+      set({ user: updated });
     } finally {
       set({ loading: false });
     }
@@ -206,7 +333,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (isMockAuth) {
         localStorage.removeItem("mock_phone_session");
       } else {
-        await signOut(auth);
+        await supabase.auth.signOut();
       }
       set({ user: null, pendingPhoneDetails: null });
     } finally {

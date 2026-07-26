@@ -1,0 +1,149 @@
+{
+  "default": {
+    "name": "General Festive",
+    "hexColor": "#ff3f6c",
+    "bannerTitle": "Explore Local Sellers with ",
+    "bannerHighlight": "Trust",
+    "bannerDesc": "Handcrafted accessories, direct handlooms, and traditional clothing from trusted neighbourhood artisans.",
+    "bannerImg": "/apnabazar.png",
+    "bannerBtn": "Explore Collections",
+    "bannerBadge": "Bazaar Special",
+    "bannerTag": "✨ SUPPORT LOCAL ARTISANS",
+    "festiveBanner": "bg-gradient-to-r from-[#ff3f6c] to-[#e0355f] text-white",
+    "categories": [
+      { "name": "All", "img": null, "value": "All", "occasion_tag": null },
+      { "name": "Ethnic Wear", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "festive" },
+      { "name": "Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "festive" },
+      { "name": "Footwear", "img": "/traditional_food_category.png", "value": "Footwear", "occasion_tag": "casual" },
+      { "name": "Puja Essentials", "img": "/pooja_essentials_category.png", "value": "Miscellaneous", "occasion_tag": "festive" }
+    ]
+  },
+  "aadi_festival": {
+    "name": "Aadi Festival",
+    "hexColor": "#2d5a27",
+    "bannerTitle": "Happy\nAadi Perukku & Pooram!",
+    "bannerHighlight": "",
+    "bannerDesc": "Embrace tradition with Aadi discount silks, Amman temple wear & festive cooking essentials.",
+    "bannerImg": "/aadi_bazaar_banner.png",
+    "bannerBtn": "Explore Aadi Collection",
+    "bannerBadge": "Aadi Thallubadi (Special Sale)",
+    "bannerTag": "🏺 AADI FESTIVAL SPECIAL",
+    "festiveBanner": "bg-[#2d5a27]",
+    "categories": [
+      { "name": "Amman Pooja Items", "img": "/aman_pooja_items.jpg", "value": "Miscellaneous", "occasion_tag": "aadi_festival" },
+      { "name": "Festive Jewellery", "img": "/addi_jwelery.jpeg", "value": "Jewellery", "occasion_tag": "aadi_festival" },
+      { "name": "Home & Temple Decor", "img": "/aadi_temple.jpeg", "value": "Miscellaneous", "occasion_tag": "aadi_festival" },
+      { "name": "Traditional Footwear", "img": "/footwear_Aadi.jpg", "value": "Footwear", "occasion_tag": "aadi_festival" }
+    ]
+  },
+  "varalakshmi_vratam": {
+    "name": "Varalakshmi Vratam",
+    "hexColor": "#7c3aed",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Varalakshmi Vratam",
+    "bannerDesc": "Invite prosperity and Lakshmi blessings. Shop Kovai cottons, Kanjivarams, brass lamps & flowers.",
+    "bannerImg": "/varalakshmi_banner_bg.png",
+    "bannerBtn": "Explore Vratam Collection",
+    "bannerBadge": "Varalakshmi Special",
+    "bannerTag": "🪷 VARALAKSHMI VRATAM SPECIAL",
+    "festiveBanner": "bg-[#3b1154]",
+    "categories": [
+      { "name": "Puja Samagri & Brass", "img": "/ganesh_category_puja.png", "value": "Miscellaneous", "occasion_tag": "varalakshmi_vratam" },
+      { "name": "Kanjivaram Sarees", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "varalakshmi_vratam" },
+      { "name": "Temple Flowers", "img": "/fresh_pooja_flowers.png", "value": "Miscellaneous", "occasion_tag": "varalakshmi_vratam" },
+      { "name": "Gold-Plated Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "varalakshmi_vratam" }
+    ]
+  },
+  "pongal": {
+    "name": "Pongal Festival",
+    "hexColor": "#d97706",
+    "bannerTitle": "Iniya Pongal",
+    "bannerHighlight": "Nalvazhthukkal! 🌾",
+    "bannerDesc": "Celebrate Thamizhar Thirunaal! Shop traditional dhotis, pattu pavadais, clay pots & decor.",
+    "bannerImg": "/pongal_banner_bg.png",
+    "bannerBtn": "Explore Pongal Special",
+    "bannerBadge": "Uzhavar Thirunaal",
+    "bannerTag": "☀️ PONGAL SPECIAL",
+    "festiveBanner": "bg-[#b45309]",
+    "categories": [
+      { "name": "Pongal Attire (Dhotis/Silks)", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "pongal" },
+      { "name": "Clay Pots & Decor", "img": "/pooja_setup_category.png", "value": "Miscellaneous", "occasion_tag": "pongal" },
+      { "name": "Traditional Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "pongal" },
+      { "name": "Festive Footwear", "img": "/traditional_food_category.png", "value": "Footwear", "occasion_tag": "pongal" }
+    ]
+  },
+  "ganesh_chaturthi": {
+    "name": "Ganesh Chaturthi",
+    "hexColor": "#ea580c",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Ganesh Chaturthi!",
+    "bannerDesc": "Welcome Bappa with love. Puja essentials, clay idols, decor, gifts & more from local sellers.",
+    "bannerImg": "/ganesh_banner_bg.png",
+    "bannerBtn": "Explore Collection",
+    "bannerBadge": "Ganpati Bappa Morya!",
+    "bannerTag": "🌼 GANESH CHATURTHI SPECIAL",
+    "festiveBanner": "bg-[#ea580c]",
+    "categories": [
+      { "name": "Puja Essentials", "img": "/ganesh_category_puja.png", "value": "Miscellaneous", "occasion_tag": "ganesh_chaturthi" },
+      { "name": "Eco-Friendly Idols", "img": "/ganesh_category_idols.png", "value": "Miscellaneous", "occasion_tag": "ganesh_chaturthi" },
+      { "name": "Festive Kurta & Silk", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "ganesh_chaturthi" },
+      { "name": "Decorations", "img": "/pooja_setup_category.png", "value": "Miscellaneous", "occasion_tag": "ganesh_chaturthi" },
+      { "name": "Footwear & Juttis", "img": "/traditional_food_category.png", "value": "Footwear", "occasion_tag": "ganesh_chaturthi" }
+    ]
+  },
+  "durga_puja": {
+    "name": "Durga Puja",
+    "hexColor": "#be123c",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Durga Puja!",
+    "bannerDesc": "Celebrate the victory of good over evil with devotion, dhunuchi & festive handloom shopping.",
+    "bannerImg": "/durga_puja_banner_bg.png",
+    "bannerBtn": "Explore Pujo Collection",
+    "bannerBadge": "Pujo Special",
+    "bannerTag": "🔱 DURGA PUJA SPECIAL",
+    "festiveBanner": "bg-[#7c1d2e]",
+    "categories": [
+      { "name": "Tant & Garad Sarees", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "durga_puja" },
+      { "name": "Pooja Essentials", "img": "/ganesh_category_puja.png", "value": "Miscellaneous", "occasion_tag": "durga_puja" },
+      { "name": "Dhak & Dhunuchi", "img": "/pooja_setup_category.png", "value": "Miscellaneous", "occasion_tag": "durga_puja" },
+      { "name": "Traditional Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "durga_puja" },
+      { "name": "Festive Footwear", "img": "/traditional_food_category.png", "value": "Footwear", "occasion_tag": "durga_puja" }
+    ]
+  },
+  "chhath_puja": {
+    "name": "Chhath Puja",
+    "hexColor": "#ea580c",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Chhath Puja",
+    "bannerDesc": "Celebrate the festival of sun, faith & gratitude. Shop essentials from trusted local sellers.",
+    "bannerImg": "/chhath_banner_bg.png",
+    "bannerBtn": "Explore Collection",
+    "bannerBadge": "Chhath Special",
+    "bannerTag": "🌅 CHHATH PUJA SPECIAL",
+    "festiveBanner": "bg-[#2d1a3c]",
+    "categories": [
+      { "name": "Men Ethnic Wear", "img": "/chhath_men_ethnic.png", "value": "Clothing", "occasion_tag": "chhath_puja" },
+      { "name": "Women Ethnic Wear", "img": "/chhath_women_ethnic.png", "value": "Clothing", "occasion_tag": "chhath_puja" },
+      { "name": "Prasad & Offerings", "img": "/chhath_prasad.png", "value": "Miscellaneous", "occasion_tag": "chhath_puja" },
+      { "name": "Ritual Essentials", "img": "/chhath_ritual_essentials.png", "value": "Miscellaneous", "occasion_tag": "chhath_puja" }
+    ]
+  },
+  "lohri": {
+    "name": "Lohri",
+    "hexColor": "#ea580c",
+    "bannerTitle": "Happy",
+    "bannerHighlight": "Lohri! 🔥",
+    "bannerDesc": "Celebrate the harvest with warmth, food, music & joy. Shop from trusted local sellers.",
+    "bannerImg": "/lohri_banner_bg.png",
+    "bannerBtn": "Explore Lohri Collection",
+    "bannerBadge": "Lohri Special",
+    "bannerTag": "🔥 LOHRI SPECIAL",
+    "festiveBanner": "bg-[#ea580c]",
+    "categories": [
+      { "name": "Traditional Attire", "img": "/ethnic_wear_category.png", "value": "Ethnic Wear", "occasion_tag": "lohri" },
+      { "name": "Punjabi Juttis", "img": "/traditional_food_category.png", "value": "Footwear", "occasion_tag": "lohri" },
+      { "name": "Harvest Decor", "img": "/pooja_setup_category.png", "value": "Miscellaneous", "occasion_tag": "lohri" },
+      { "name": "Statement Jewellery", "img": "/jewellery_category.png", "value": "Jewellery", "occasion_tag": "lohri" }
+    ]
+  }
+}

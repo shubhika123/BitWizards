@@ -3,14 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../../components/Header";
 import PinCard from "../../../components/OutfitCircle/PinCard";
-import { addMemberByUsername, getBoard, updatePinCanvas } from "../../../lib/OutfitCircleApi";
+import { addMemberByPhone, getBoard, updatePinCanvas } from "../../../lib/OutfitCircleApi";
 import { Clock3, MapPin, Plus, ShieldCheck, Sparkles, UserPlus, Users } from "lucide-react";
 
 export default function BoardDetailPage() {
   const params = useParams();
   const boardId = Number(params.boardId);
   const [data, setData] = useState<any>(null);
-  const [inviteUsername, setInviteUsername] = useState("");
+  const [invitePhone, setInvitePhone] = useState("");
   const [addingMember, setAddingMember] = useState(false);
   const [inviteMessage, setInviteMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"board" | "members" | "canvas">("board");
@@ -63,9 +63,9 @@ export default function BoardDetailPage() {
   const currentUserId = data?.board?.created_by ?? 1;
 
   const handleAddMember = async () => {
-    const username = inviteUsername.trim();
-    if (!username) {
-      setInviteMessage("Enter a Myntra username to invite.");
+    const phone = invitePhone.replace(/\D/g, "");
+    if (phone.length !== 10) {
+      setInviteMessage("Enter a valid 10-digit phone number to invite.");
       return;
     }
 
@@ -73,10 +73,10 @@ export default function BoardDetailPage() {
     setInviteMessage(null);
 
     try {
-      await addMemberByUsername(boardId, username);
-      setInviteUsername("");
+      await addMemberByPhone(boardId, phone);
+      setInvitePhone("");
       await load();
-      setInviteMessage(`Invite sent to @${username}. They can accept it to join the board.`);
+      setInviteMessage(`Invite sent to +91 ${phone}. They can accept it to join the board.`);
     } catch (error) {
       console.error(error);
       setInviteMessage(error instanceof Error ? error.message : "Unable to send this invite right now.");
@@ -87,8 +87,8 @@ export default function BoardDetailPage() {
 
   if (!data) return null;
 
-  const getInitials = (name?: string, username?: string) => {
-    const source = name || username || "U";
+  const getInitials = (name?: string, phone?: string) => {
+    const source = name || "G";
     return source
       .split(" ")
       .filter(Boolean)
@@ -192,14 +192,14 @@ export default function BoardDetailPage() {
                     {/* Dummy Twin Mannequin */}
                     <div className="h-28 w-12 rounded-full border-2 border-[#ff3f6c]/30 bg-white/70 backdrop-blur-sm shadow flex items-center justify-center relative">
                       <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center text-[8px] font-black text-[#ff3f6c]">
-                        {getInitials(m.name, m.username)}
+                        {getInitials(m.name, m.phone)}
                       </div>
                       <div className="absolute -bottom-1 bg-[#282c3f] text-white text-[7px] px-1 rounded font-black uppercase">
                         Twin {idx + 1}
                       </div>
                     </div>
                     <span className="text-[8.5px] font-black text-gray-500 mt-1.5 truncate max-w-[60px]">
-                      @{m.username}
+                      +91 {m.phone || "..."}
                     </span>
                   </div>
                 ))}
@@ -343,9 +343,10 @@ export default function BoardDetailPage() {
               <div className="flex-1 rounded-full border border-gray-200 bg-[#fafafa] px-3 py-2 flex items-center gap-2">
                 <Sparkles className="w-3.5 h-3.5 text-[#ff3f6c]" />
                 <input
-                  value={inviteUsername}
-                  onChange={(e) => setInviteUsername(e.target.value)}
-                  placeholder="Invite another Myntra user by username"
+                  value={invitePhone}
+                  onChange={(e) => setInvitePhone(e.target.value.replace(/\D/g, ""))}
+                  placeholder="e.g. 9876543210"
+                  maxLength={10}
                   className="w-full bg-transparent outline-none text-[11px] text-gray-700 placeholder:text-gray-400"
                 />
               </div>

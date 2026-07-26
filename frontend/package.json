@@ -10,14 +10,16 @@
   },
   "dependencies": {
     "@gradio/client": "^2.3.1",
+    "@supabase/supabase-js": "^2.45.0",
     "@types/three": "^0.185.1",
-    "firebase": "^12.16.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.24.0",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-select": "^5.10.2",
     "recharts": "^3.10.0",
+    "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -25,6 +27,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-select": "^5.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",

@@ -19,6 +19,7 @@ class ProductEntity(BaseModel):
     keywords: List[str] = Field(default_factory=list)
     image_url: str = Field(...)
     gender: str = Field(default="Unisex")
+    brand: Optional[str] = None
 
     model_config = ConfigDict(extra="ignore")
 
@@ -37,6 +38,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["streetwear", "tech-core", "baggy", "dark"],
         "keywords": ["t-shirt", "tshirt", "tee", "graphic tee"],
         "gender": "Unisex",
+        "brand": "Roadster",
         "image_url": "/catalog/top_001.png"
     },
     {
@@ -61,6 +63,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["streetwear", "minimalist", "cozy", "winter"],
         "keywords": ["hoodie", "sweatshirt", "hood"],
         "gender": "Unisex",
+        "brand": "HERE&NOW",
         "image_url": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -85,6 +88,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "elegant", "light", "fusion", "modern", "trendy"],
         "keywords": ["kurta", "chikankari", "chikan", "lucknowi", "chikan kari", "embroidered kurta"],
         "gender": "Men",
+        "brand": "Anouk",
         "image_url": "https://images.unsplash.com/photo-1597983073493-88cd35cf93b0?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -109,6 +113,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "royal", "structured", "layering"],
         "keywords": ["nehru jacket", "bandhgala", "jacket", "blazer", "waistcoat"],
         "gender": "Men",
+        "brand": "Libas",
         "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -133,6 +138,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["boho", "vintage", "textured", "cozy"],
         "keywords": ["cardigan", "sweater", "knitwear"],
         "gender": "Women",
+        "brand": "HRX",
         "image_url": "https://images.unsplash.com/photo-1434389678369-e8412675d0f6?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -157,6 +163,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["edgy", "glam", "statement", "night-out"],
         "keywords": ["corset", "corset top", "top"],
         "gender": "Women",
+        "brand": "DressBerry",
         "image_url": "https://images.unsplash.com/photo-1550614000-4b95dd2475a3?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -181,6 +188,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "flowy", "bright"],
         "keywords": ["angrakha", "kurta", "kurti", "bandhani"],
         "gender": "Women",
+        "brand": "Sangria",
         "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -205,6 +213,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "elegant", "haldi", "flowy"],
         "keywords": ["anarkali", "kurta", "kurti", "gown"],
         "gender": "Women",
+        "brand": "Mast & Harbour",
         "image_url": "https://images.unsplash.com/photo-1617260537877-cd5f4ccda364?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -233,6 +242,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["streetwear", "tech-core", "utility", "baggy"],
         "keywords": ["cargo pants", "cargos", "pants", "trousers"],
         "gender": "Men",
+        "brand": "Roadster",
         "image_url": "/catalog/bot_001.png"
     },
     {
@@ -257,6 +267,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["streetwear", "vintage", "baggy", "casual"],
         "keywords": ["jeans", "denim", "denim pants", "wide-leg jeans"],
         "gender": "Unisex",
+        "brand": "HERE&NOW",
         "image_url": "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -281,6 +292,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "comfort", "light"],
         "keywords": ["pyjama", "pajama", "kurta pyjama", "churidar", "aligarh pyjama"],
         "gender": "Men",
+        "brand": "Anouk",
         "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -305,6 +317,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["streetwear", "y2k", "utility"],
         "keywords": ["cargo pants", "cargos", "pants"],
         "gender": "Women",
+        "brand": "Libas",
         "image_url": "/catalog/bot_007.png"
     },
     {
@@ -329,6 +342,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["y2k", "preppy", "summer", "kawaii"],
         "keywords": ["skirt", "tennis skirt", "mini skirt"],
         "gender": "Women",
+        "brand": "HRX",
         "image_url": "https://images.unsplash.com/photo-1582142407894-ec85a1260a46?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -353,6 +367,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "glam", "heavy", "flowy"],
         "keywords": ["sharara", "sharara pants", "gotta patti", "pants"],
         "gender": "Women",
+        "brand": "DressBerry",
         "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -377,6 +392,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "fusion", "sleek", "premium"],
         "keywords": ["pants", "trousers"],
         "gender": "Women",
+        "brand": "Sangria",
         "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
     },
 
@@ -405,6 +421,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["minimalist", "clean", "versatile", "streetwear"],
         "keywords": ["sneakers", "shoes"],
         "gender": "Unisex",
+        "brand": "Mast & Harbour",
         "image_url": "/catalog/foot_002.png"
     },
     {
@@ -429,6 +446,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "rugged", "comfort"],
         "keywords": ["kolhapuri", "kolhapuri chappal", "sandals", "chappal", "chappals"],
         "gender": "Men",
+        "brand": "Roadster",
         "image_url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -453,6 +471,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["streetwear", "kawaii", "vibrant", "y2k"],
         "keywords": ["sneakers", "shoes"],
         "gender": "Women",
+        "brand": "HERE&NOW",
         "image_url": "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -477,6 +496,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["minimalist", "smart-casual", "boho", "comfort"],
         "keywords": ["mules", "shoes"],
         "gender": "Women",
+        "brand": "Anouk",
         "image_url": "https://images.unsplash.com/photo-1535043934128-d8f99333a921?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -501,6 +521,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "vibrant", "handcrafted", "haldi"],
         "keywords": ["jutti", "juttis", "flats", "shoes"],
         "gender": "Women",
+        "brand": "Libas",
         "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
     },
 
@@ -529,6 +550,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["streetwear", "utility", "baggy", "functional"],
         "keywords": ["bag", "sling bag", "crossbody bag"],
         "gender": "Unisex",
+        "brand": "HRX",
         "image_url": "/catalog/acc_002.png"
     },
     {
@@ -553,6 +575,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["classic", "vintage", "statement"],
         "keywords": ["sunglasses", "shades", "glasses"],
         "gender": "Unisex",
+        "brand": "DressBerry",
         "image_url": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -577,6 +600,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "boho", "heavy", "traditional"],
         "keywords": ["jhumka", "jhumkas", "earrings"],
         "gender": "Women",
+        "brand": "Sangria",
         "image_url": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -601,6 +625,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "vibrant", "haldi"],
         "keywords": ["potli", "potli bag", "clutch", "bag"],
         "gender": "Women",
+        "brand": "Mast & Harbour",
         "image_url": "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -625,6 +650,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["minimalist", "sleek", "elegant", "everyday"],
         "keywords": ["necklace", "chain"],
         "gender": "Women",
+        "brand": "Roadster",
         "image_url": "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=400&q=80"
     },
     {
@@ -707,10 +733,26 @@ class MockDB:
         return None
 
     @classmethod
+    def get_bazaar_cities(cls) -> List[Dict[str, str]]:
+        """Deprecated: use BazaarRepository.get_bazaar_cities (SQL-backed)."""
+        from app.repository.bazaar_repo import BazaarRepository
+        return BazaarRepository.get_bazaar_cities()
+
+    @classmethod
+    def get_local_bazaar_data(cls, city: Optional[str] = None) -> Dict[str, Any]:
+        """Deprecated: use BazaarRepository.get_local_bazaar_data (SQL-backed)."""
+        from app.repository.bazaar_repo import BazaarRepository
+        return BazaarRepository.get_local_bazaar_data(city)
+
+    @classmethod
+    def get_bazaar_theme(cls, festival: Optional[str] = None) -> Dict[str, Any]:
+        """Deprecated: use BazaarRepository.get_bazaar_theme (SQL-backed)."""
+        from app.repository.bazaar_repo import BazaarRepository
+        return BazaarRepository.get_bazaar_theme(festival)
+
+    @classmethod
     def get_boutiques(cls, city: Optional[str] = None) -> List[Dict[str, Any]]:
-        if not city:
-            return LOCAL_BOUTIQUES
-        return [b for b in LOCAL_BOUTIQUES if b["city"].lower() == city.lower()]
+        return cls.get_local_bazaar_data(city).get("boutiques", [])
 
     @classmethod
     def get_genie_products(cls) -> List[Dict[str, Any]]:

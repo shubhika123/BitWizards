@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { API_BASE_URL as API_BASE_URL_CONFIG } from "../../lib/apiConfig";
 import Header from "../Header";
 import { DigitalTwin } from "../DigitalTwin";
 import { useGenieStore, GenieItem, GenieParsedContext } from "../../store/genieStore";
@@ -96,7 +97,7 @@ export function GenieLegacyExperience() {
         };
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/genie/curate/alternatives`,
+          `${API_BASE_URL_CONFIG}/api/genie/curate/alternatives`,
           {
             method: "POST",
             headers: {
@@ -149,7 +150,8 @@ export function GenieLegacyExperience() {
 
     try {
       // Call live backend NLP parsing endpoint
-      const response = await fetch("http://localhost:8000/api/genie/parse", {
+      const API_BASE_URL = API_BASE_URL_CONFIG;
+      const response = await fetch(`${API_BASE_URL}/api/genie/parse`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -286,7 +288,8 @@ export function GenieLegacyExperience() {
           .filter(Boolean);
 
         // Call backend curation API to fetch budget-compliant outfit
-        const curateResponse = await fetch("http://localhost:8000/api/genie/curate", {
+        const API_BASE_URL = API_BASE_URL_CONFIG;
+        const curateResponse = await fetch(`${API_BASE_URL}/api/genie/curate`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

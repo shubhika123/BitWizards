@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
+import { API_BASE_URL } from "@/lib/apiConfig";
+
 interface OverGuessedItem {
   name: string;
   image_url: string;
@@ -15,9 +17,8 @@ interface OverGuessedItem {
 export default function YouMayLikeThis() {
   const [items, setItems] = useState<OverGuessedItem[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/sahidaam/recommendations/over-guessed")
+    fetch(`${API_BASE_URL}/api/sahidaam/recommendations/over-guessed`)
       .then(res => res.json())
       .then(data => {
         if (data.items) {
@@ -47,7 +48,7 @@ export default function YouMayLikeThis() {
 
       <div className="flex overflow-x-auto gap-4 px-4 pb-4 snap-x snap-mandatory scrollbar-none relative z-10">
         {items.map((item, idx) => (
-          <Link href="/" key={idx} className="shrink-0 w-[140px] aspect-[3/4] snap-center group relative overflow-hidden rounded-[16px] shadow-sm hover:shadow-md transition-shadow">
+          <Link href="/" key={idx} className="shrink-0 w-[140px] aspect-[3/4] snap-center group relative overflow-hidden rounded-[16px] shadow-sm hover:shadow-md transition-shadow animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out" style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}>
             <img 
               src={item.image_url} 
               alt={item.name} 

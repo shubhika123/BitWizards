@@ -1,28 +1,34 @@
-import urllib.request
+from fastapi.testclient import TestClient
+from app.main import app
 import json
-import urllib.error
 
-query = {"query": "bhaiya ek badhiya sa onam ke liye white kasavu saree dikhao under 3k"}
+client = TestClient(app)
 
-req = urllib.request.Request(
-    'http://localhost:8000/genie/parse', 
-    data=json.dumps(query).encode('utf-8'), 
-    headers={'Content-Type': 'application/json', 'Accept': 'application/json'}
-)
-try:
-    res = urllib.request.urlopen(req)
-    parsed = json.loads(res.read())
-    print("Parsed JSON:", json.dumps(parsed, indent=2))
-    
-    req2 = urllib.request.Request(
-        'http://localhost:8000/genie/curate', 
-        data=json.dumps(parsed).encode('utf-8'), 
-        headers={'Content-Type': 'application/json', 'Accept': 'application/json'}
-    )
-    res2 = urllib.request.urlopen(req2)
-    curated = json.loads(res2.read())
-    print("Curated JSON:", json.dumps(curated, indent=2))
-except urllib.error.HTTPError as e:
-    print(f"HTTP Error {e.code}: {e.read().decode()}")
-except Exception as e:
-    print(f"Error: {e}")
+print('--- Testing /api/bazaar/data ---')
+response = client.get('/api/bazaar/data?city=Belgaum&lat=15.85&lng=74.50')
+print(f'Status: {response.status_code}')
+if response.status_code == 200:
+    data = response.json()
+    print(f'Mode: {data.get("mode")}, Boutiques: {len(data.get("boutiques", []))}')
+else:
+    print(response.text)
+
+print('\n--- Testing /api/bazaar/search ---')
+response = client.get('/api/bazaar/search?q=puja&city=Belgaum&lat=15.85&lng=74.50')
+print(f'Status: {response.status_code}')
+if response.status_code == 200:
+    data = response.json()
+    print(f'Found {len(data)} product groups.')
+    if data:
+        print(f'First product: {data[0]["product"]["name"]} with {len(data[0]["offers"])} offers')
+else:
+    print(response.text)
+
+print('\n--- Testing /api/bazaar/sellers/{id}/catalog ---')
+response = client.get('/api/bazaar/sellers/b_ganesh_1/catalog')
+print(f'Status: {response.status_code}')
+if response.status_code == 200:
+    data = response.json()
+    print(f'Seller: {data.get("seller", {}).get("name")}, Products: {len(data.get("products", []))}')
+else:
+    print(response.text)

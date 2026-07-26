@@ -17,7 +17,7 @@ export default function OutfitCirclePage() {
   const [invitationItems, setInvitationItems] = useState<any[]>([]);
 
   const currentUserId = user?.user_id ?? null;
-  const currentUsername = user?.username ?? "";
+  const currentPhone = user?.phone ?? "";
   const [gullyBoards, setGullyBoards] = useState<any[]>([]);
 
   const loadBoards = async (userId: number) => {
@@ -44,7 +44,7 @@ export default function OutfitCirclePage() {
   }, [currentUserId]);
 
   useEffect(() => {
-    if (!boards.length || !currentUsername) {
+    if (!boards.length || !currentPhone) {
       setInvitationItems([]);
       return;
     }
@@ -56,7 +56,7 @@ export default function OutfitCirclePage() {
         boards.map(async (board) => {
           const boardData = await getBoard(board.board_id);
           const pendingMembers = (Array.isArray(boardData?.members) ? boardData.members : []).filter(
-            (member: any) => member.invite_status === "pending" && member.username === currentUsername,
+            (member: any) => member.invite_status === "pending" && member.phone === currentPhone,
           );
 
           return pendingMembers.map((member: any) => ({
@@ -77,16 +77,16 @@ export default function OutfitCirclePage() {
     return () => {
       cancelled = true;
     };
-  }, [boards, currentUsername]);
+  }, [boards, currentPhone]);
 
   const invitationCount = useMemo(() => invitationItems.length, [invitationItems]);
 
-  const handleAcceptInvite = async (boardId: number, userId: number, username: string) => {
+  const handleAcceptInvite = async (boardId: number, userId: number, phone: string) => {
     setAcceptingInvite(true);
     setInviteMessage(null);
 
     try {
-      await acceptBoardInvite(boardId, userId, username);
+      await acceptBoardInvite(boardId, userId, phone);
       setInviteMessage("Invite accepted. This member is now part of the board.");
       if (currentUserId != null) await loadBoards(currentUserId);
     } catch (error) {
@@ -133,26 +133,26 @@ export default function OutfitCirclePage() {
           {invitationCount === 0 ? (
             <div className="rounded-[20px] border border-dashed border-rose-200 bg-[#fff9fb] p-6 text-center">
               <div className="text-[11px] font-black text-gray-700 uppercase tracking-[0.2em]">No active invitations</div>
-              <div className="text-[10px] text-gray-500 mt-1">Invites sent to @{currentUsername || "your username"} will show up here.</div>
+              <div className="text-[10px] text-gray-500 mt-1">Invites sent to +91 {currentPhone || "your phone"} will show up here.</div>
             </div>
           ) : (
             <div className="grid gap-2">
               {invitationItems.map((item: any) => (
                 <div
-                  key={`${item.boardId}-${item.user_id}-${item.username}`}
+                  key={`${item.boardId}-${item.user_id}-${item.phone}`}
                   className="rounded-2xl border border-gray-200 bg-[#fbfbfc] px-3 py-2.5"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-[11px] font-black text-[#282c3f] truncate">{item.boardName}</div>
-                      <div className="text-[10px] text-gray-500 truncate">@{item.username}</div>
+                      <div className="text-[10px] text-gray-500 truncate">+91 {item.phone}</div>
                       <div className="mt-1 flex items-center gap-1 text-[10px] text-gray-500">
                         <MapPin className="w-3 h-3 text-[#ff3f6c]" />
                         <span>{item.city || "City not set"}</span>
                       </div>
                     </div>
                     <button
-                      onClick={() => handleAcceptInvite(item.boardId, item.user_id, currentUsername)}
+                      onClick={() => handleAcceptInvite(item.boardId, item.user_id, currentPhone)}
                       disabled={acceptingInvite}
                       className="rounded-full bg-[#ff3f6c] px-3 py-1.5 text-[9px] font-black uppercase tracking-wide text-white disabled:opacity-60"
                     >

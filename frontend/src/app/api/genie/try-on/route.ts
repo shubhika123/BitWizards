@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { API_BASE_URL } from "../../../../lib/apiConfig";
 
 // Increase timeout to 3 minutes to allow the full Pruna pipeline
 // (person upload + garment uploads + Try-Sync prediction) to complete
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const backendUrl = "http://127.0.0.1:8000/api/genie/try-on";
+  const backendUrl = `${API_BASE_URL}/api/genie/try-on`;
   console.log(`[API Route] Forwarding to FastAPI backend: ${backendUrl}`);
 
   let backendResponse: Response;

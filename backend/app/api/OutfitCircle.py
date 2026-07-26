@@ -26,7 +26,6 @@ class CreateBoardRequest(BaseModel):
     description: Optional[str] = None
     creator_avatar_url: Optional[str] = None
 
-
 class PinProductRequest(BaseModel):
     board_id: int
     pinned_by: int
@@ -71,65 +70,25 @@ class VoteRequest(BaseModel):
     user_id: int
 
 
-class RegisterUserRequest(BaseModel):
-    username: str
-    name: str
-
-
-@router.post("/users/register")
-def register_outfit_circle_user(payload: RegisterUserRequest, session: Session = Depends(get_session)):
-    normalized_username = payload.username.strip()
-    if not normalized_username:
-        raise HTTPException(status_code=400, detail="Username is required")
-
-    existing = session.exec(select(User).where(User.username == normalized_username)).first()
-
-    if existing:
-        # If this row was only a placeholder created earlier by someone inviting this
-        # username before the person signed up, claim it instead of blocking registration.
-        if existing.password_hash == "invite_pending_user":
-            existing.name = payload.name
-            existing.password_hash = "phone_auth_user"
-            session.add(existing)
-            session.commit()
-            session.refresh(existing)
-            return {"user_id": existing.user_id, "name": existing.name, "username": existing.username}
-        raise HTTPException(status_code=400, detail="Username already taken")
-
-    user = User(
-        name=payload.name,
-        username=normalized_username,
-        password_hash="phone_auth_user",
-        latitude=Decimal("0.00000000"),
-        longitude=Decimal("0.00000000"),
-        address=None,
-        pincode=None,
-        muted_festivals=None,
-    )
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    return {"user_id": user.user_id, "name": user.name, "username": user.username}
+from app.repository.outfit_circle_repo import OutfitCircleRepository
+from app.repository.user_repo import UserRepository
 
 @router.post("/pins/{pin_id}/purchase")
 def purchase_pin(pin_id: int, user_id: int = Body(..., embed=True), session: Session = Depends(get_session)):
-    pin = session.get(PinnedProduct, pin_id)
+    pin = OutfitCircleRepository.get_pin_by_id(session, pin_id)
     if not pin:
         raise HTTPException(status_code=404, detail="Pin not found")
 
-    existing = session.exec(
-        select(PinPurchase).where(PinPurchase.pin_id == pin_id, PinPurchase.user_id == user_id)
-    ).first()
+    existing = OutfitCircleRepository.get_pin_purchase(session, pin_id, user_id)
 
     if not existing:
-        session.add(PinPurchase(pin_id=pin_id, user_id=user_id))
-        session.commit()
+        OutfitCircleRepository.create_pin_purchase(session, pin_id, user_id)
 
-    purchases = session.exec(select(PinPurchase).where(PinPurchase.pin_id == pin_id)).all()
+    purchases = OutfitCircleRepository.get_purchases_by_pin_id(session, pin_id)
 
     result = []
     for p in purchases:
-        buyer = session.get(User, p.user_id)
+        buyer = UserRepository.get_user_by_id(session, p.user_id)
         result.append({"user_id": p.user_id, "user_name": buyer.name if buyer else None})
 
     return {"purchases": result}
@@ -137,7 +96,8 @@ def purchase_pin(pin_id: int, user_id: int = Body(..., embed=True), session: Ses
 
 @router.post("/boards")
 def create_board(payload: CreateBoardRequest, session: Session = Depends(get_session)):
-    board = OutfitBoard(
+    board = OutfitCircleRepository.create_board(
+        session=session,
         name=payload.name,
         created_by=payload.created_by,
         circle_type=payload.circle_type,
@@ -145,302 +105,45 @@ def create_board(payload: CreateBoardRequest, session: Session = Depends(get_ses
         description=payload.description,
         creator_avatar_url=payload.creator_avatar_url
     )
-    session.add(board)
-    session.commit()
-    session.refresh(board)
 
     # creator is always the board owner and is active immediately
-    session.add(
-        BoardMember(
-            board_id=board.board_id,
-            user_id=payload.created_by,
-            role="admin",
-            invite_status="accepted",
-            accepted_at=datetime.utcnow(),
-        )
+    OutfitCircleRepository.create_board_member(
+        session=session,
+        board_id=board.board_id,
+        user_id=payload.created_by,
+        role="admin",
+        invite_status="accepted",
+        accepted_at=datetime.utcnow(),
     )
 
     # invite other members first; they must accept later
     for uid in payload.member_ids:
-        session.add(
-            BoardMember(
-                board_id=board.board_id,
-                user_id=uid,
-                role="member",
-                invite_status="pending",
-                accepted_at=None,
-            )
+        OutfitCircleRepository.create_board_member(
+            session=session,
+            board_id=board.board_id,
+            user_id=uid,
+            role="member",
+            invite_status="pending",
+            accepted_at=None,
         )
-    session.commit()
 
     return board
 
 
-from app.models.FestivalSchema import User  # or wherever User model is
-
-@router.get("/boards/{board_id}")
-def get_board(board_id: int, session: Session = Depends(get_session)):
-    board = session.get(OutfitBoard, board_id)
-    if not board:
-        raise HTTPException(status_code=404, detail="Board not found")
-
-    statement = (
-        select(BoardMember, User.name, User.username)
-        .join(User, User.user_id == BoardMember.user_id)
-        .where(BoardMember.board_id == board_id)
-    )
-    rows = session.exec(statement).all()
-    members = [
-        {
-            "user_id": m.user_id,
-            "role": m.role,
-            "name": name,
-            "username": username,
-            "city": getattr(m, "city", None),
-            "invite_status": m.invite_status,
-            "joined_at": m.joined_at,
-            "accepted_at": m.accepted_at,
-        }
-        for m, name, username in rows
-    ]
-
-    pins_raw = session.exec(select(PinnedProduct).where(PinnedProduct.board_id == board_id)).all()
-
-    pins = []
-    for pin in pins_raw:
-        pinner = session.get(User, pin.pinned_by)
-        pin_dict = pin.dict()
-        pin_dict["pinned_by_name"] = pinner.name if pinner else None
-        pins.append(pin_dict)
-
-    return {"board": board, "members": members, "pins": pins}
-
-
-@router.get("/users/{user_id}/boards")
-def get_user_boards(user_id: int, session: Session = Depends(get_session)):
-    statement = (
-        select(OutfitBoard)
-        .join(BoardMember, BoardMember.board_id == OutfitBoard.board_id)
-        .where(BoardMember.user_id == user_id)
-    )
-    return session.exec(statement).all()
-
-
-@router.post("/boards/{board_id}/members/{user_id}")
-def add_member(board_id: int, user_id: int, session: Session = Depends(get_session)):
-    existing = session.exec(
-        select(BoardMember).where(BoardMember.board_id == board_id, BoardMember.user_id == user_id)
-    ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="User already in board")
-
-    member = BoardMember(
-        board_id=board_id,
-        user_id=user_id,
-        role="member",
-        invite_status="pending",
-        accepted_at=None,
-    )
-    session.add(member)
-    session.commit()
-    session.refresh(member)
-    return member
-
-
-@router.post("/boards/{board_id}/members/{user_id}/accept")
-def accept_member_invite(
-    board_id: int,
-    user_id: int,
-    session: Session = Depends(get_session),
-    x_user_username: Optional[str] = Header(default=None, alias="X-User-Username"),
-):
-    member = session.exec(
-        select(BoardMember).where(BoardMember.board_id == board_id, BoardMember.user_id == user_id)
-    ).first()
-    if not member:
-        raise HTTPException(status_code=404, detail="Invite not found")
-
-    invited_user = session.get(User, user_id)
-    if not invited_user:
-        raise HTTPException(status_code=404, detail="Invited user not found")
-
-    if not x_user_username or invited_user.username != x_user_username.strip():
-        raise HTTPException(status_code=403, detail="Only the invited user can accept this invite")
-
-    if member.invite_status == "accepted":
-        return {"detail": "Invite already accepted", "member": member}
-
-    member.invite_status = "accepted"
-    member.accepted_at = datetime.utcnow()
-    session.add(member)
-    session.commit()
-    session.refresh(member)
-    return {"detail": "Invite accepted", "member": member}
-
-
-# ---------- Pins ----------
-
-@router.post("/pins")
-def pin_product(payload: PinProductRequest, session: Session = Depends(get_session)):
-    pin = PinnedProduct(**payload.dict())
-    session.add(pin)
-    session.commit()
-    session.refresh(pin)
-    return pin
-
-@router.get("/boards/{board_id}/pins")
-def get_board_pins(board_id: int, session: Session = Depends(get_session)):
-    pins_raw = session.exec(select(PinnedProduct).where(PinnedProduct.board_id == board_id)).all()
-    result = []
-    for pin in pins_raw:
-        pinner = session.get(User, pin.pinned_by)
-        pin_dict = pin.dict()
-        pin_dict["pinned_by_name"] = pinner.name if pinner else None
-        result.append(pin_dict)
-    return result
-
-@router.delete("/pins/{pin_id}")
-def unpin_product(pin_id: int, session: Session = Depends(get_session)):
-    pin = session.get(PinnedProduct, pin_id)
-    if not pin:
-        raise HTTPException(status_code=404, detail="Pin not found")
-    session.delete(pin)
-    session.commit()
-    return {"detail": "unpinned"}
-
-
-# ---------- Polls ----------
-
-@router.post("/polls")
-def create_poll(payload: CreatePollRequest, session: Session = Depends(get_session)):
-    poll = Poll(
-        pin_id=payload.pin_id,
-        created_by=payload.created_by,
-        question=payload.question,
-        closes_at=payload.closes_at,
-    )
-    session.add(poll)
-    session.commit()
-    session.refresh(poll)
-
-    options = []
-    for label in payload.options:
-        opt = PollOption(poll_id=poll.poll_id, label=label)
-        session.add(opt)
-        options.append(opt)
-    session.commit()
-
-    return {"poll": poll, "options": options}
-
-
-@router.get("/pins/{pin_id}/poll")
-def get_poll_for_pin(pin_id: int, session: Session = Depends(get_session)):
-    poll = session.exec(select(Poll).where(Poll.pin_id == pin_id)).first()
-    if not poll:
-        raise HTTPException(status_code=404, detail="No poll for this pin")
-
-    options = session.exec(select(PollOption).where(PollOption.poll_id == poll.poll_id)).all()
-
-    result = []
-    for opt in options:
-        vote_count = len(
-            session.exec(select(PollVote).where(PollVote.option_id == opt.option_id)).all()
-        )
-        result.append({"option_id": opt.option_id, "label": opt.label, "votes": vote_count})
-
-    return {"poll": poll, "options": result}
-
-
-@router.post("/votes")
-def cast_vote(payload: VoteRequest, session: Session = Depends(get_session)):
-    existing = session.exec(
-        select(PollVote).where(PollVote.poll_id == payload.poll_id, PollVote.user_id == payload.user_id)
-    ).first()
-
-    if existing:
-        # allow changing vote instead of hard-blocking
-        existing.option_id = payload.option_id
-        existing.voted_at = datetime.utcnow()
-        session.add(existing)
-        session.commit()
-        return {"detail": "vote updated"}
-
-    vote = PollVote(**payload.dict())
-    session.add(vote)
-    session.commit()
-    return {"detail": "vote cast"}
-
-@router.post("/boards/{board_id}/members/by-username/{username}")
-def add_member_by_username(board_id: int, username: str, session: Session = Depends(get_session)):
-    normalized_username = username.strip()
-    if not normalized_username:
-        raise HTTPException(status_code=400, detail="Username is required")
-
-    user = session.exec(select(User).where(User.username == normalized_username)).first()
-    if not user:
-        user = User(
-            name=normalized_username,
-            username=normalized_username,
-            password_hash="invite_pending_user",
-            latitude=Decimal("0.00000000"),
-            longitude=Decimal("0.00000000"),
-            address=None,
-            pincode=None,
-            muted_festivals=None,
-        )
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-
-    existing = session.exec(
-        select(BoardMember).where(BoardMember.board_id == board_id, BoardMember.user_id == user.user_id)
-    ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="User already invited or already in board")
-
-    member = BoardMember(
-        board_id=board_id,
-        user_id=user.user_id,
-        role="member",
-        invite_status="pending",
-        accepted_at=None,
-    )
-    session.add(member)
-    session.commit()
-    session.refresh(member)
-    return {"detail": "Invite sent", "member": member, "user": user}
-
-@router.get("/users/by-username/{username}")
-def get_user_by_username(username: str, session: Session = Depends(get_session)):
-    normalized = username.strip()
-    if not normalized:
-        raise HTTPException(status_code=400, detail="Username is required")
-
-    user = session.exec(select(User).where(User.username == normalized)).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return {"user_id": user.user_id, "name": user.name, "username": user.username}
-
-
-# ---------- Gully / Community Circles Endpoints ----------
+from app.models.UserSchema import User
 
 @router.get("/boards/gully")
 def get_gully_boards(city: Optional[str] = None, session: Session = Depends(get_session)):
     """
     Retrieve all gully/community/creator circles. Optionally filters by city.
     """
-    query = select(OutfitBoard).where(OutfitBoard.circle_type != "classic")
-    if city:
-        query = query.where(OutfitBoard.city == city)
-    
-    boards = session.exec(query).all()
+    boards = OutfitCircleRepository.get_gully_boards(session, city)
     result = []
     
     for b in boards:
-        creator = session.get(User, b.created_by)
-        member_count = len(session.exec(select(BoardMember).where(BoardMember.board_id == b.board_id)).all())
-        pin_count = len(session.exec(select(PinnedProduct).where(PinnedProduct.board_id == b.board_id)).all())
+        creator = UserRepository.get_user_by_id(session, b.created_by)
+        member_count = OutfitCircleRepository.get_board_member_count(session, b.board_id)
+        pin_count = OutfitCircleRepository.get_board_pin_count(session, b.board_id)
         result.append({
             "board_id": b.board_id,
             "name": b.name,
@@ -456,6 +159,211 @@ def get_gully_boards(city: Optional[str] = None, session: Session = Depends(get_
         })
     return result
 
+@router.get("/boards/{board_id}")
+def get_board(board_id: int, session: Session = Depends(get_session)):
+    board = OutfitCircleRepository.get_board_by_id(session, board_id)
+    if not board:
+        raise HTTPException(status_code=404, detail="Board not found")
+
+    rows = OutfitCircleRepository.get_board_members_with_user_details(session, board_id)
+    members = [
+        {
+            "user_id": m.user_id,
+            "role": m.role,
+            "name": name,
+            "phone": phone,
+            "city": getattr(m, "city", None),
+            "invite_status": m.invite_status,
+            "joined_at": m.joined_at,
+            "accepted_at": m.accepted_at,
+        }
+        for m, name, phone in rows
+    ]
+
+    pins_raw = OutfitCircleRepository.get_pins_by_board_id(session, board_id)
+
+    pins = []
+    for pin in pins_raw:
+        pinner = UserRepository.get_user_by_id(session, pin.pinned_by)
+        pin_dict = pin.dict()
+        pin_dict["pinned_by_name"] = pinner.name if pinner else None
+        pins.append(pin_dict)
+
+    return {"board": board, "members": members, "pins": pins}
+
+
+@router.get("/users/{user_id}/boards")
+def get_user_boards(user_id: int, session: Session = Depends(get_session)):
+    return OutfitCircleRepository.get_boards_by_user_id(session, user_id)
+
+
+@router.post("/boards/{board_id}/members/{user_id}")
+def add_member(board_id: int, user_id: int, session: Session = Depends(get_session)):
+    existing = OutfitCircleRepository.get_board_member(session, board_id, user_id)
+    if existing:
+        raise HTTPException(status_code=400, detail="User already in board")
+
+    member = OutfitCircleRepository.create_board_member(
+        session=session,
+        board_id=board_id,
+        user_id=user_id,
+        role="member",
+        invite_status="pending",
+        accepted_at=None,
+    )
+    return member
+
+
+@router.post("/boards/{board_id}/members/{user_id}/accept")
+def accept_member_invite(
+    board_id: int,
+    user_id: int,
+    session: Session = Depends(get_session),
+    x_user_phone: Optional[str] = Header(default=None, alias="X-User-Phone"),
+):
+    member = OutfitCircleRepository.get_board_member(session, board_id, user_id)
+    if not member:
+        raise HTTPException(status_code=404, detail="Invite not found")
+
+    invited_user = UserRepository.get_user_by_id(session, user_id)
+    if not invited_user:
+        raise HTTPException(status_code=404, detail="Invited user not found")
+
+    if not x_user_phone or invited_user.phone != x_user_phone.strip():
+        raise HTTPException(status_code=403, detail="Not authorized to accept this invite")
+
+    if member.invite_status == "accepted":
+        return {"detail": "Invite already accepted", "member": member}
+
+    member.invite_status = "accepted"
+    member.accepted_at = datetime.utcnow()
+    OutfitCircleRepository.save_board_member(session, member)
+    return {"detail": "Invite accepted", "member": member}
+
+
+# ---------- Pins ----------
+
+@router.post("/pins")
+def pin_product(payload: PinProductRequest, session: Session = Depends(get_session)):
+    pin = OutfitCircleRepository.create_pin(session, payload.dict())
+    return pin
+
+@router.get("/boards/{board_id}/pins")
+def get_board_pins(board_id: int, session: Session = Depends(get_session)):
+    pins_raw = OutfitCircleRepository.get_pins_by_board_id(session, board_id)
+    result = []
+    for pin in pins_raw:
+        pinner = UserRepository.get_user_by_id(session, pin.pinned_by)
+        pin_dict = pin.dict()
+        pin_dict["pinned_by_name"] = pinner.name if pinner else None
+        result.append(pin_dict)
+    return result
+
+@router.delete("/pins/{pin_id}")
+def unpin_product(pin_id: int, session: Session = Depends(get_session)):
+    pin = OutfitCircleRepository.get_pin_by_id(session, pin_id)
+    if not pin:
+        raise HTTPException(status_code=404, detail="Pin not found")
+    OutfitCircleRepository.delete_pin(session, pin)
+    return {"detail": "unpinned"}
+
+
+# ---------- Polls ----------
+
+@router.post("/polls")
+def create_poll(payload: CreatePollRequest, session: Session = Depends(get_session)):
+    poll = OutfitCircleRepository.create_poll(
+        session=session,
+        pin_id=payload.pin_id,
+        created_by=payload.created_by,
+        question=payload.question,
+        closes_at=payload.closes_at
+    )
+
+    options = []
+    for label in payload.options:
+        opt = OutfitCircleRepository.create_poll_option(session, poll.poll_id, label)
+        options.append(opt)
+
+    return {"poll": poll, "options": options}
+
+
+@router.get("/pins/{pin_id}/poll")
+def get_poll_for_pin(pin_id: int, session: Session = Depends(get_session)):
+    poll = OutfitCircleRepository.get_poll_by_pin_id(session, pin_id)
+    if not poll:
+        raise HTTPException(status_code=404, detail="No poll for this pin")
+
+    options = OutfitCircleRepository.get_poll_options_by_poll_id(session, poll.poll_id)
+
+    result = []
+    for opt in options:
+        votes = OutfitCircleRepository.get_votes_by_option_id(session, opt.option_id)
+        vote_count = len(votes)
+        result.append({"option_id": opt.option_id, "label": opt.label, "votes": vote_count})
+
+    return {"poll": poll, "options": result}
+
+
+@router.post("/votes")
+def cast_vote(payload: VoteRequest, session: Session = Depends(get_session)):
+    existing = OutfitCircleRepository.get_vote_by_poll_and_user(session, payload.poll_id, payload.user_id)
+
+    if existing:
+        # allow changing vote instead of hard-blocking
+        existing.option_id = payload.option_id
+        existing.voted_at = datetime.utcnow()
+        OutfitCircleRepository.save_vote(session, existing)
+        return {"detail": "vote updated"}
+
+    vote = PollVote(**payload.dict())
+    OutfitCircleRepository.save_vote(session, vote)
+    return {"detail": "vote cast"}
+
+@router.post("/boards/{board_id}/members/by-phone/{phone}")
+def add_member_by_phone(board_id: int, phone: str, session: Session = Depends(get_session)):
+    normalized_phone = phone.strip()
+    if not normalized_phone:
+        raise HTTPException(status_code=400, detail="Phone is required")
+
+    user = UserRepository.get_user_by_phone(session, normalized_phone)
+    if not user:
+        user = UserRepository.create_user(
+            session=session,
+            name=f"Guest {normalized_phone[-4:]}",
+            phone=normalized_phone,
+            password_hash="invite_pending_user"
+        )
+
+    existing = OutfitCircleRepository.get_board_member(session, board_id, user.user_id)
+    if existing:
+        raise HTTPException(status_code=400, detail="User already invited or already in board")
+
+    member = OutfitCircleRepository.create_board_member(
+        session=session,
+        board_id=board_id,
+        user_id=user.user_id,
+        role="member",
+        invite_status="pending",
+        accepted_at=None
+    )
+    return {"detail": "Invite sent", "member": member, "user": user}
+
+@router.get("/users/by-phone/{phone}")
+def get_user_by_phone(phone: str, session: Session = Depends(get_session)):
+    normalized = phone.strip()
+    if not normalized:
+        raise HTTPException(status_code=400, detail="Phone is required")
+
+    user = UserRepository.get_user_by_phone(session, normalized)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"user_id": user.user_id, "name": user.name, "phone": user.phone}
+
+
+# ---------- Gully / Community Circles Endpoints ----------
+
 
 class UpdatePinCanvasRequest(BaseModel):
     canvas_x: Optional[float] = None
@@ -469,7 +377,7 @@ def update_pin_canvas(pin_id: int, payload: UpdatePinCanvasRequest, session: Ses
     """
     Update a pin's placement coordinates on the digital twin canvas.
     """
-    pin = session.get(PinnedProduct, pin_id)
+    pin = OutfitCircleRepository.get_pin_by_id(session, pin_id)
     if not pin:
         raise HTTPException(status_code=404, detail="Pin not found")
 
@@ -482,7 +390,5 @@ def update_pin_canvas(pin_id: int, payload: UpdatePinCanvasRequest, session: Ses
     if payload.canvas_z_index is not None:
         pin.canvas_z_index = payload.canvas_z_index
 
-    session.add(pin)
-    session.commit()
-    session.refresh(pin)
+    OutfitCircleRepository.save_pin(session, pin)
     return pin

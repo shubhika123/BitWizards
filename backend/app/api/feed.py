@@ -1,15 +1,23 @@
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, Query
+# pyrefly: ignore [missing-import]
 from sqlmodel import Session
 from typing import Optional
 
 from app.database import get_session
 from app.services.feedService import get_active_festivals, get_category_boost_map
-from app.api.OutfitCircle import router as outfit_circle_router
+from app.models.FestivalSchema import festival_name_to_slug
 
 from datetime import datetime, date
 
 router = APIRouter()
-router.include_router(outfit_circle_router)
+
+
+def _festival_slug(fest) -> Optional[str]:
+    if not fest:
+        return None
+    return fest.slug or festival_name_to_slug(fest.name)
+
 
 @router.get("/fetch-feed")
 def fetch_feed(
@@ -30,17 +38,35 @@ def fetch_feed(
     boost_map = get_category_boost_map(session, festivals)
 
     # Separate national vs regional festival
-    national_fest = next((f for f in festivals if not f.region_tags or "All" in f.region_tags or "National" in f.region_tags), None)
-    regional_fest = next((f for f in festivals if f.region_tags and "All" not in f.region_tags and "National" not in f.region_tags), None)
+    national_fest = next(
+        (
+            f
+            for f in festivals
+            if not f.region_tags or "All" in f.region_tags or "National" in f.region_tags
+        ),
+        None,
+    )
+    regional_fest = next(
+        (
+            f
+            for f in festivals
+            if f.region_tags and "All" not in f.region_tags and "National" not in f.region_tags
+        ),
+        None,
+    )
 
     return {
         "date": str(target_date),
         "city": target_city,
         "active_festivals": [f.name for f in festivals],
+        "active_festival_slugs": [_festival_slug(f) for f in festivals],
         "national_festival": national_fest.name if national_fest else None,
+        "national_festival_slug": _festival_slug(national_fest),
         "regional_festival": regional_fest.name if regional_fest else None,
-        "boost_map": boost_map
+        "regional_festival_slug": _festival_slug(regional_fest),
+        "boost_map": boost_map,
     }
+
 
 @router.get("/api/festivals/active")
 def get_active_festivals_endpoint(

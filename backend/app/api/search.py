@@ -1,9 +1,11 @@
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlmodel import Session
 from typing import List, Dict, Any
-from app.models.FestivalSchema import SearchRequest, SearchResponse
-from app.services.database import MockDB
-from app.services.gemini import GeminiService
+from app.models.SearchSchema import SearchRequest, SearchResponse
+from app.repository.product_repo import ProductRepository
+from app.services.llm_service import LLMService
+from app.database import get_session
 
 logger = logging.getLogger("app.api.search")
 
@@ -15,7 +17,7 @@ PARSED_INTENT_CACHE: Dict[str, Any] = {}
 
 
 @router.post("", response_model=SearchResponse)
-def search_products(req: SearchRequest):
+def search_products(req: SearchRequest, session: Session = Depends(get_session)):
     """
     NLP powered Search. CURRENTLY IN PARSER-ONLY TESTING MODE.
     Extracts search attributes from the natural language prompt and returns immediately
@@ -36,7 +38,7 @@ def search_products(req: SearchRequest):
         )
 
     # 2. The ONLY API call made right now — isolates testing to just the core NLP logic.
-    parsed_intent = GeminiService.parse_natural_language_search(req.query)
+    parsed_intent = LLMService.parse_natural_language_search(req.query)
 
     # 3. Commit the parsed intent to the in-memory cache for future identical queries.
     PARSED_INTENT_CACHE[normalized_query] = parsed_intent
@@ -61,7 +63,7 @@ def search_products(req: SearchRequest):
     style = parsed_intent.get("style")
     categories = parsed_intent.get("categories") or []
     
-    products = MockDB.get_products()
+    products = ProductRepository.get_all_products(session)
     matched_products = []
     
     context = {
@@ -127,8 +129,8 @@ def search_products(req: SearchRequest):
         score += p.get("rating", 4.0)
         
         # O(N) API Calls completely bypassed above
-        ai_reason = GeminiService.generate_recommendation_reason(p, context)
-        ai_review_summary = GeminiService.summarize_reviews(p["name"], p.get("reviews", []))
+        ai_reason = LLMService.generate_recommendation_reason(p, context)
+        ai_review_summary = LLMService.summarize_reviews(p["name"], p.get("reviews", []))
         
         product_copy = p.copy()
         product_copy["score"] = score
