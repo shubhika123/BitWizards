@@ -542,7 +542,7 @@ CATALOG: List[Dict[str, Any]] = [
         "keywords": ["pants", "trousers"],
         "gender": "Women",
         "brand": "Sangria",
-        "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
+        "image_url": "/catalog/bot_013.webp"
     },
     {
         "id": "bot_014",
@@ -554,7 +554,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "comfort", "rakhi-special"],
         "keywords": ["churidar", "leggings", "pants", "rakhi churidar"],
         "gender": "Women",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAEAzqWdjg-TAmJVzZ3kbnfLunhQuAwyaCWVWSo6klwA&s"
+        "image_url": "/catalog/bot_014.webp"
     },
     {
         "id": "bot_015",
@@ -566,7 +566,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["minimalist", "patriotic-friendly", "versatile"],
         "keywords": ["pants", "trousers", "white pants"],
         "gender": "Unisex",
-        "image_url": "https://www.wforwoman.com/cdn/shop/files/W63149-218089.jpg?v=1756280693"
+        "image_url": "/catalog/bot_015.webp"
     },
     {
         "id": "bot_016",
@@ -578,7 +578,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "comfort", "rakhi-special"],
         "keywords": ["pyjama", "kurta pyjama", "pants", "rakhi pyjama"],
         "gender": "Men",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrNxJ1XBHiWQHYh642_vspEvfAJdWD-3UY5F-Zz5lo9Gpd5aH8xZ9bBtLD&s=10"
+        "image_url": "/catalog/bot_16.jpg"
     },
     {
         "id": "bot_017",
@@ -590,7 +590,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "comfort", "vibrant", "rakhi-special"],
         "keywords": ["palazzo", "palazzo pants", "pants", "rakhi palazzo"],
         "gender": "Women",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8GnuJVjdR-y3QLucX06dvOxloNRXoa9nvZM1BvA0y2a-v6mOqUvPfLK7g&s=10"
+        "image_url": "/catalog/bot_017.jpg"
     },
     {
         "id": "bot_018",
@@ -602,7 +602,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "sleek", "premium", "rakhi-special"],
         "keywords": ["pants", "trousers", "silk pants"],
         "gender": "Men",
-        "image_url": "https://m.media-amazon.com/images/I/71yR2FW1TGL._AC_UY1100_.jpg"
+        "image_url": "/catalog/bot_018.jpg"
     },
     {
         "id": "bot_019",
@@ -614,7 +614,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["patriotic", "tricolor", "streetwear", "casual"],
         "keywords": ["track pants", "joggers", "pants"],
         "gender": "Unisex",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRalO-3adWeon2hmVa7yH8g1a1z8Z6je6Kr5REe1dhmcV_u_fJkvOyuwA&s=10"
+        "image_url": "/catalog/bot_019.jpg"
     },
     {
         "id": "bot_020",
@@ -626,7 +626,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "patriotic-friendly", "traditional"],
         "keywords": ["churidar", "pyjama", "pants"],
         "gender": "Men",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkz1nD6qm_CaSWWHjm6X9Oj5WM_1npbYtQMPOnpgz48b3MfPIqk8dLQKw&s=10"
+        "image_url": "/catalog/bot_020.jpg"
     },
     {
         "id": "bot_021",
@@ -650,7 +650,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
         "keywords": ["churidar", "pyjama", "pants"],
         "gender": "Men",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxhY_6rcwZeVGXr4pDydfoulD46YLryor5xCALY5z3vCNkA1XENW5MDIWu&s=10"
+        "image_url": "/catalog/bot_022.jpg"
     },
     {
         "id": "bot_023",
@@ -662,7 +662,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "vibrant", "diwali-special"],
         "keywords": ["palazzo", "palazzo pants", "pants"],
         "gender": "Women",
-        "image_url": "https://assets2.andaazfashion.com/media/catalog/product/b/o/bottle-green-jacquard-indo-western-zari-embroidered-palazzo-suit-lstv144413-1_1_1.jpg?tr=w-800,h-1200,c-at_max,q-70"
+        "image_url": "/catalog/bot_023.jpg"
     },
     {
         "id": "bot_024",
@@ -674,7 +674,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "royal", "traditional", "diwali-special"],
         "keywords": ["dhoti", "dhoti pants"],
         "gender": "Men",
-        "image_url": "https://img.perniaspopupshop.com/catalog/product/d/m/DMMC012123_1.jpg?impolicy=detailimageprod"
+        "image_url": "/catalog/bot_024.jpeg"
     },
     {
         "id": "bot_025",
@@ -686,7 +686,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["glam", "fusion", "diwali-special"],
         "keywords": ["skirt", "sequin skirt"],
         "gender": "Women",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsM3Qynm6x8PYqS5G5Qs3Cjx55B0Hv_qhHSDqUIcmykiV1VkxBbJTEKfw&s=10"
+        "image_url": "/catalog/bot_025.jpg"
     },
 
     # -------------------------------------------------------------------------
@@ -827,7 +827,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["patriotic", "tricolor", "streetwear", "casual"],
         "keywords": ["sneakers", "shoes", "canvas shoes"],
         "gender": "Unisex",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMzG0hTFDobptkk2RLBL7i6Zei8TOo8EIFRbZxeT_4hg&s"
+        "image_url": "catalog/foot_011.jpg"
     },
     {
         "id": "foot_012",
@@ -839,7 +839,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "glam", "heavy", "diwali-special"],
         "keywords": ["mojri", "jutti", "juttis", "shoes"],
         "gender": "Women",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ64cfKlgjsXKnJdMCa8Hv92WlrQWGMJfgbOuufPiWoDw&s"
+        "image_url": "/catalog/foot_012.jpg"
     },
     {
         "id": "foot_013",
@@ -851,7 +851,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "rakhi-special"],
         "keywords": ["mojri", "mojari", "jutti", "shoes"],
         "gender": "Men",
-        "image_url": "https://www.anitadongre.com/on/demandware.static/-/Sites-masterCatalog_AD_India/default/dw75415ac9/images/hires/SS21/nargis_multi_cream_1_1.jpg"
+        "image_url": "/catalog/foot_013.jpg"
     },
     {
         "id": "foot_014",
@@ -911,7 +911,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
         "keywords": ["jutti", "juttis", "shoes"],
         "gender": "Men",
-        "image_url": "https://ik.imagekit.io/4sjmoqtje/tr:c-at_max/cdn/shop/files/brown_velvet_jutti_with_hand-sg225045_1.jpg?v=1743149774&w=1000"
+        "image_url": "/catalog/foot_018.avif"
     },
     {
         "id": "foot_019",
@@ -923,7 +923,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["glam", "heavy", "diwali-special"],
         "keywords": ["heels", "shoes"],
         "gender": "Women",
-        "image_url": "https://ik.imagekit.io/4sjmoqtje/tr:w-1000,c-at_max/cdn/shop/files/silver-hand-hand-embellished-faux-leather-block-heels-sg372915-6_adde6766-344c-4ab2-899b-03f74070471b.jpg?v=1764926763"
+        "image_url": "/catalog/foot_019.avif"
     },
     {
         "id": "foot_020",
@@ -935,7 +935,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
         "keywords": ["kolhapuri", "sandals", "chappal"],
         "gender": "Unisex",
-        "image_url": "https://houseofvitti.com/cdn/shop/files/46_converted.webp?v=1785155463&width=1080"
+        "image_url": "/catalog/foot_020.webp"
     },
 
     # -------------------------------------------------------------------------
@@ -1088,7 +1088,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "sentimental", "rakhi-special", "gift"],
         "keywords": ["rakhi", "rakhi thread", "rakhi set", "bracelet"],
         "gender": "Unisex",
-        "image_url": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRlLb0y1kxqA0agpwI3n-ql6KrdGA4Is6-9gfgsTfeumwYUYe-uXK_PB0u7I8ZO4tg906Ne_KpFGjCxCiQkJvQTRQ_hYWcpneIKvVS7oTI"
+        "image_url": "/catalog/acc_012.webp"
     },
     {
         "id": "acc_013",
@@ -1100,7 +1100,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "gift", "rakhi-special"],
         "keywords": ["potli", "gift bag", "rakhi gift", "hamper"],
         "gender": "Unisex",
-        "image_url": "https://nestasia.in/cdn/shop/files/cover_52.jpg?v=1783321722&width=600"
+        "image_url": "/catalog/acc_013.webp"
     },
     {
         "id": "acc_014",
@@ -1112,7 +1112,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["patriotic", "tricolor", "statement"],
         "keywords": ["badge", "pin", "brooch", "tiranga pin"],
         "gender": "Unisex",
-        "image_url": "https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTqsocLnmNPbnom9XO3z-u1GHs0rHESTb0YzEbnXsuSaiIq6s4b5NSFFMvj0Tv3xDJNetaWW5eeU6-Cd2vfRuBwB6DA74dNbqLcHau7LSQ"
+        "image_url": "/catalog/acc_014.webp"
     },
     {
         "id": "acc_015",
@@ -1124,7 +1124,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["patriotic", "tricolor", "elegant"],
         "keywords": ["stole", "dupatta", "scarf", "tiranga stole"],
         "gender": "Unisex",
-        "image_url": "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcTKl2fnqH3_Gypf8A-kmtEUwgIrGlferkd8qaMtR0r70k5L9D1NrPaRA04TKI_gWBCMQR1zbC3yG1rUSCTsm4ve8Y-YQrJuwg"
+        "image_url": "/catalog/acc_015.jpg"
     },
     {
         "id": "acc_016",
@@ -1136,7 +1136,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
         "keywords": ["earrings", "jhumka", "diya earrings", "jewellery"],
         "gender": "Women",
-        "image_url": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcT4y4CQPUbng0LeXdzUZ1CmfCGeznz62I7uQQ8veftB-Bg2BMl259XIi6g6SSAShCMtGMmQ8U9Jq79Jt_2gMmlUgKg3pKFr"
+        "image_url": "/catalog/acc_016/webp"
     },
     {
         "id": "acc_017",
@@ -1148,7 +1148,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "ritual", "rakhi-special"],
         "keywords": ["kalava", "tilak", "rakhi set", "puja thali"],
         "gender": "Unisex",
-        "image_url": "https://m.media-amazon.com/images/I/51nIBYAzzzL._AC_UF894,1000_QL80_.jpg"
+        "image_url": "/catalog/acc_017.jpg"
     },
     {
         "id": "acc_018",
@@ -1160,7 +1160,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "sentimental", "rakhi-special"],
         "keywords": ["bangles", "bracelet", "sibling set"],
         "gender": "Unisex",
-        "image_url": "https://m.media-amazon.com/images/I/817p4UG6BZL._AC_UY1100_.jpg"
+        "image_url": "/catalog/acc_018.jpg"
     },
     {
         "id": "acc_019",
@@ -1172,7 +1172,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["patriotic", "tricolor", "casual"],
         "keywords": ["wristband", "bracelet", "tiranga band"],
         "gender": "Unisex",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGpY4nPEZhQcjzczI7h_O1ED0Lz0XNw-KjEjcKCjBxIA&s"
+        "image_url": "/catalog/acc_019.jpg"
     },
     {
         "id": "acc_020",
@@ -1184,7 +1184,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["patriotic", "tricolor", "functional"],
         "keywords": ["tote", "tote bag", "bag"],
         "gender": "Unisex",
-        "image_url": "https://www.nicobar.com/cdn/shop/products/1533806742IMG_2099_5d1150e5-15d6-4048-a48b-9aefc3841cbe.jpg?v=1610452489&width=1200"
+        "image_url": "/catalog/acc_020.webp"
     },
     {
         "id": "acc_021",
@@ -1196,7 +1196,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "royal", "diwali-special"],
         "keywords": ["maang tikka", "kundan", "jewellery"],
         "gender": "Women",
-        "image_url": "https://ik.imagekit.io/4sjmoqtje/tr:c-at_max/cdn/shop/files/green-kundan-necklace-maangtikka-and-earrings-set-sg370901-1_f7cbb1ec-2a25-402e-91e0-d95548ce3f72.jpg?v=1764157563&w=1000"
+        "image_url": "catalog/acc_021.webp"
     },
     {
         "id": "acc_022",
@@ -1208,7 +1208,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
         "keywords": ["potli", "clutch", "bag"],
         "gender": "Women",
-        "image_url": "https://in.kalkifashion.com/products/silver-and-gold-potli-bag-with-crescent-motif"
+        "image_url": "/catalog/acc_022.jpg"
     },
     {
         "id": "acc_023",
@@ -1220,7 +1220,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "sleek", "diwali-special"],
         "keywords": ["pocket square", "pin", "brooch"],
         "gender": "Men",
-        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMYvy1L4m94dkkoEbvO2mI4awLf6ZVNGiFilIyTA0kbg&s"
+        "image_url": "/catalog/acc_023.jpg"
     }
 ]
 
