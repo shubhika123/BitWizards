@@ -228,6 +228,155 @@ CATALOG: List[Dict[str, Any]] = [
         "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1598554747436-c9293d6a588f?auto=format&fit=crop&w=400&q=80"
     },
+    {
+        "id": "top_017",
+        "name": "zari-border silk rakhi kurta set",
+        "category": "Topwear",
+        "price": 1899,
+        "occasions": ["raksha bandhan", "festive", "wedding"],
+        "colors": ["maroon", "gold"],
+        "aesthetic_tags": ["ethnic", "royal", "celebratory", "heavy", "rakhi-special"],
+        "keywords": ["kurta", "kurta set", "rakhi kurta", "silk kurta", "zari"],
+        "gender": "Men",
+        "brand": "Libas",
+        "image_url": "https://images.unsplash.com/photo-1583391733959-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_018",
+        "name": "embroidered bandhgala rakhi kurta",
+        "category": "Topwear",
+        "price": 2200,
+        "occasions": ["raksha bandhan", "festive", "Formal-Ethnic"],
+        "colors": ["navy", "gold"],
+        "aesthetic_tags": ["ethnic", "royal", "structured", "celebratory", "rakhi-special"],
+        "keywords": ["kurta", "bandhgala", "rakhi kurta", "embroidered kurta"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_019",
+        "name": "mirror work rakhi anarkali kurti",
+        "category": "Topwear",
+        "price": 1799,
+        "occasions": ["raksha bandhan", "festive"],
+        "colors": ["pink", "magenta"],
+        "aesthetic_tags": ["ethnic", "glam", "heavy", "celebratory", "rakhi-special"],
+        "keywords": ["kurti", "anarkali", "rakhi kurti", "mirror work"],
+        "gender": "Women",
+        "brand": "DressBerry",
+        "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_020",
+        "name": "banarasi silk rakhi co-ord kurti set",
+        "category": "Topwear",
+        "price": 2100,
+        "occasions": ["raksha bandhan", "festive", "wedding"],
+        "colors": ["red", "gold"],
+        "aesthetic_tags": ["ethnic", "royal", "traditional", "heavy", "rakhi-special"],
+        "keywords": ["kurti", "kurti set", "banarasi", "rakhi kurti", "co-ord set"],
+        "gender": "Women",
+        "brand": "Sangria",
+        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_021",
+        "name": "tricolor stripe block tee",
+        "category": "Topwear",
+        "price": 599,
+        "occasions": ["independence day", "casual", "college fest"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "streetwear", "casual"],
+        "keywords": ["t-shirt", "tshirt", "tee", "tricolor tee", "tiranga tee"],
+        "gender": "Unisex",
+        "brand": "Roadster",
+        "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_022",
+        "name": "saffron-white-green angrakha kurta",
+        "category": "Topwear",
+        "price": 1499,
+        "occasions": ["independence day", "festive"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["ethnic", "patriotic", "tricolor", "traditional"],
+        "keywords": ["kurta", "angrakha", "tiranga kurta"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1583391733959-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_023",
+        "name": "tiranga print anarkali kurti",
+        "category": "Topwear",
+        "price": 1599,
+        "occasions": ["independence day", "festive"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["ethnic", "patriotic", "tricolor", "flowy"],
+        "keywords": ["kurti", "anarkali", "tiranga kurti"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1617260537877-cd5f4ccda364?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_024",
+        "name": "tricolor bandhgala nehru jacket",
+        "category": "Topwear",
+        "price": 2300,
+        "occasions": ["independence day", "Formal-Ethnic"],
+        "colors": ["white", "saffron"],
+        "aesthetic_tags": ["ethnic", "patriotic", "structured", "layering"],
+        "keywords": ["nehru jacket", "bandhgala", "jacket", "waistcoat"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_025",
+        "name": "diya motif embroidered kurta",
+        "category": "Topwear",
+        "price": 1699,
+        "occasions": ["diwali", "festive", "wedding"],
+        "colors": ["maroon", "gold"],
+        "aesthetic_tags": ["ethnic", "festive", "celebratory", "diwali-special"],
+        "keywords": ["kurta", "diwali kurta", "embroidered kurta", "diya kurta"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1583391733959-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_026",
+        "name": "sequinned diwali party kurti",
+        "category": "Topwear",
+        "price": 1899,
+        "occasions": ["diwali", "festive", "party"],
+        "colors": ["black", "gold"],
+        "aesthetic_tags": ["ethnic", "glam", "party", "diwali-special"],
+        "keywords": ["kurti", "sequin kurti", "party kurti", "diwali kurti"],
+        "gender": "Women",
+        "brand": "DressBerry",
+        "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_027",
+        "name": "silk brocade diwali sherwani-style kurta",
+        "category": "Topwear",
+        "price": 2400,
+        "occasions": ["diwali", "festive", "wedding"],
+        "colors": ["maroon", "gold"],
+        "aesthetic_tags": ["ethnic", "royal", "heavy", "diwali-special"],
+        "keywords": ["kurta", "sherwani", "diwali kurta", "brocade"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "top_028",
+        "name": "diwali special banarasi kurti",
+        "category": "Topwear",
+        "price": 1999,
+        "occasions": ["diwali", "festive"],
+        "colors": ["red", "gold"],
+        "aesthetic_tags": ["ethnic", "royal", "traditional", "diwali-special"],
+        "keywords": ["kurti", "banarasi", "diwali kurti"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
+    },
 
     # -------------------------------------------------------------------------
     # BOTTOMWEAR (14 Items)
@@ -395,6 +544,150 @@ CATALOG: List[Dict[str, Any]] = [
         "brand": "Sangria",
         "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
     },
+    {
+        "id": "bot_014",
+        "name": "block print cotton rakhi churidar",
+        "category": "Bottomwear",
+        "price": 899,
+        "occasions": ["raksha bandhan", "festive"],
+        "colors": ["cream", "yellow"],
+        "aesthetic_tags": ["ethnic", "traditional", "comfort", "rakhi-special"],
+        "keywords": ["churidar", "leggings", "pants", "rakhi churidar"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_015",
+        "name": "white cotton straight pants",
+        "category": "Bottomwear",
+        "price": 999,
+        "occasions": ["independence day", "casual", "Office"],
+        "colors": ["white", "off-white"],
+        "aesthetic_tags": ["minimalist", "patriotic-friendly", "versatile"],
+        "keywords": ["pants", "trousers", "white pants"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_016",
+        "name": "cotton silk rakhi pyjama",
+        "category": "Bottomwear",
+        "price": 799,
+        "occasions": ["raksha bandhan", "festive"],
+        "colors": ["white", "cream"],
+        "aesthetic_tags": ["ethnic", "traditional", "comfort", "rakhi-special"],
+        "keywords": ["pyjama", "kurta pyjama", "pants", "rakhi pyjama"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_017",
+        "name": "gota patti rakhi palazzo",
+        "category": "Bottomwear",
+        "price": 999,
+        "occasions": ["raksha bandhan", "festive"],
+        "colors": ["yellow", "gold"],
+        "aesthetic_tags": ["ethnic", "comfort", "vibrant", "rakhi-special"],
+        "keywords": ["palazzo", "palazzo pants", "pants", "rakhi palazzo"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_018",
+        "name": "raw silk straight pants for rakhi",
+        "category": "Bottomwear",
+        "price": 1199,
+        "occasions": ["raksha bandhan", "festive"],
+        "colors": ["gold", "maroon"],
+        "aesthetic_tags": ["ethnic", "sleek", "premium", "rakhi-special"],
+        "keywords": ["pants", "trousers", "silk pants"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_019",
+        "name": "tricolor track pants",
+        "category": "Bottomwear",
+        "price": 999,
+        "occasions": ["independence day", "casual", "college fest"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "streetwear", "casual"],
+        "keywords": ["track pants", "joggers", "pants"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1549037173-e3b710c541d6?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_020",
+        "name": "white silk churidar for tricolor kurta",
+        "category": "Bottomwear",
+        "price": 899,
+        "occasions": ["independence day", "festive"],
+        "colors": ["white"],
+        "aesthetic_tags": ["ethnic", "patriotic-friendly", "traditional"],
+        "keywords": ["churidar", "pyjama", "pants"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_021",
+        "name": "tricolor palazzo pants",
+        "category": "Bottomwear",
+        "price": 899,
+        "occasions": ["independence day", "festive", "casual"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["ethnic", "patriotic", "tricolor", "comfort"],
+        "keywords": ["palazzo", "palazzo pants", "pants"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_022",
+        "name": "silk churidar diwali pyjama",
+        "category": "Bottomwear",
+        "price": 799,
+        "occasions": ["diwali", "festive"],
+        "colors": ["gold", "cream"],
+        "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
+        "keywords": ["churidar", "pyjama", "pants"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_023",
+        "name": "diwali brocade palazzo",
+        "category": "Bottomwear",
+        "price": 999,
+        "occasions": ["diwali", "festive"],
+        "colors": ["gold", "maroon"],
+        "aesthetic_tags": ["ethnic", "vibrant", "diwali-special"],
+        "keywords": ["palazzo", "palazzo pants", "pants"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_024",
+        "name": "diwali dhoti pants",
+        "category": "Bottomwear",
+        "price": 1099,
+        "occasions": ["diwali", "festive", "wedding"],
+        "colors": ["gold", "beige"],
+        "aesthetic_tags": ["ethnic", "royal", "traditional", "diwali-special"],
+        "keywords": ["dhoti", "dhoti pants"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1596489370005-cb6d860d5dd7?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "bot_025",
+        "name": "diwali sequin skirt",
+        "category": "Bottomwear",
+        "price": 1199,
+        "occasions": ["diwali", "party", "festive"],
+        "colors": ["black", "gold"],
+        "aesthetic_tags": ["glam", "fusion", "diwali-special"],
+        "keywords": ["skirt", "sequin skirt"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1582142407894-ec85a1260a46?auto=format&fit=crop&w=400&q=80"
+    },
 
     # -------------------------------------------------------------------------
     # FOOTWEAR (12 Items)
@@ -523,6 +816,126 @@ CATALOG: List[Dict[str, Any]] = [
         "gender": "Women",
         "brand": "Libas",
         "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_011",
+        "name": "tricolor canvas sneakers",
+        "category": "Footwear",
+        "price": 1399,
+        "occasions": ["independence day", "casual"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "streetwear", "casual"],
+        "keywords": ["sneakers", "shoes", "canvas shoes"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_012",
+        "name": "embellished diwali mojris",
+        "category": "Footwear",
+        "price": 1299,
+        "occasions": ["diwali", "festive", "wedding"],
+        "colors": ["gold", "maroon"],
+        "aesthetic_tags": ["ethnic", "glam", "heavy", "diwali-special"],
+        "keywords": ["mojri", "jutti", "juttis", "shoes"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_013",
+        "name": "traditional rakhi day mojris",
+        "category": "Footwear",
+        "price": 1199,
+        "occasions": ["raksha bandhan", "festive"],
+        "colors": ["maroon", "gold"],
+        "aesthetic_tags": ["ethnic", "traditional", "rakhi-special"],
+        "keywords": ["mojri", "mojari", "jutti", "shoes"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_014",
+        "name": "kolhapuri flats for rakhi day",
+        "category": "Footwear",
+        "price": 799,
+        "occasions": ["raksha bandhan", "festive"],
+        "colors": ["tan", "gold"],
+        "aesthetic_tags": ["ethnic", "traditional", "comfort", "rakhi-special"],
+        "keywords": ["kolhapuri", "flats", "sandals", "chappal"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_015",
+        "name": "white canvas shoes",
+        "category": "Footwear",
+        "price": 999,
+        "occasions": ["independence day", "casual", "Office"],
+        "colors": ["white"],
+        "aesthetic_tags": ["minimalist", "patriotic-friendly", "versatile"],
+        "keywords": ["sneakers", "shoes", "canvas shoes"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_016",
+        "name": "tricolor flip flops",
+        "category": "Footwear",
+        "price": 499,
+        "occasions": ["independence day", "casual"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "casual", "comfort"],
+        "keywords": ["flip flops", "slippers", "sandals"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_017",
+        "name": "tiranga block heels",
+        "category": "Footwear",
+        "price": 1299,
+        "occasions": ["independence day", "festive"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "elegant"],
+        "keywords": ["heels", "block heels", "shoes"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_018",
+        "name": "diwali special juttis",
+        "category": "Footwear",
+        "price": 999,
+        "occasions": ["diwali", "festive"],
+        "colors": ["gold", "red"],
+        "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
+        "keywords": ["jutti", "juttis", "shoes"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_019",
+        "name": "diwali embellished heels",
+        "category": "Footwear",
+        "price": 1499,
+        "occasions": ["diwali", "party", "festive"],
+        "colors": ["gold", "black"],
+        "aesthetic_tags": ["glam", "heavy", "diwali-special"],
+        "keywords": ["heels", "shoes"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "foot_020",
+        "name": "diwali festive kolhapuris",
+        "category": "Footwear",
+        "price": 899,
+        "occasions": ["diwali", "festive", "casual"],
+        "colors": ["tan", "gold"],
+        "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
+        "keywords": ["kolhapuri", "sandals", "chappal"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=400&q=80"
     },
 
     # -------------------------------------------------------------------------
@@ -664,6 +1077,150 @@ CATALOG: List[Dict[str, Any]] = [
         "keywords": ["gajra", "hair accessory", "hair clip"],
         "gender": "Women",
         "image_url": "https://images.unsplash.com/photo-1588616140502-3c1a84f3eb3c?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_012",
+        "name": "handcrafted designer rakhi thread duo",
+        "category": "Accessory",
+        "price": 349,
+        "occasions": ["raksha bandhan"],
+        "colors": ["red", "gold", "multicolor"],
+        "aesthetic_tags": ["ethnic", "traditional", "sentimental", "rakhi-special", "gift"],
+        "keywords": ["rakhi", "rakhi thread", "rakhi set", "bracelet"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_013",
+        "name": "sibling matching rakhi gift potli duo",
+        "category": "Accessory",
+        "price": 599,
+        "occasions": ["raksha bandhan"],
+        "colors": ["magenta", "gold"],
+        "aesthetic_tags": ["ethnic", "traditional", "gift", "rakhi-special"],
+        "keywords": ["potli", "gift bag", "rakhi gift", "hamper"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_014",
+        "name": "tricolor enamel badge pin",
+        "category": "Accessory",
+        "price": 320,
+        "occasions": ["independence day"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "statement"],
+        "keywords": ["badge", "pin", "brooch", "tiranga pin"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1613588718956-c2e8f29ea156?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_015",
+        "name": "tiranga silk stole",
+        "category": "Accessory",
+        "price": 449,
+        "occasions": ["independence day", "festive"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "elegant"],
+        "keywords": ["stole", "dupatta", "scarf", "tiranga stole"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1599643478524-fb524b0b14c1?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_016",
+        "name": "traditional diya-shaped jhumka earrings",
+        "category": "Accessory",
+        "price": 499,
+        "occasions": ["diwali", "festive"],
+        "colors": ["gold", "oxidised"],
+        "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
+        "keywords": ["earrings", "jhumka", "diya earrings", "jewellery"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_017",
+        "name": "rakhi day kalava & tilak set",
+        "category": "Accessory",
+        "price": 320,
+        "occasions": ["raksha bandhan"],
+        "colors": ["red", "gold"],
+        "aesthetic_tags": ["ethnic", "traditional", "ritual", "rakhi-special"],
+        "keywords": ["kalava", "tilak", "rakhi set", "puja thali"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_018",
+        "name": "matching sibling friendship bangles duo",
+        "category": "Accessory",
+        "price": 449,
+        "occasions": ["raksha bandhan"],
+        "colors": ["gold", "silver"],
+        "aesthetic_tags": ["ethnic", "sentimental", "rakhi-special"],
+        "keywords": ["bangles", "bracelet", "sibling set"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_019",
+        "name": "tricolor flag wristband",
+        "category": "Accessory",
+        "price": 320,
+        "occasions": ["independence day"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "casual"],
+        "keywords": ["wristband", "bracelet", "tiranga band"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_020",
+        "name": "tiranga tote bag",
+        "category": "Accessory",
+        "price": 599,
+        "occasions": ["independence day", "casual"],
+        "colors": ["saffron", "white", "green"],
+        "aesthetic_tags": ["patriotic", "tricolor", "functional"],
+        "keywords": ["tote", "tote bag", "bag"],
+        "gender": "Unisex",
+        "image_url": "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_021",
+        "name": "kundan maang tikka diwali set",
+        "category": "Accessory",
+        "price": 699,
+        "occasions": ["diwali", "festive", "wedding"],
+        "colors": ["gold", "white"],
+        "aesthetic_tags": ["ethnic", "royal", "diwali-special"],
+        "keywords": ["maang tikka", "kundan", "jewellery"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1599643478524-fb524b0b14c1?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_022",
+        "name": "diwali festive potli bag",
+        "category": "Accessory",
+        "price": 549,
+        "occasions": ["diwali", "festive"],
+        "colors": ["gold", "red"],
+        "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
+        "keywords": ["potli", "clutch", "bag"],
+        "gender": "Women",
+        "image_url": "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+        "id": "acc_023",
+        "name": "diwali pocket square & pin set",
+        "category": "Accessory",
+        "price": 399,
+        "occasions": ["diwali", "festive"],
+        "colors": ["maroon", "gold"],
+        "aesthetic_tags": ["ethnic", "sleek", "diwali-special"],
+        "keywords": ["pocket square", "pin", "brooch"],
+        "gender": "Men",
+        "image_url": "https://images.unsplash.com/photo-1613588718956-c2e8f29ea156?auto=format&fit=crop&w=400&q=80"
     }
 ]
 
@@ -789,3 +1346,16 @@ if frontend_catalog_dir.exists():
             if local_file.exists():
                 item["image_url"] = f"/catalog/{pid}{ext}"
                 break
+
+# --- BACKFILL FESTIVAL TAGS & OCCASIONS ---
+def _backfill_catalog_tags(catalog_items: List[Dict[str, Any]]) -> None:
+    rakhi_footwear_ids = {"foot_005", "foot_010"}
+    for item in catalog_items:
+        # Every existing item tagged 'festive' gets explicitly tagged 'diwali'
+        if "festive" in item.get("occasions", []) and "diwali" not in item["occasions"]:
+            item["occasions"].append("diwali")
+        # Explicitly tag Raksha Bandhan footwear
+        if item["id"] in rakhi_footwear_ids and "raksha bandhan" not in item["occasions"]:
+            item["occasions"].append("raksha bandhan")
+
+_backfill_catalog_tags(CATALOG)

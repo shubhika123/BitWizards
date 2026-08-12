@@ -66,6 +66,18 @@ class PrunaService:
         local_path = FRONTEND_PUBLIC_DIR / relative_url.lstrip("/")
         logger.info(f"  [LOCAL] Resolving '{relative_url}' → '{local_path}'")
 
+        # Handle extension mismatch dynamically if the exact filename is missing (e.g., .png vs .jpg)
+        if not local_path.exists():
+            logger.warning(f"File not found at exact path {local_path}. Trying fallback extensions...")
+            parent_dir = local_path.parent
+            stem = local_path.stem
+            for ext in [".jpg", ".jpeg", ".png", ".webp"]:
+                fallback_path = parent_dir / f"{stem}{ext}"
+                if fallback_path.exists():
+                    local_path = fallback_path
+                    logger.info(f"  [LOCAL] Resolved fallback match: '{local_path}'")
+                    break
+
         if not local_path.exists():
             raise FileNotFoundError(f"[LOCAL] File not found on disk: {local_path}")
 

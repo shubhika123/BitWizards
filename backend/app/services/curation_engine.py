@@ -261,6 +261,33 @@ class CurationEngine:
                         if "formal-ethnic" in [o.lower() for o in full_product.get("occasions", [])] or "wedding" in [o.lower() for o in full_product.get("occasions", [])]:
                             match_score *= 1.5 # Boost ethnic items
                 
+                # --- 3. FESTIVE BOOST GATES (Rakhi / Diwali / Independence Day) ---
+                is_rakhi_request = "rakhi" in raw_query or "raksha bandhan" in raw_query
+                is_diwali_request = "diwali" in raw_query or "deepavali" in raw_query
+                is_ind_day_request = "independence" in raw_query or "15 august" in raw_query or "tiranga" in raw_query
+                
+                if is_rakhi_request:
+                    if "raksha bandhan" in [o.lower() for o in full_product.get("occasions", [])] or "rakhi-special" in item_tags:
+                        match_score *= 2.0  # Double score for Rakhi items
+                    elif "ethnic" in item_tags or "traditional" in item_tags:
+                        match_score *= 1.3  # Slight boost for generic ethnic wear
+                    else:
+                        match_score *= 0.5  # Penalize non-ethnic items (like jeans/t-shirts)
+                
+                elif is_diwali_request:
+                    if "diwali" in [o.lower() for o in full_product.get("occasions", [])] or "diwali-special" in item_tags:
+                        match_score *= 2.0
+                    elif "ethnic" in item_tags or "traditional" in item_tags:
+                        match_score *= 1.3
+                    else:
+                        match_score *= 0.5
+                        
+                elif is_ind_day_request:
+                    if "independence day" in [o.lower() for o in full_product.get("occasions", [])] or "patriotic" in item_tags or "tricolor" in item_tags:
+                        match_score *= 2.0
+                    else:
+                        match_score *= 0.5
+
                 if match_score != pre_vibe_score:
                     logger.info(f"[CurationEngine] 🎭 [CONTEXTUAL GATE] {m_name} (ID: {match.id}) | Score: {pre_vibe_score:.4f} -> {match_score:.4f}")
 
