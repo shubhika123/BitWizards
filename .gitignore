@@ -12,6 +12,17 @@ backend/.venv/
 backend/venv/
 backend/.env
 
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Test files & directories
+test_*.py
+*_test.py
+tests/
+backend/tests/
+
 # IDEs & System
 .DS_Store
 .vscode/

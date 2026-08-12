@@ -85,7 +85,7 @@ const DEMO_OUTFITS: DemoOutfit[] = [
     items: [
       { id: "top_prompt1", category: "TOP", name: "Haldi Yellow Kurta", price: 1800, image: "/catalog/prompt1_top_wear.png" },
       { id: "bottom_prompt1", category: "BOTTOM", name: "Red Ethnic Skirt", price: 1200, image: "/catalog/prompt1_bottom_wear.png" },
-      { id: "footwear_003", category: "FOOTWEAR", name: "Embellished Wedding Sandals", price: 750, image: "/catalog/foot_003.jpg" },
+      { id: "footwear_003", category: "FOOTWEAR", name: "Embellished Wedding Sandals", price: 750, image: "/catalog/foot_003.jpeg" },
       { id: "accessory_prompt1", category: "ACCESSORY", name: "Yellow Ethnic Bangles", price: 450, image: "/catalog/promtp1_accesories.png" },
     ],
   },
@@ -109,7 +109,7 @@ const DEMO_OUTFITS: DemoOutfit[] = [
     items: [
       { id: "top_prompt1", category: "TOP", name: "Haldi Yellow Kurta", price: 1800, image: "/catalog/prompt1_top_wear.png" },
       { id: "bottom_prompt1", category: "BOTTOM", name: "Red Ethnic Skirt", price: 1200, image: "/catalog/prompt1_bottom_wear.png" },
-      { id: "footwear_003", category: "FOOTWEAR", name: "Embellished Wedding Sandals", price: 750, image: "/catalog/foot_003.jpg" },
+      { id: "footwear_003", category: "FOOTWEAR", name: "Embellished Wedding Sandals", price: 750, image: "/catalog/foot_003.jpeg" },
       { id: "accessory_prompt1", category: "ACCESSORY", name: "Yellow Ethnic Bangles", price: 450, image: "/catalog/promtp1_accesories.png" },
     ],
   }

@@ -65,6 +65,8 @@ class GenieAlternativesRequest(BaseModel):
     occasion_category: Optional[str] = None
     aesthetic_tags: List[str] = Field(default_factory=list)
     excluded_colors: List[str] = Field(default_factory=list)
+    excluded_tags: List[str] = Field(default_factory=list)
+    target_items: List[str] = Field(default_factory=list)
     page: int = 0
     
     model_config = ConfigDict(extra="ignore")
