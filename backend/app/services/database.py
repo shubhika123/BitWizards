@@ -239,7 +239,7 @@ CATALOG: List[Dict[str, Any]] = [
         "keywords": ["kurta", "kurta set", "rakhi kurta", "silk kurta", "zari"],
         "gender": "Men",
         "brand": "Libas",
-        "image_url": "https://images.unsplash.com/photo-1583391733959-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgUQffP1r0VdHUpuFgaOGK9ebwjLpFn45iEAnMmjRaOg&s"
     },
     {
         "id": "top_018",
@@ -251,7 +251,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "royal", "structured", "celebratory", "rakhi-special"],
         "keywords": ["kurta", "bandhgala", "rakhi kurta", "embroidered kurta"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpG0_M8x15851eB2DSLHpBjBrdEyRR4tzIU68XC5L-BtrOX1sQz5Ev8d4&s=10"
     },
     {
         "id": "top_019",
@@ -264,7 +264,7 @@ CATALOG: List[Dict[str, Any]] = [
         "keywords": ["kurti", "anarkali", "rakhi kurti", "mirror work"],
         "gender": "Women",
         "brand": "DressBerry",
-        "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkgdYtpmHeL-d41PmiU2dXX1HoehOPdi7A0ACKMOdpUOWqT5MiPe7mrucm&s=10"
     },
     {
         "id": "top_020",
@@ -277,7 +277,7 @@ CATALOG: List[Dict[str, Any]] = [
         "keywords": ["kurti", "kurti set", "banarasi", "rakhi kurti", "co-ord set"],
         "gender": "Women",
         "brand": "Sangria",
-        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://images.cbazaar.com/images/beige-viscose-banarasi-embroidered-with-beads-work-co-ord-set-iwsusvrr42-u.jpg"
     },
     {
         "id": "top_021",
@@ -290,7 +290,7 @@ CATALOG: List[Dict[str, Any]] = [
         "keywords": ["t-shirt", "tshirt", "tee", "tricolor tee", "tiranga tee"],
         "gender": "Unisex",
         "brand": "Roadster",
-        "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf98BzR8ruE1wxL0uT2HWJ0yq5Rr760FbxYter7CQeSAnMfHmJU3zcLN8&s=10"
     },
     {
         "id": "top_022",
@@ -302,7 +302,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "patriotic", "tricolor", "traditional"],
         "keywords": ["kurta", "angrakha", "tiranga kurta"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1583391733959-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://www.dupattabazaar.com/cdn/shop/products/DBM0899TRI_1_1080x.jpg?v=1665551162"
     },
     {
         "id": "top_023",
@@ -314,7 +314,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "patriotic", "tricolor", "flowy"],
         "keywords": ["kurti", "anarkali", "tiranga kurti"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1617260537877-cd5f4ccda364?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://www.wholesaletextile.in/product-img/Poonam-Tiranga-Festival-New-Ku-1672727161.jpeg"
     },
     {
         "id": "top_024",
@@ -326,7 +326,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "patriotic", "structured", "layering"],
         "keywords": ["nehru jacket", "bandhgala", "jacket", "waistcoat"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTMJ-28O2BF2ecRzdTt8cyIz056t5GjXqey0uoczV6rj0HDuAdDNRYQ9OKYj4ETVALZ-oOokNiwVtyIof13_PHNsLwJa3WfHzQNwOdKDlL6OYuvve0vq0LtWX0t&usqp=CAc"
     },
     {
         "id": "top_025",
@@ -338,7 +338,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "festive", "celebratory", "diwali-special"],
         "keywords": ["kurta", "diwali kurta", "embroidered kurta", "diya kurta"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1583391733959-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToCxi6FKj7C1v2_4tbBkdAs5QFuXdF1XPofJuEisp3mJsB8g3_r6sNOfE&s=10"
     },
     {
         "id": "top_026",
@@ -351,7 +351,7 @@ CATALOG: List[Dict[str, Any]] = [
         "keywords": ["kurti", "sequin kurti", "party kurti", "diwali kurti"],
         "gender": "Women",
         "brand": "DressBerry",
-        "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROD3bLyuYnIU-6x4geHyFAsLwMSw95V1D9iQyFDwQB3Q&s=10"
     },
     {
         "id": "top_027",
@@ -363,7 +363,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "royal", "heavy", "diwali-special"],
         "keywords": ["kurta", "sherwani", "diwali kurta", "brocade"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNQYA1LacNUJgwTdm255mWSsq3IhXNHD3boLLdwNxAKQ&s=10"
     },
     {
         "id": "top_028",
@@ -375,7 +375,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "royal", "traditional", "diwali-special"],
         "keywords": ["kurti", "banarasi", "diwali kurti"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1610034639377-50a80e7741d4?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHhj9XvG8kUz8quNPjPpE1vLtsakgQ4qfrCSsHJRywmA&s=10"
     },
 
     # -------------------------------------------------------------------------
