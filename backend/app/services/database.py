@@ -554,7 +554,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "comfort", "rakhi-special"],
         "keywords": ["churidar", "leggings", "pants", "rakhi churidar"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAEAzqWdjg-TAmJVzZ3kbnfLunhQuAwyaCWVWSo6klwA&s"
     },
     {
         "id": "bot_015",
@@ -566,7 +566,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["minimalist", "patriotic-friendly", "versatile"],
         "keywords": ["pants", "trousers", "white pants"],
         "gender": "Unisex",
-        "image_url": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://www.wforwoman.com/cdn/shop/files/W63149-218089.jpg?v=1756280693"
     },
     {
         "id": "bot_016",
@@ -578,7 +578,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "comfort", "rakhi-special"],
         "keywords": ["pyjama", "kurta pyjama", "pants", "rakhi pyjama"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrNxJ1XBHiWQHYh642_vspEvfAJdWD-3UY5F-Zz5lo9Gpd5aH8xZ9bBtLD&s=10"
     },
     {
         "id": "bot_017",
@@ -590,7 +590,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "comfort", "vibrant", "rakhi-special"],
         "keywords": ["palazzo", "palazzo pants", "pants", "rakhi palazzo"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8GnuJVjdR-y3QLucX06dvOxloNRXoa9nvZM1BvA0y2a-v6mOqUvPfLK7g&s=10"
     },
     {
         "id": "bot_018",
@@ -602,7 +602,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "sleek", "premium", "rakhi-special"],
         "keywords": ["pants", "trousers", "silk pants"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1574041705602-5ea912eb929d?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://m.media-amazon.com/images/I/71yR2FW1TGL._AC_UY1100_.jpg"
     },
     {
         "id": "bot_019",
@@ -614,7 +614,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["patriotic", "tricolor", "streetwear", "casual"],
         "keywords": ["track pants", "joggers", "pants"],
         "gender": "Unisex",
-        "image_url": "https://images.unsplash.com/photo-1549037173-e3b710c541d6?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRalO-3adWeon2hmVa7yH8g1a1z8Z6je6Kr5REe1dhmcV_u_fJkvOyuwA&s=10"
     },
     {
         "id": "bot_020",
@@ -626,7 +626,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "patriotic-friendly", "traditional"],
         "keywords": ["churidar", "pyjama", "pants"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkz1nD6qm_CaSWWHjm6X9Oj5WM_1npbYtQMPOnpgz48b3MfPIqk8dLQKw&s=10"
     },
     {
         "id": "bot_021",
@@ -638,7 +638,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "patriotic", "tricolor", "comfort"],
         "keywords": ["palazzo", "palazzo pants", "pants"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://www.satyamfab.com/cdn/shop/files/5670-KISHMAT-2.jpg?v=1775043410&width=3840"
     },
     {
         "id": "bot_022",
@@ -650,7 +650,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
         "keywords": ["churidar", "pyjama", "pants"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1582531393666-4c4bc477eb57?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxhY_6rcwZeVGXr4pDydfoulD46YLryor5xCALY5z3vCNkA1XENW5MDIWu&s=10"
     },
     {
         "id": "bot_023",
@@ -662,7 +662,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "vibrant", "diwali-special"],
         "keywords": ["palazzo", "palazzo pants", "pants"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1583391733975-4b693245eb0a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://assets2.andaazfashion.com/media/catalog/product/b/o/bottle-green-jacquard-indo-western-zari-embroidered-palazzo-suit-lstv144413-1_1_1.jpg?tr=w-800,h-1200,c-at_max,q-70"
     },
     {
         "id": "bot_024",
@@ -674,7 +674,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "royal", "traditional", "diwali-special"],
         "keywords": ["dhoti", "dhoti pants"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1596489370005-cb6d860d5dd7?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://img.perniaspopupshop.com/catalog/product/d/m/DMMC012123_1.jpg?impolicy=detailimageprod"
     },
     {
         "id": "bot_025",
@@ -686,7 +686,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["glam", "fusion", "diwali-special"],
         "keywords": ["skirt", "sequin skirt"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1582142407894-ec85a1260a46?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsM3Qynm6x8PYqS5G5Qs3Cjx55B0Hv_qhHSDqUIcmykiV1VkxBbJTEKfw&s=10"
     },
 
     # -------------------------------------------------------------------------
@@ -827,7 +827,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["patriotic", "tricolor", "streetwear", "casual"],
         "keywords": ["sneakers", "shoes", "canvas shoes"],
         "gender": "Unisex",
-        "image_url": "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMzG0hTFDobptkk2RLBL7i6Zei8TOo8EIFRbZxeT_4hg&s"
     },
     {
         "id": "foot_012",
@@ -839,7 +839,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "glam", "heavy", "diwali-special"],
         "keywords": ["mojri", "jutti", "juttis", "shoes"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ64cfKlgjsXKnJdMCa8Hv92WlrQWGMJfgbOuufPiWoDw&s"
     },
     {
         "id": "foot_013",
@@ -851,7 +851,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "rakhi-special"],
         "keywords": ["mojri", "mojari", "jutti", "shoes"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://www.anitadongre.com/on/demandware.static/-/Sites-masterCatalog_AD_India/default/dw75415ac9/images/hires/SS21/nargis_multi_cream_1_1.jpg"
     },
     {
         "id": "foot_014",
@@ -863,7 +863,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "comfort", "rakhi-special"],
         "keywords": ["kolhapuri", "flats", "sandals", "chappal"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://imagescdn.jaypore.com/img/app/product/4/40084736-22124163.jpg?auto=format&w=600"
     },
     {
         "id": "foot_015",
@@ -875,7 +875,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["minimalist", "patriotic-friendly", "versatile"],
         "keywords": ["sneakers", "shoes", "canvas shoes"],
         "gender": "Unisex",
-        "image_url": "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqurjG5X9yyUeAdWrzDdvAgWGPJZG0r6Ki8gs-Wx9pRVXEU2cbxhW6k6o&s=10"
     },
     {
         "id": "foot_016",
@@ -911,7 +911,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
         "keywords": ["jutti", "juttis", "shoes"],
         "gender": "Men",
-        "image_url": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://ik.imagekit.io/4sjmoqtje/tr:c-at_max/cdn/shop/files/brown_velvet_jutti_with_hand-sg225045_1.jpg?v=1743149774&w=1000"
     },
     {
         "id": "foot_019",
@@ -923,7 +923,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["glam", "heavy", "diwali-special"],
         "keywords": ["heels", "shoes"],
         "gender": "Women",
-        "image_url": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://ik.imagekit.io/4sjmoqtje/tr:w-1000,c-at_max/cdn/shop/files/silver-hand-hand-embellished-faux-leather-block-heels-sg372915-6_adde6766-344c-4ab2-899b-03f74070471b.jpg?v=1764926763"
     },
     {
         "id": "foot_020",
@@ -935,7 +935,7 @@ CATALOG: List[Dict[str, Any]] = [
         "aesthetic_tags": ["ethnic", "traditional", "diwali-special"],
         "keywords": ["kolhapuri", "sandals", "chappal"],
         "gender": "Unisex",
-        "image_url": "https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=400&q=80"
+        "image_url": "https://houseofvitti.com/cdn/shop/files/46_converted.webp?v=1785155463&width=1080"
     },
 
     # -------------------------------------------------------------------------
